@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404
 from django.views.generic import ListView, DetailView, TemplateView
 from django.db.models import Q, Count
-from django.http import JsonResponse
+from django.http import JsonResponse, Http404
 from django.core.paginator import Paginator
 from django.conf import settings
 import random
@@ -29,9 +29,36 @@ class HomeView(TemplateView):
         return context
 
 
-class CardDetailView(DetailView):
+class CardDetailView(TemplateView):
     """
-    Card detail page with full analysis.
+    Card detail page with full analysis using MongoDB data.
+    """
+    template_name = 'cards/card_detail.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Get card UUID from URL
+        card_uuid = kwargs.get('card_uuid')
+        if not card_uuid:
+            raise Http404("Card UUID required")
+        
+        # Get card from MongoDB
+        cards_collection = get_cards_collection()
+        card = cards_collection.find_one({'uuid': card_uuid})
+        
+        if not card:
+            raise Http404("Card not found")
+        
+        context['card'] = card
+        context['card_uuid'] = card_uuid
+        
+        return context
+
+
+class OldCardDetailView(DetailView):
+    """
+    OLD: Card detail page with full analysis.
     Supports both UUID-only and UUID+slug URLs for SEO.
     """
     model = Card

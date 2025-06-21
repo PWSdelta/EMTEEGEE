@@ -18,9 +18,16 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from cards.admin import mongo_card_admin
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    
+    # Custom MongoDB admin views (separate namespace)
+    path('admin-cards/', include(([
+        path('', mongo_card_admin.card_list_view, name='cards-list'),
+        path('<str:card_uuid>/', mongo_card_admin.card_detail_view, name='card-detail'),
+    ], 'admin-cards'), namespace='admin-cards')),
     
     # Authentication URLs
     path('accounts/', include('allauth.urls')),

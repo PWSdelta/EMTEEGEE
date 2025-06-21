@@ -1,0 +1,227 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block title %}{{ card.name }} | Cards | Django Admin{% endblock %}
+
+{% block content %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin-cards:cards-list' %}">Cards</a> › {{ card.name }}
+</div>
+
+<h1>🃏 {{ card.name }}</h1>
+
+<div class="row">
+    <div class="col-md-8">
+        <!-- Basic Information -->
+        <div class="module">
+            <h2>Basic Information</h2>
+            <table class="table">
+                <tr>
+                    <th width="200">Name:</th>
+                    <td><strong>{{ card.name }}</strong></td>
+                </tr>
+                <tr>
+                    <th>UUID:</th>
+                    <td><code>{{ card.uuid }}</code></td>
+                </tr>
+                {% if card.manaCost %}
+                <tr>
+                    <th>Mana Cost:</th>
+                    <td><code>{{ card.manaCost }}</code></td>
+                </tr>
+                {% endif %}
+                {% if card.manaValue %}
+                <tr>
+                    <th>Mana Value:</th>
+                    <td>{{ card.manaValue }}</td>
+                </tr>
+                {% endif %}
+                {% if card.types %}
+                <tr>
+                    <th>Types:</th>
+                    <td>{{ card.types|join:" " }}</td>
+                </tr>
+                {% endif %}
+                {% if card.subtypes %}
+                <tr>
+                    <th>Subtypes:</th>
+                    <td>{{ card.subtypes|join:", " }}</td>
+                </tr>
+                {% endif %}
+                {% if card.supertypes %}
+                <tr>
+                    <th>Supertypes:</th>
+                    <td>{{ card.supertypes|join:", " }}</td>
+                </tr>
+                {% endif %}
+            </table>
+        </div>
+
+        <!-- Card Text -->
+        {% if card.text %}
+        <div class="module">
+            <h2>Card Text</h2>
+            <div class="card-text">
+                {{ card.text|linebreaks }}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Power/Toughness/Loyalty -->
+        {% if card.power or card.toughness or card.loyalty %}
+        <div class="module">
+            <h2>Combat Stats</h2>
+            <table class="table">
+                {% if card.power %}
+                <tr>
+                    <th width="200">Power:</th>
+                    <td>{{ card.power }}</td>
+                </tr>
+                {% endif %}
+                {% if card.toughness %}
+                <tr>
+                    <th>Toughness:</th>
+                    <td>{{ card.toughness }}</td>
+                </tr>
+                {% endif %}
+                {% if card.loyalty %}
+                <tr>
+                    <th>Loyalty:</th>
+                    <td>{{ card.loyalty }}</td>
+                </tr>
+                {% endif %}
+            </table>
+        </div>
+        {% endif %}
+
+        <!-- Keywords -->
+        {% if card.keywords %}
+        <div class="module">
+            <h2>Keywords</h2>
+            <div>
+                {% for keyword in card.keywords %}
+                    <span class="badge badge-info">{{ keyword }}</span>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-md-4">
+        <!-- Quick Stats -->
+        <div class="module">
+            <h2>Properties</h2>
+            <table class="table table-sm">
+                {% if card.colors %}
+                <tr>
+                    <th>Colors:</th>
+                    <td>
+                        {% for color in card.colors %}
+                            <span class="badge 
+                                {% if color == 'W' %}badge-light
+                                {% elif color == 'U' %}badge-primary
+                                {% elif color == 'B' %}badge-dark
+                                {% elif color == 'R' %}badge-danger
+                                {% elif color == 'G' %}badge-success
+                                {% else %}badge-secondary{% endif %}">
+                                {{ color }}
+                            </span>
+                        {% endfor %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <th>Colors:</th>
+                    <td><span class="text-muted">Colorless</span></td>
+                </tr>
+                {% endif %}
+
+                {% if card.colorIdentity %}
+                <tr>
+                    <th>Color Identity:</th>
+                    <td>
+                        {% for color in card.colorIdentity %}
+                            <span class="badge badge-outline-secondary">{{ color }}</span>
+                        {% endfor %}
+                    </td>
+                </tr>
+                {% endif %}
+
+                {% if card.rarity %}
+                <tr>
+                    <th>Rarity:</th>
+                    <td>
+                        <span class="badge 
+                            {% if card.rarity == 'common' %}badge-secondary
+                            {% elif card.rarity == 'uncommon' %}badge-success
+                            {% elif card.rarity == 'rare' %}badge-warning
+                            {% elif card.rarity == 'mythic' %}badge-danger
+                            {% else %}badge-light{% endif %}">
+                            {{ card.rarity|title }}
+                        </span>
+                    </td>
+                </tr>
+                {% endif %}
+            </table>
+        </div>
+
+        <!-- Format Legality -->
+        {% if card.legalities %}
+        <div class="module">
+            <h2>Format Legality</h2>
+            <table class="table table-sm">
+                {% for format, status in card.legalities.items %}
+                <tr>
+                    <th>{{ format|title }}:</th>
+                    <td>
+                        <span class="badge 
+                            {% if status == 'Legal' %}badge-success
+                            {% elif status == 'Banned' %}badge-danger
+                            {% elif status == 'Restricted' %}badge-warning
+                            {% else %}badge-secondary{% endif %}">
+                            {{ status }}
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+        {% endif %}
+
+        <!-- Printings -->
+        {% if card.printings %}
+        <div class="module">
+            <h2>Printings</h2>
+            <div>
+                {% for printing in card.printings %}
+                    <span class="badge badge-light">{{ printing }}</span>
+                {% endfor %}
+            </div>
+            <small class="text-muted">{{ card.printings|length }} printing{{ card.printings|length|pluralize }}</small>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Actions -->
+<div class="submit-row">
+    <a href="{% url 'admin-cards:cards-list' %}" class="btn btn-secondary">← Back to Card List</a>
+</div>
+
+<style>
+.card-text {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 5px;
+    font-family: monospace;
+    white-space: pre-wrap;
+}
+.badge {
+    margin: 2px;
+}
+.module {
+    margin-bottom: 20px;
+}
+</style>
+
+{% endblock %}

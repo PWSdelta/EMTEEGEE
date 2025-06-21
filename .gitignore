@@ -127,6 +127,7 @@ staticfiles/
 media/
 logs/
 node_modules/
+testing_scripts/
 
 # MTGJson data files
 *.json

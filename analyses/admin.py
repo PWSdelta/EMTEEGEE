@@ -1,14 +1,14 @@
 from django.contrib import admin
 from .models import AnalysisComponent, PriceHistory
 
-
-@admin.register(AnalysisComponent)
+# Temporarily disabled until we implement proper Card admin integration
+# @admin.register(AnalysisComponent)
 class AnalysisComponentAdmin(admin.ModelAdmin):
     list_display = ['card', 'component_type', 'model_used', 'is_active', 'created_at']
     list_filter = ['component_type', 'model_used', 'is_active']
     search_fields = ['card__name', 'content_markdown']
     readonly_fields = ['created_at', 'updated_at']
-    autocomplete_fields = ['card']
+    # autocomplete_fields = ['card']  # Disabled until Card admin is fixed
     
     fieldsets = (
         ('Component Information', {
@@ -28,7 +28,7 @@ class AnalysisComponentAdmin(admin.ModelAdmin):
     )
 
 
-@admin.register(PriceHistory)
+# @admin.register(PriceHistory)
 class PriceHistoryAdmin(admin.ModelAdmin):
     list_display = ['card', 'usd', 'usd_foil', 'eur', 'source', 'recorded_at']
     list_filter = ['source', 'recorded_at']
