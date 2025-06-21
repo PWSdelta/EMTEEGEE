@@ -35,6 +35,16 @@ class Command(BaseCommand):
             choices=ALL_COMPONENT_TYPES,
             help='Analyze specific component type'
         )
+        parser.add_argument(
+            '--parallel',
+            action='store_true',
+            help='Use parallel processing for analysis (may overload system)'
+        )
+        parser.add_argument(
+            '--serial',
+            action='store_true',
+            help='Use serial processing by model speed (default, more stable)'
+        )
 
     def handle(self, *args, **options):
         action = options['action']
@@ -80,45 +90,57 @@ class Command(BaseCommand):
         uuid = options.get('uuid')
         limit = options.get('limit', 10)
         component = options.get('component')
+        parallel = options.get('parallel', False)
         
         if uuid:
             # Analyze specific card
             card = analysis_manager.get_card_by_uuid(uuid)
             if not card:
-                raise CommandError(f'Card with UUID {uuid} not found')            
+                raise CommandError(f'Card with UUID {uuid} not found')
+            
             name = card.get('name', uuid)
-            self.stdout.write(f'Analyzing {name}...')
+            self.stdout.write(f'🚀 Analyzing {name}...')
             
             # Set up progress logging for this card
             import logging
-            logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
+            logging.basicConfig(level=logging.INFO, format='%(message)s')
             
             if component:
                 # Analyze specific component
                 success = analysis_manager.generate_component(uuid, component)
                 if success:
                     self.stdout.write(
-                        self.style.SUCCESS(f'Successfully generated {component} for {name}')
+                        self.style.SUCCESS(f'✅ Successfully generated {component} for {name}')
                     )
-                else:
-                    self.stdout.write(
-                        self.style.ERROR(f'Failed to generate {component} for {name}')
+                else:                    self.stdout.write(
+                        self.style.ERROR(f'❌ Failed to generate {component} for {name}')
                     )
             else:
-                # Analyze all components
-                results = analysis_manager.generate_all_components(uuid)
+                # Analyze all components - choose processing method
+                if parallel:
+                    self.stdout.write('🔄 Using parallel processing...')
+                    results = analysis_manager.generate_all_components_parallel(uuid)
+                else:
+                    self.stdout.write('🔄 Using serial processing by model speed...')
+                    results = analysis_manager.generate_all_components_serial_by_speed(uuid)
+                
                 successful = sum(1 for success in results.values() if success)
                 total = len(results)
                 
-                self.stdout.write(
-                    self.style.SUCCESS(f'Generated {successful}/{total} components for {name}')
-                )
+                if successful == total:
+                    self.stdout.write(
+                        self.style.SUCCESS(f'🎉 Generated all {successful}/{total} components for {name}')
+                    )
+                else:
+                    self.stdout.write(
+                        self.style.WARNING(f'📊 Generated {successful}/{total} components for {name}')
+                    )
                 
                 # Show failed components
                 failed = [comp for comp, success in results.items() if not success]
                 if failed:
                     self.stdout.write(
-                        self.style.WARNING(f'Failed components: {", ".join(failed)}')
+                        self.style.WARNING(f'❌ Failed components: {", ".join(failed)}')
                     )
         else:
             # Analyze multiple cards

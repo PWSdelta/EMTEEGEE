@@ -14,6 +14,14 @@ from .ollama_client import OllamaClient, ALL_COMPONENT_TYPES, COMPONENT_MODEL_MA
 
 logger = logging.getLogger(__name__)
 
+# Model emoji mapping for logging
+MODEL_EMOJIS = {
+    'llama3.2:latest': '⚡',
+    'llama3.1:latest': '⚖️',
+    'qwen2.5:7b-instruct-q4_0': '🚀',
+    'mistral:7b': '🎯'
+}
+
 # MongoDB field constants
 ANALYSIS_FULLY_ANALYZED = "analysis.fully_analyzed"
 ANALYSIS_LAST_UPDATED = "analysis.last_updated"
@@ -144,7 +152,8 @@ class CardAnalysisManager:
             
             if "analysis" not in card:
                 self.initialize_card_analysis(uuid)
-              # Add the component
+            
+            # Add the component
             update_data = {
                 f"analysis.components.{component_type}": component_data,
                 ANALYSIS_LAST_UPDATED: datetime.now(timezone.utc).isoformat()
@@ -153,14 +162,16 @@ class CardAnalysisManager:
             result = self.cards_collection.update_one(
                 {"uuid": uuid},
                 {"$set": update_data}
-            )            
+            )
+            
             if result.modified_count > 0:
                 # Update component count and fully_analyzed status
                 self._update_analysis_status(uuid)
-                # Log successful component addition with word count
+                  # Log successful component addition with word count
                 word_count = component_data.get('word_count', 0)
                 model_used = component_data.get('model_used', 'unknown')
-                logger.info(f"✓ Added {component_type} component ({word_count} words, {model_used})")
+                model_emoji = MODEL_EMOJIS.get(model_used, '🤖')
+                logger.info(f"✅ {component_type} complete! ({word_count}w) {model_emoji}")
                 return True
             
             return False
@@ -177,13 +188,15 @@ class CardAnalysisManager:
         card = self.get_card_by_uuid(uuid)
         if not card:
             logger.error(f"Card not found: {uuid}")
-            return False
-        
+            return False        
         card_name = card.get('name', uuid)
         # Get the model that will be used for this component
         from .ollama_client import COMPONENT_MODEL_MAP
         model_name = COMPONENT_MODEL_MAP.get(component_type, 'unknown')
-        logger.info(f"Generating {component_type} for '{card_name}' using {model_name}")
+          # Shorter, fun logging
+        model_emoji = MODEL_EMOJIS.get(model_name, '🤖')
+        
+        logger.info(f"{model_emoji} Starting {component_type} for '{card_name}'")
         
         try:
             component_data = self.ollama_client.generate_component(card, component_type)
@@ -205,9 +218,10 @@ class CardAnalysisManager:
         card = self.get_card_by_uuid(uuid)
         if not card:
             logger.error(f"Card not found: {uuid}")
-            return results        
+            return results
+        
         card_name = card.get('name', uuid)
-        logger.info(f"Starting full analysis for '{card_name}' - generating all 20 components")
+        logger.info(f"🚀 Analyzing '{card_name[:25]}{'...' if len(card_name) > 25 else ''}' ({max_workers} workers)")
         
         # Initialize analysis if needed
         if "analysis" not in card:
@@ -218,31 +232,221 @@ class CardAnalysisManager:
         total_components = len(ALL_COMPONENT_TYPES)
         
         # Generate each component
-        for i, component_type in enumerate(ALL_COMPONENT_TYPES, 1):
-            # Skip if component already exists
+        for i, component_type in enumerate(ALL_COMPONENT_TYPES, 1):            # Skip if component already exists
             if component_type in existing_components:
-                logger.info(f"[{i}/{total_components}] Component {component_type} already exists for '{card_name}' ✓")
+                logger.info(f"[{i}/{total_components}] {component_type} already exists ✓")
                 results[component_type] = True
-                continue            
-            # Get model info for logging
+                continue
+              # Get model info for logging
             from .ollama_client import COMPONENT_MODEL_MAP
             model_name = COMPONENT_MODEL_MAP.get(component_type, 'unknown')
-            logger.info(f"[{i}/{total_components}] Generating {component_type} for '{card_name}' using {model_name}...")
+            model_emoji = MODEL_EMOJIS.get(model_name, '🤖')
+            logger.info(f"[{i}/{total_components}] {model_emoji} {component_type}...")
             
             success = self.generate_component(uuid, component_type)
             results[component_type] = success
             
             if success:
-                logger.info(f"[{i}/{total_components}] ✓ Successfully generated {component_type} for '{card_name}'")
+                logger.info(f"[{i}/{total_components}] ✅ {component_type} complete!")
             else:
-                logger.warning(f"[{i}/{total_components}] ✗ Failed to generate {component_type} for '{card_name}'")
+                logger.warning(f"[{i}/{total_components}] ❌ {component_type} failed!")
         
         # Final summary
         successful_count = sum(1 for success in results.values() if success)
-        logger.info(f"Completed analysis for '{card_name}': {successful_count}/{total_components} components generated")
+        if successful_count == total_components:
+            logger.info(f"🎉 '{card_name}' FULLY ANALYZED! All {total_components} components complete!")
+        else:
+            logger.info(f"📊 '{card_name}' analysis done: {successful_count}/{total_components} components")
         
         return results
     
+    def generate_all_components_parallel(self, uuid: str, max_workers: int = 2) -> Dict[str, bool]:
+        """Generate all 20 components for a card using parallel processing with model-specific workers."""
+        import concurrent.futures
+        import threading
+        from collections import defaultdict
+        
+        results = {}
+        
+        card = self.get_card_by_uuid(uuid)
+        if not card:
+            logger.error(f"Card not found: {uuid}")
+            return results
+        
+        card_name = card.get('name', uuid)
+        logger.info(f"🚀 Parallel analysis starting for '{card_name}' (20 components, {max_workers} workers)")
+        
+        # Initialize analysis if needed
+        if "analysis" not in card:
+            self.initialize_card_analysis(uuid)
+        
+        # Get existing components
+        existing_components = card.get("analysis", {}).get("components", {})
+        
+        # Group components by model for parallel processing
+        from .ollama_client import COMPONENT_MODEL_MAP, OLLAMA_MODELS
+        model_queues = defaultdict(list)
+        
+        for component_type in ALL_COMPONENT_TYPES:
+            if component_type in existing_components:
+                logger.info(f"✓ {component_type} already exists")
+                results[component_type] = True
+                continue
+            
+            model = COMPONENT_MODEL_MAP.get(component_type, 'unknown')
+            model_queues[model].append(component_type)
+        
+        # Show the work distribution
+        for model, components in model_queues.items():
+            if components:
+                model_emoji = MODEL_EMOJIS.get(model, '🤖')
+                logger.info(f"{model_emoji} {model}: {len(components)} components queued")
+        
+        def process_component_queue(model, component_queue):
+            """Process a queue of components for a specific model."""
+            model_results = {}
+            model_emoji = MODEL_EMOJIS.get(model, '🤖')
+            
+            for i, component_type in enumerate(component_queue, 1):
+                logger.info(f"{model_emoji} [{i}/{len(component_queue)}] {component_type}...")
+                success = self.generate_component(uuid, component_type)
+                model_results[component_type] = success
+                
+                if success:
+                    logger.info(f"{model_emoji} ✅ {component_type} done!")
+                else:
+                    logger.warning(f"{model_emoji} ❌ {component_type} failed!")
+            
+            return model_results
+          # Execute in parallel with ThreadPoolExecutor
+        import time
+        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+            # Submit tasks for each model that has work
+            future_to_model = {}
+            for i, (model, component_queue) in enumerate(model_queues.items()):
+                if component_queue:  # Only submit if there's work to do
+                    # Small delay between submissions to prevent overwhelming Ollama
+                    if i > 0:
+                        time.sleep(0.5)
+                    future = executor.submit(process_component_queue, model, component_queue)
+                    future_to_model[future] = model
+            
+            # Collect results as they complete
+            for future in concurrent.futures.as_completed(future_to_model):
+                model = future_to_model[future]
+                try:
+                    model_results = future.result()
+                    results.update(model_results)
+                    model_emoji = MODEL_EMOJIS.get(model, '🤖')
+                    successful = sum(1 for success in model_results.values() if success)
+                    logger.info(f"{model_emoji} Model {model} finished: {successful}/{len(model_results)} components")
+                except Exception as e:
+                    logger.error(f"❌ Model {model} worker failed: {e}")
+        
+        # Final summary
+        successful_count = sum(1 for success in results.values() if success)
+        total_components = len(ALL_COMPONENT_TYPES)
+        
+        if successful_count == total_components:
+            logger.info(f"🎉 '{card_name}' FULLY ANALYZED! All {total_components} components complete!")
+        else:
+            logger.info(f"📊 '{card_name}' parallel analysis done: {successful_count}/{total_components} components")
+        
+        return results
+
+    def generate_all_components_serial_by_speed(self, uuid: str) -> Dict[str, bool]:
+        """Generate all 20 components for a card in serial order by model speed (fast → medium → slow)."""
+        from collections import defaultdict
+        
+        results = {}
+        
+        card = self.get_card_by_uuid(uuid)
+        if not card:
+            logger.error(f"Card not found: {uuid}")
+            return results
+        
+        card_name = card.get('name', uuid)
+        logger.info(f"🚀 Serial analysis starting for '{card_name[:25]}{'...' if len(card_name) > 25 else ''}' (20 components by speed)")
+        
+        # Initialize analysis if needed
+        if "analysis" not in card:
+            self.initialize_card_analysis(uuid)
+        
+        # Get existing components
+        existing_components = card.get("analysis", {}).get("components", {})
+        
+        # Group components by model speed priority
+        from .ollama_client import COMPONENT_MODEL_MAP
+          # Model speed tiers (fastest to slowest)
+        model_speed_tiers = [
+            ('⚡ Fast Models', ['llama3.2:latest']),                      # ~10-30 seconds
+            ('⚖️ Medium Models', ['llama3.1:latest', 'mistral:7b']),       # ~30-60 seconds  
+            ('🚀 Large Models', ['qwen2.5:7b-instruct-q4_0'])                # ~30-90 seconds
+        ]
+        
+        # Group components by speed tier
+        tier_queues = []
+        for tier_name, models in model_speed_tiers:
+            tier_components = []
+            for component_type in ALL_COMPONENT_TYPES:
+                if component_type in existing_components:
+                    continue
+                
+                model = COMPONENT_MODEL_MAP.get(component_type, 'unknown')
+                if model in models:
+                    tier_components.append(component_type)
+            
+            if tier_components:
+                tier_queues.append((tier_name, models[0], tier_components))
+        
+        # Show the work distribution
+        total_remaining = sum(len(components) for _, _, components in tier_queues)
+        if total_remaining == 0:
+            logger.info("✅ All components already exist!")
+            for component_type in ALL_COMPONENT_TYPES:
+                results[component_type] = True
+            return results
+        
+        logger.info(f"📋 Processing {total_remaining} components in {len(tier_queues)} speed tiers")
+        
+        # Process each tier serially
+        for tier_name, representative_model, component_queue in tier_queues:
+            model_emoji = MODEL_EMOJIS.get(representative_model, '🤖')
+            logger.info(f"{model_emoji} {tier_name}: {len(component_queue)} components")
+            
+            for i, component_type in enumerate(component_queue, 1):
+                # Get the actual model for this component
+                actual_model = COMPONENT_MODEL_MAP.get(component_type, 'unknown')
+                actual_emoji = MODEL_EMOJIS.get(actual_model, '🤖')
+                
+                logger.info(f"{actual_emoji} [{i}/{len(component_queue)}] {component_type}...")
+                success = self.generate_component(uuid, component_type)
+                results[component_type] = success
+                
+                if success:
+                    logger.info(f"{actual_emoji} ✅ {component_type} complete!")
+                else:
+                    logger.warning(f"{actual_emoji} ❌ {component_type} failed!")
+            
+            logger.info(f"{model_emoji} {tier_name} tier complete!")
+        
+        # Final summary
+        successful_count = sum(1 for success in results.values() if success)
+        total_components = len(ALL_COMPONENT_TYPES)
+        
+        # Add existing components to count
+        for component_type in existing_components:
+            if component_type not in results:
+                results[component_type] = True
+                successful_count += 1
+        
+        if successful_count == total_components:
+            logger.info(f"🎉 '{card_name}' FULLY ANALYZED! All {total_components} components complete!")
+        else:
+            logger.info(f"📊 '{card_name}' serial analysis done: {successful_count}/{total_components} components")
+        
+        return results
+        
     def _update_analysis_status(self, uuid: str):
         """Update the analysis status counters for a card."""
         try:

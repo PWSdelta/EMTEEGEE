@@ -13,6 +13,14 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
+# Model emoji mapping for logging
+MODEL_EMOJIS = {
+    'llama3.2:latest': '⚡',
+    'llama3.1:latest': '⚖️', 
+    'qwen2.5:7b-instruct-q4_0': '🚀',
+    'mistral:7b': '🎯'
+}
+
 # The 4 Ollama models and their assigned component types
 OLLAMA_MODELS = {
     'llama3.2:latest': {
@@ -25,8 +33,7 @@ OLLAMA_MODELS = {
         'use_case': 'Balanced analysis, synergies, competitive play',
         'components': ['thematic_analysis', 'synergy_analysis', 'competitive_analysis', 
                       'format_analysis', 'deck_archetypes', 'sideboard_guide']
-    },
-    'llama3.3:70b': {
+    },    'qwen2.5:7b-instruct-q4_0': {
         'name': 'Premium Model',
         'use_case': 'Deep analysis, complex interactions, investment',
         'components': ['tactical_analysis', 'power_level_assessment', 'meta_positioning',
@@ -97,13 +104,18 @@ class OllamaClient:
         """
         if component_type not in COMPONENT_MODEL_MAP:
             logger.error(f"Unknown component type: {component_type}")
-            return None            
+            return None
+        
         model = COMPONENT_MODEL_MAP[component_type]
         prompt = self._build_prompt(card_data, component_type)
         
-        # Log which model is being used for this component
+        # Short, fun logging
         card_name = card_data.get('name', 'Unknown Card')
-        logger.info(f"Generating {component_type} for '{card_name}' using model: {model}")
+        model_emoji = MODEL_EMOJIS.get(model, '🤖')
+        logger.info(f"{model_emoji} {component_type} → {card_name[:20]}{'...' if len(card_name) > 20 else ''}")        
+        
+        # Set timeout based on model complexity (2 min for Qwen quantized, 3 min for others)
+        timeout = 120 if 'qwen2.5' in model else 180
         
         try:
             response = self.session.post(
@@ -112,14 +124,13 @@ class OllamaClient:
                     "model": model,
                     "prompt": prompt,
                     "system": "You are an expert Magic: The Gathering analyst. Write detailed, accurate analysis in markdown format.",
-                    "stream": False,
-                    "options": {
+                    "stream": False,                    "options": {
                         "temperature": 0.7,
                         "top_p": 0.9,
                         "num_ctx": 4096
                     }
                 },
-                timeout=120  # 2 minutes timeout for complex analysis
+                timeout=timeout
             )
             
             if response.status_code == 200:
@@ -191,9 +202,9 @@ Type: {type_line}
             
             'budget_alternatives': f"{base_context}\nSuggest budget-friendly alternatives:\n- Cheaper cards with similar effects\n- Budget deck considerations\n- Cost-effective substitutions\n- Performance trade-offs\nWrite 250-400 words in markdown format.",
             
-            'new_player_guide': f"{base_context}\nExplain this card for new players:\n- Basic functionality explained simply\n- Why it's good/bad for beginners\n- Learning opportunities it provides\n- Common beginner mistakes\nWrite 300-450 words in accessible language.",
+            'new_player_guide': f"{base_context}\nExplain this card for new players:\n- Basic functionality explained simply\n- Why it's good/bad for beginners\n- Learning opportunities it provides\n- Common beginner mistakes\nWrite 300-450 words in accessible language. Write in markdown format.",
             
-            'rules_clarifications': f"{base_context}\nClarify rules and common questions:\n- Complex rules interactions\n- Common misconceptions\n- Timing rules\n- Edge cases and rulings\nWrite 250-400 words in clear, instructional format.",
+            'rules_clarifications': f"{base_context}\nClarify rules and common questions:\n- Complex rules interactions\n- Common misconceptions\n- Timing rules\n- Edge cases and rulings\nWrite 250-400 words in clear, instructional format. Write in markdown format.",
             
             'historical_context': f"{base_context}\nProvide historical context:\n- When it was printed and why\n- Meta impact when released\n- Design evolution it represents\n- Historical significance in MTG\nWrite 300-450 words in markdown format.",
             
@@ -201,11 +212,11 @@ Type: {type_line}
             
             'design_philosophy': f"{base_context}\nAnalyze the design philosophy:\n- Design goals and intentions\n- Mechanical innovation\n- Balance considerations\n- Design space exploration\nWrite 300-450 words in markdown format.",
             
-            'investment_outlook': f"{base_context}\nAnalyze financial and collectible aspects:\n- Current market trends\n- Long-term value prospects\n- Collectibility factors\n- Reprint considerations\nWrite 300-450 words. Focus on game impact over financial advice.",
+            'investment_outlook': f"{base_context}\nAnalyze financial and collectible aspects:\n- Current market trends\n- Long-term value prospects\n- Collectibility factors\n- Reprint considerations\nWrite 300-450 words. Focus on game impact over financial advice.  Write in markdown format.",
             
             'meta_positioning': f"{base_context}\nAnalyze current metagame positioning:\n- Role in current meta\n- Matchup considerations\n- Meta shifts that affect it\n- Adaptation potential\nWrite 300-500 words in markdown format.",
             
-            'advanced_interactions': f"{base_context}\nExplore advanced rules interactions:\n- Complex edge cases\n- Layer system interactions\n- Timing and priority issues\n- Judge call scenarios\nWrite 350-500 words with specific examples."
+            'advanced_interactions': f"{base_context}\nExplore advanced rules interactions:\n- Complex edge cases\n- Layer system interactions\n- Timing and priority issues\n- Judge call scenarios\nWrite 350-500 words with specific examples.  Write in markdown format."
         }
         
         return prompts.get(component_type, f"{base_context}\nProvide analysis of this card focusing on {component_type.replace('_', ' ')}.")
