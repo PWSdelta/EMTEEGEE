@@ -27,6 +27,9 @@ ANALYSIS_FULLY_ANALYZED = "analysis.fully_analyzed"
 ANALYSIS_LAST_UPDATED = "analysis.last_updated"
 ANALYSIS_COMPONENT_COUNT = "analysis.component_count"
 ANALYSIS_COMPLETED_AT = "analysis.analysis_completed_at"
+ANALYSIS_REQUEST_COUNT = "analysis.request_count"
+MONGODB_EXISTS = "$exists"
+MONGODB_GT = "$gt"
 
 class CardAnalysisManager:
     """Manages card analysis operations in MongoDB."""
@@ -66,23 +69,64 @@ class CardAnalysisManager:
     
     def get_card_by_uuid(self, uuid: str) -> Optional[Dict]:
         """Get a card document by UUID."""
-        try:
-            return self.cards_collection.find_one({"uuid": uuid})
+        try:            return self.cards_collection.find_one({"uuid": uuid})
         except PyMongoError as e:
             logger.error(f"Failed to get card {uuid}: {e}")
             return None
     
-    def get_cards_for_analysis(self, limit: int = 100) -> List[Dict]:
-        """Get cards that need analysis (not fully analyzed)."""
+    def get_cards_for_analysis(self, limit: int = 100, prioritize_requested: bool = True) -> List[Dict]:
+        """
+        Get cards that need analysis, prioritizing those with user requests.
+        
+        Args:
+            limit: Maximum number of cards to return
+            prioritize_requested: If True, prioritize cards with analysis requests
+              Returns:
+            List of card documents sorted by priority
+        """
         try:
             query = {
                 "$or": [
                     {ANALYSIS_FULLY_ANALYZED: {"$ne": True}},
-                    {"analysis": {"$exists": False}}
+                    {"analysis": {MONGODB_EXISTS: False}}
                 ]
             }
             
-            return list(self.cards_collection.find(query).limit(limit))
+            if prioritize_requested:
+                # First get requested cards (sorted by request count descending)
+                requested_cards = list(
+                    self.cards_collection.find({
+                        **query,
+                        ANALYSIS_REQUEST_COUNT: {MONGODB_EXISTS: True, MONGODB_GT: 0}
+                    }).sort(ANALYSIS_REQUEST_COUNT, -1).limit(limit)
+                )
+                
+                requested_count = len(requested_cards)
+                
+                # If we need more cards, get non-requested ones
+                if requested_count < limit:
+                    remaining_limit = limit - requested_count
+                    non_requested_cards = list(
+                        self.cards_collection.find({
+                            **query,
+                            "$or": [
+                                {ANALYSIS_REQUEST_COUNT: {MONGODB_EXISTS: False}},
+                                {ANALYSIS_REQUEST_COUNT: {"$lte": 0}}
+                            ]
+                        }).limit(remaining_limit)
+                    )
+                    
+                    all_cards = requested_cards + non_requested_cards
+                else:
+                    all_cards = requested_cards
+                
+                logger.info(f"📋 Priority queue: {requested_count} requested cards, "
+                           f"{len(all_cards) - requested_count} random cards")
+                
+                return all_cards
+            else:
+                # Just return cards without prioritization
+                return list(self.cards_collection.find(query).limit(limit))
             
         except PyMongoError as e:
             logger.error(f"Failed to get cards for analysis: {e}")

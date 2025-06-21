@@ -7,7 +7,7 @@ import time
 from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
 from cards.analysis_manager import analysis_manager
-from cards.models_new import get_cards_collection
+from cards.models import get_cards_collection
 import logging
 
 logger = logging.getLogger(__name__)

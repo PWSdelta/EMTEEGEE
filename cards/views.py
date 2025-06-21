@@ -14,6 +14,7 @@ import logging
 from .models import get_cards_collection
 from .analysis_manager import analysis_manager
 from .ollama_client import ALL_COMPONENT_TYPES
+from .job_queue import job_queue
 
 logger = logging.getLogger(__name__)
 
@@ -349,3 +350,135 @@ def admin_card_detail(request, card_uuid):
     except Exception as e:
         logger.error(f"Error in admin_card_detail view: {e}")
         raise Http404("Card not found")
+
+def bulk_queue_cards(request):
+    """Bulk queue unanalyzed cards for analysis."""
+    try:
+        limit = int(request.POST.get('limit', 100))
+        
+        # Use the job queue's bulk enqueue method
+        jobs_enqueued = job_queue.bulk_enqueue_unanalyzed_cards(limit=limit)
+        
+        return JsonResponse({
+            'status': 'success',
+            'message': f'Queued {jobs_enqueued} cards for analysis',
+            'jobs_enqueued': jobs_enqueued
+        })
+        
+    except Exception as e:
+        logger.error(f"Error bulk queuing cards: {e}")
+        return JsonResponse({'error': 'Failed to bulk queue cards'}, status=500)
+
+@require_http_methods(["POST"])
+@csrf_exempt
+def retry_failed_job(request, job_id):
+    """Retry a specific failed job."""
+    try:
+        success = job_queue.requeue_failed_job(job_id)
+        
+        if success:
+            return JsonResponse({
+                'status': 'success',
+                'message': f'Job {job_id[:8]}... requeued for retry'
+            })
+        else:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Job not found or not in failed state'
+            })
+        
+    except Exception as e:
+        logger.error(f"Error retrying job {job_id}: {e}")
+        return JsonResponse({'error': 'Failed to retry job'}, status=500)
+
+@require_http_methods(["POST"])
+@csrf_exempt
+def cleanup_old_jobs(request):
+    """Clean up old completed/failed jobs."""
+    try:
+        days_old = int(request.POST.get('days_old', 7))
+        cleaned_count = job_queue.cleanup_old_jobs(days_old=days_old)
+        
+        return JsonResponse({
+            'status': 'success',
+            'message': f'Cleaned up {cleaned_count} old jobs',
+            'cleaned_count': cleaned_count
+        })
+        
+    except Exception as e:
+        logger.error(f"Error cleaning up jobs: {e}")
+        return JsonResponse({'error': 'Failed to cleanup jobs'}, status=500)
+
+@require_http_methods(["POST"])
+@csrf_exempt
+def reset_stuck_jobs(request):
+    """Reset jobs that have been stuck in processing state."""
+    try:
+        hours_old = int(request.POST.get('hours_old', 2))
+        reset_count = job_queue.reset_stuck_jobs(hours_old=hours_old)
+        
+        return JsonResponse({
+            'status': 'success',
+            'message': f'Reset {reset_count} stuck jobs',
+            'reset_count': reset_count
+        })
+        
+    except Exception as e:
+        logger.error(f"Error resetting stuck jobs: {e}")
+        return JsonResponse({'error': 'Failed to reset stuck jobs'}, status=500)
+
+def job_queue_status(request):
+    """Get current job queue status (AJAX endpoint)."""
+    try:
+        stats = job_queue.get_queue_stats()
+        recent_jobs = job_queue.get_recent_jobs(limit=10)
+        
+        return JsonResponse({
+            'status': 'success',
+            'stats': stats,
+            'recent_jobs': [
+                {
+                    'job_id': job['job_id'][:8] + '...',
+                    'card_uuid': job['card_uuid'][:8] + '...',
+                    'job_type': job['job_type'],
+                    'status': job['status'],
+                    'created_at': job['created_at'].isoformat() if job.get('created_at') else None,
+                    'attempts': job.get('attempts', 0),
+                    'error_message': job.get('error_message', '')[:100] if job.get('error_message') else None
+                }
+                for job in recent_jobs
+            ]
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting queue status: {e}")
+        return JsonResponse({'error': 'Failed to get queue status'}, status=500)
+
+def worker_control_panel(request):
+    """Control panel for managing analysis workers."""
+    try:
+        # Get queue stats
+        queue_stats = job_queue.get_queue_stats()
+        
+        # Get recent jobs for monitoring
+        recent_jobs = job_queue.get_recent_jobs(limit=20)
+        
+        # Get failed jobs that can be retried
+        failed_jobs = list(job_queue.jobs_collection.find({
+            'status': 'failed',
+            'attempts': {'$lt': 3}  # Only show jobs that can still be retried
+        }).sort([('completed_at', -1)]).limit(15))
+        
+        context = {
+            'queue_stats': queue_stats,
+            'recent_jobs': recent_jobs,
+            'failed_jobs': failed_jobs,
+            'total_queue_size': sum(queue_stats.values())
+        }
+        
+        return render(request, 'cards/worker_control_panel.html', context)
+        
+    except Exception as e:
+        logger.error(f"Error in worker_control_panel: {e}")
+        messages.error(request, "Error loading worker control panel")
+        return render(request, 'cards/worker_control_panel.html', {})

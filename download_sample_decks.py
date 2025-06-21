@@ -24,7 +24,6 @@ def download_deck_file(deck_name, output_dir):
     """Download a single deck file from MTGJson."""
     url = f"{MTGJSON_DECKS_BASE}/{deck_name}"
     output_path = output_dir / deck_name
-    
     print(f"Downloading {deck_name}...")
     
     try:
@@ -46,45 +45,9 @@ def download_deck_file(deck_name, output_dir):
     except json.JSONDecodeError as e:
         print(f"❌ Invalid JSON in {deck_name}: {e}")
         return False
-    """Download a few sample deck files from MTGJson."""
-    
-    downloads_dir = Path("downloads/deck_files")
-    downloads_dir.mkdir(parents=True, exist_ok=True)
-    
-    # MTGJson has individual deck files, but for simplicity, 
-    # let's create a sample deck file in the correct format
-    sample_deck = {
-        "code": "SAMPLE_01",
-        "name": "Sample Commander Deck",
-        "type": "Commander",
-        "releaseDate": "2025-01-01",
-        "mainBoard": [
-            {
-                "count": 1,
-                "name": "Lightning Bolt",
-                "uuid": "12345678-1234-1234-1234-123456789012"
-            },
-            {
-                "count": 1,
-                "name": "Giant Growth", 
-                "uuid": "12345678-1234-1234-1234-123456789013"
-            }
-        ],
-        "sideBoard": [],
-        "commander": [
-            {
-                "count": 1,
-                "name": "Alesha, Who Smiles at Death",
-                "uuid": "12345678-1234-1234-1234-123456789014"
-            }
-        ]
-    }
-    
-    # Save sample deck
-    sample_file = downloads_dir / "sample_deck.json"
-    with open(sample_file, 'w') as f:
-        json.dump(sample_deck, f, indent=2)
-  def main():
+
+
+def main():
     """Download sample deck files and create a sample deck."""
     downloads_dir = Path("downloads/deck_files")
     downloads_dir.mkdir(parents=True, exist_ok=True)

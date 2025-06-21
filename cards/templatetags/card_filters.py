@@ -92,3 +92,105 @@ def component_title(component_type):
         'design_philosophy': 'Design Philosophy'
     }
     return titles.get(component_type, component_type.replace('_', ' ').title())
+
+@register.filter
+def scryfall_mana_symbols(mana_cost):
+    """Convert mana cost string to Scryfall symbol images."""
+    if not mana_cost:
+        return ""
+    
+    import re
+    
+    # Pattern to match {X} style mana symbols
+    symbol_pattern = r'\{([^}]+)\}'
+    
+    def replace_symbol(match):
+        symbol = match.group(1).upper()
+        
+        # Map common symbols to Scryfall URLs
+        symbol_map = {
+            'W': 'W', 'U': 'U', 'B': 'B', 'R': 'R', 'G': 'G',  # Basic colors
+            'C': 'C',  # Colorless
+            'X': 'X',  # Variable
+            'S': 'S',  # Snow
+            'T': 'T',  # Tap
+            'Q': 'Q',  # Untap
+            'E': 'E',  # Energy
+        }
+        
+        # Handle hybrid mana (like W/U, 2/W, etc.)
+        if '/' in symbol:
+            symbol = symbol.replace('/', '')
+            
+        # Handle numeric symbols (0-20)
+        if symbol.isdigit():
+            num = int(symbol)
+            if 0 <= num <= 20:
+                symbol = str(num)
+        
+        # Map to actual symbol or use the symbol as-is
+        scryfall_symbol = symbol_map.get(symbol, symbol)
+        
+        return f'<img src="https://svgs.scryfall.io/card-symbols/{scryfall_symbol}.svg" ' \
+               f'alt="{{{symbol}}}" class="mana-symbol" title="Mana cost: {{{symbol}}}">'
+    
+    # Replace all {X} patterns with symbol images
+    html_with_symbols = re.sub(symbol_pattern, replace_symbol, mana_cost)
+    
+    return mark_safe(html_with_symbols)
+
+
+@register.filter
+def scryfall_parse_text(card_text):
+    """Parse card text and replace mana symbols with Scryfall images."""
+    if not card_text:
+        return ""
+    
+    import re
+    
+    # Pattern to match {X} style mana symbols in card text
+    symbol_pattern = r'\{([^}]+)\}'
+    
+    def replace_symbol(match):
+        symbol = match.group(1).upper()
+        
+        # Common symbols in card text
+        symbol_map = {
+            'W': 'W', 'U': 'U', 'B': 'B', 'R': 'R', 'G': 'G',
+            'C': 'C', 'X': 'X', 'T': 'T', 'Q': 'Q', 'E': 'E',
+            'S': 'S', 'CHAOS': 'CHAOS', 'PW': 'PW'
+        }
+        
+        # Handle hybrid mana
+        if '/' in symbol:
+            symbol = symbol.replace('/', '')
+            
+        # Handle numeric symbols
+        if symbol.isdigit():
+            num = int(symbol)
+            if 0 <= num <= 20:
+                symbol = str(num)
+        
+        scryfall_symbol = symbol_map.get(symbol, symbol)
+        
+        return f'<img src="https://svgs.scryfall.io/card-symbols/{scryfall_symbol}.svg" ' \
+               f'alt="{{{symbol}}}" class="mana-symbol-text" title="{{{symbol}}}">'
+    
+    # Replace symbols in text
+    html_with_symbols = re.sub(symbol_pattern, replace_symbol, card_text)
+    
+    return mark_safe(html_with_symbols)
+
+
+@register.filter  
+def format_card_types(type_line):
+    """Format card type line with better spacing and emphasis."""
+    if not type_line:
+        return ""
+        
+    # Split on em-dash if present (separates types from subtypes)
+    if '—' in type_line:
+        main_types, subtypes = type_line.split('—', 1)
+        return mark_safe(f'<strong>{main_types.strip()}</strong> — <em>{subtypes.strip()}</em>')
+    else:
+        return mark_safe(f'<strong>{type_line}</strong>')

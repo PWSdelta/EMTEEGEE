@@ -156,7 +156,7 @@ def markdown_to_html(value):
 - `cards/management/commands/clear_components.py` - Database cleanup command
 - `cards/ollama_client.py` - Updated AI prompts
 - `templates/cards/card_detail.html` - Enhanced card detail page
-- `templates/cards/card_detail_old.html` - Backup of original template
+- `templates/cards/card_detail.html` - Enhanced main card detail template
 
 ---
 

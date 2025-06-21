@@ -13,11 +13,9 @@
             <li class="breadcrumb-item"><a href="{% url 'cards:browse' %}">Browse Cards</a></li>
             <li class="breadcrumb-item active">{{ card.name }}</li>
         </ol>
-    </nav>
-
-    <div class="row">
-        <!-- Main Content -->
-        <div class="col-lg-9">
+    </nav>    <div class="row">
+        <!-- Main Content - Made narrower for better readability -->
+        <div class="col-lg-8">
             <!-- Card Basic Information -->
             <div class="card mb-4 shadow-sm">
                 <div class="card-header bg-primary text-white">
@@ -35,10 +33,11 @@
                                         {{ card.rarity|title }}
                                     </span>
                                 {% endif %}
-                            </h1>
-                            {% if card.manaCost %}
+                            </h1>                            {% if card.manaCost %}
                                 <div class="mt-2">
-                                    <code class="fs-5 text-warning">{{ card.manaCost }}</code>
+                                    <div class="mana-cost-display">
+                                        {{ card.manaCost|scryfall_mana_symbols }}
+                                    </div>
                                     {% if card.manaValue %}
                                         <span class="badge bg-light text-dark ms-2">CMC: {{ card.manaValue }}</span>
                                     {% endif %}
@@ -60,14 +59,13 @@
                 </div>
                 <div class="card-body">
                     <div class="row">
-                        <div class="col-md-8">
-                            <!-- Type and Text -->
+                        <div class="col-md-8">                            <!-- Type and Text -->
                             {% if card.type %}
-                                <h5><i class="bi bi-tag"></i> {{ card.type }}</h5>
+                                <h5><i class="bi bi-tag"></i> {{ card.type|format_card_types }}</h5>
                             {% endif %}
                             {% if card.text %}
                                 <div class="card-text-box mb-3">
-                                    {{ card.text|linebreaks }}
+                                    {{ card.text|scryfall_parse_text|linebreaks }}
                                 </div>
                             {% endif %}
                             {% if card.flavorText %}
@@ -135,13 +133,12 @@
                             <span class="badge bg-success ms-2">{{ analysis.component_count }}/20 Components</span>
                         </h2>
                     </div>
-                    <div class="card-body p-0">
-                        <!-- Strategic Analysis -->
+                    <div class="card-body p-0">                        <!-- Analysis Components with Enhanced Spacing -->
                         {% for component_type, component_data in components.items %}
                             {% if component_data.content %}
-                                <section id="{{ component_type }}" class="p-4 border-bottom">
-                                    <div class="d-flex align-items-center mb-3">
-                                        <h3 class="h5 mb-0">
+                                <section id="{{ component_type }}" class="analysis-section p-4 mb-4">
+                                    <div class="d-flex align-items-center mb-4">
+                                        <h3 class="h4 mb-0 analysis-title">
                                             {% if component_type == 'tactical_analysis' %}🎯 Tactical Analysis
                                             {% elif component_type == 'thematic_analysis' %}🎨 Thematic Analysis
                                             {% elif component_type == 'play_tips' %}💡 Play Tips
@@ -170,13 +167,27 @@
                                                 <i class="bi bi-clock"></i> {{ component_data.generated_at|date:"M j, Y" }}
                                             </small>
                                         {% endif %}
-                                    </div>                                    <div class="analysis-content">
-                                        {{ component_data.content|markdown_to_html }}
                                     </div>
-                                    {% if component_data.model %}
-                                        <div class="mt-3">
+                                    
+                                    <div class="analysis-content-wrapper">
+                                        <div class="analysis-content">
+                                            {{ component_data.content|markdown_to_html }}
+                                        </div>
+                                        
+                                        {% if component_data.model %}
+                                            <div class="mt-4 pt-3 border-top">
+                                                <small class="text-muted">
+                                                    <i class="bi bi-cpu"></i> Generated by {{ component_data.model }}
+                                                </small>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <!-- Ad Placeholder - Every 3rd section -->
+                                    {% if forloop.counter0|divisibleby:3 and not forloop.last %}
+                                        <div class="ad-placeholder text-center py-4 my-4 bg-light border rounded">
                                             <small class="text-muted">
-                                                <i class="bi bi-cpu"></i> Generated by {{ component_data.model }}
+                                                <i class="bi bi-rectangle"></i> Advertisement Space
                                             </small>
                                         </div>
                                     {% endif %}
@@ -184,24 +195,26 @@
                             {% endif %}
                         {% endfor %}
                     </div>
-                </div>
-            {% else %}
+                </div>            {% else %}
                 <!-- No Analysis Yet -->
                 <div class="card shadow-sm">
                     <div class="card-body text-center py-5">
-                        <i class="bi bi-hourglass-split display-1 text-muted mb-3"></i>
-                        <h3>Analysis In Progress</h3>
-                        <p class="text-muted">This card is being analyzed by our AI system. Check back soon for detailed insights!</p>
-                        <button class="btn btn-primary" onclick="startAnalysis('{{ card.uuid }}')">
-                            <i class="bi bi-play-circle"></i> Start Analysis Now
+                        <i class="bi bi-heart display-1 text-muted mb-3"></i>
+                        <h3>Analysis Requested!</h3>
+                        <p class="text-muted">This card is in the analysis queue. Popular cards get analyzed first!</p>
+                        <button class="btn btn-primary btn-lg" onclick="requestAnalysis('{{ card.uuid }}')">
+                            <i class="bi bi-heart-fill"></i> Show Interest
                         </button>
+                        <div class="mt-3">
+                            <small class="text-muted">
+                                <i class="bi bi-info-circle"></i> Cards with more requests get priority
+                            </small>
+                        </div>
                     </div>
                 </div>
             {% endif %}
-        </div>
-
-        <!-- Sticky Navigation Sidebar -->
-        <div class="col-lg-3">
+        </div>        <!-- Wider Sticky Navigation Sidebar -->
+        <div class="col-lg-4">
             <div class="sticky-top" style="top: 100px;">
                 <!-- Analysis Navigation -->
                 {% if components %}
@@ -254,12 +267,20 @@
                         <h5 class="mb-0">
                             <i class="bi bi-tools"></i> Actions
                         </h5>
-                    </div>
-                    <div class="card-body">
+                    </div>                    <div class="card-body">
                         {% if not analysis.fully_analyzed %}
-                            <button class="btn btn-primary btn-sm w-100 mb-2" onclick="startAnalysis('{{ card.uuid }}')">
-                                <i class="bi bi-play-circle"></i> Analyze Card
+                            <button id="request-analysis-btn" class="btn btn-primary btn-sm w-100 mb-2" onclick="requestAnalysis('{{ card.uuid }}')">
+                                <i class="bi bi-heart"></i> <span id="btn-text">Request Analysis</span>
                             </button>
+                            <div id="analysis-status" class="text-center mt-2" style="display: none;">
+                                <small class="text-muted">
+                                    <i class="bi bi-clock"></i> <span id="status-text">In queue...</span>
+                                </small>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-success alert-sm text-center mb-2">
+                                <i class="bi bi-check-circle"></i> Analysis Complete!
+                            </div>
                         {% endif %}
                         <button class="btn btn-outline-info btn-sm w-100 mb-2" onclick="copyCardUrl()">
                             <i class="bi bi-share"></i> Share Card
@@ -302,43 +323,111 @@
 <style>
 .card-text-box {
     background: #f8f9fa;
-    padding: 15px;
-    border-radius: 8px;
+    padding: 20px;
+    border-radius: 12px;
     border-left: 4px solid #007bff;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    line-height: 1.6;
+    line-height: 1.8;
+    margin-bottom: 1.5rem;
+}
+
+/* Mana symbol styling */
+.mana-symbol {
+    height: 20px;
+    width: 20px;
+    display: inline-block;
+    margin: 0 2px;
+    vertical-align: middle;
+}
+
+.mana-symbol-text {
+    height: 16px;
+    width: 16px;
+    display: inline-block;
+    margin: 0 1px;
+    vertical-align: baseline;
+}
+
+.mana-cost-display {
+    display: inline-block;
+    margin-right: 10px;
+}
+
+/* Enhanced analysis section styling */
+.analysis-section {
+    background: #ffffff;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    transition: box-shadow 0.2s ease;
+}
+
+.analysis-section:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.analysis-title {
+    color: #2c3e50;
+    font-weight: 600;
+    margin-bottom: 0;
+}
+
+.analysis-content-wrapper {
+    margin-top: 1rem;
 }
 
 .analysis-content {
-    font-size: 1.1em;
-    line-height: 1.7;
-    color: #333;
+    font-size: 1.05rem;
+    line-height: 1.8;
+    color: #444;
+    max-width: none; /* Allow full width within container */
 }
 
 .analysis-content p {
-    margin-bottom: 1.2em;
+    margin-bottom: 1.3rem;
 }
 
 .analysis-content h4, .analysis-content h5, .analysis-content h6 {
     color: #2c3e50;
-    margin-top: 1.5em;
-    margin-bottom: 0.8em;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
 }
 
 .analysis-content ul, .analysis-content ol {
-    margin-bottom: 1.2em;
-    padding-left: 1.5em;
+    margin-bottom: 1.3rem;
+    padding-left: 2rem;
 }
 
 .analysis-content li {
-    margin-bottom: 0.5em;
+    margin-bottom: 0.6rem;
 }
 
+.analysis-content blockquote {
+    border-left: 4px solid #007bff;
+    padding-left: 1rem;
+    margin: 1.5rem 0;
+    font-style: italic;
+    color: #666;
+}
+
+/* Ad placeholder styling */
+.ad-placeholder {
+    border: 2px dashed #dee2e6;
+    background: linear-gradient(45deg, #f8f9fa 25%, transparent 25%, transparent 75%, #f8f9fa 75%),
+                linear-gradient(45deg, #f8f9fa 25%, transparent 25%, transparent 75%, #f8f9fa 75%);
+    background-size: 20px 20px;
+    background-position: 0 0, 10px 10px;
+}
+
+/* Navigation styling */
 .nav-pills .nav-link {
     color: #6c757d;
-    font-size: 0.9em;
-    padding: 0.5rem 1rem;
-    border-radius: 0;
+    font-size: 0.9rem;
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    margin-bottom: 0.2rem;
+    transition: all 0.2s ease;
 }
 
 .nav-pills .nav-link:hover {
@@ -351,10 +440,32 @@
     color: white;
 }
 
+/* Responsive adjustments */
 @media (max-width: 991.98px) {
     .sticky-top {
         position: relative !important;
         top: auto !important;
+    }
+    
+    .analysis-content {
+        font-size: 1rem;
+    }
+    
+    .mana-symbol {
+        height: 18px;
+        width: 18px;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .analysis-section {
+        padding: 1rem !important;
+        margin-bottom: 2rem !important;
+    }
+    
+    .analysis-content {
+        font-size: 0.95rem;
+        line-height: 1.6;
     }
 }
 
@@ -370,7 +481,7 @@ html {
 
 /* Section padding for scrollspy */
 section[id] {
-    scroll-margin-top: 120px;
+    scroll-margin-top: 100px;
 }
 
 /* Card name links from markdown */
@@ -379,6 +490,7 @@ section[id] {
     text-decoration: none;
     border-bottom: 1px dotted #0066cc;
     transition: all 0.2s ease;
+    font-weight: 500;
 }
 
 .card-link:hover {
@@ -386,34 +498,122 @@ section[id] {
     border-bottom: 1px solid #004499;
     background-color: rgba(0, 102, 204, 0.1);
     padding: 2px 4px;
-    border-radius: 3px;
+    border-radius: 4px;
+}
+
+/* Enhanced format legality styling */
+.format-badge {
+    font-size: 0.85rem;
+    padding: 0.3rem 0.6rem;
 }
 </style>
 
 <script>
 // Initialize Bootstrap tooltips and popovers
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize Bootstrap scrollspy
-    var scrollSpy = new bootstrap.ScrollSpy(document.body, {
+document.addEventListener('DOMContentLoaded', function() {    // Initialize Bootstrap scrollspy
+    const scrollSpyInstance = new bootstrap.ScrollSpy(document.body, {
         target: '#analysis-nav',
         offset: 120
     });
+    // Store scrollspy instance for potential future use
+    window.emteegeScrollSpy = scrollSpyInstance;
     
     // Initialize tooltips
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl);
     });
 });
 
-function startAnalysis(cardUuid) {
-    // Placeholder for analysis start functionality
-    alert('Analysis feature will be implemented soon!');
+async function requestAnalysis(cardUuid) {
+    const btn = document.getElementById('request-analysis-btn');
+    const btnText = document.getElementById('btn-text');
+    const statusDiv = document.getElementById('analysis-status');
+    const statusText = document.getElementById('status-text');
+    
+    // Update button to loading state
+    btn.disabled = true;
+    btn.classList.remove('btn-primary');
+    btn.classList.add('btn-secondary');
+    btnText.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Requesting...';
+    
+    try {
+        const response = await fetch('/api/request-analysis/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ card_uuid: cardUuid })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            if (data.status === 'already_complete') {
+                // Card is already analyzed
+                btnText.textContent = 'Analysis Complete!';
+                btn.classList.remove('btn-secondary');
+                btn.classList.add('btn-success');
+                
+                setTimeout(() => {
+                    location.reload(); // Refresh to show analysis
+                }, 1500);
+                
+            } else {
+                // Successfully added to queue
+                btn.classList.remove('btn-secondary');
+                btn.classList.add('btn-success');
+                btnText.innerHTML = `<i class="bi bi-heart-fill"></i> Requested! (${data.request_count})`;
+                
+                // Show status
+                statusDiv.style.display = 'block';
+                statusText.textContent = data.message;
+                
+                // Re-enable button after 3 seconds for additional requests
+                setTimeout(() => {
+                    btn.disabled = false;
+                    btn.classList.remove('btn-success');
+                    btn.classList.add('btn-outline-primary');
+                    btnText.innerHTML = `<i class="bi bi-heart-fill"></i> Add Interest (${data.request_count})`;
+                }, 3000);
+            }
+        } else {
+            throw new Error(data.error || 'Failed to request analysis');
+        }
+        
+    } catch (error) {
+        console.error('Error requesting analysis:', error);
+        
+        // Reset button on error
+        btn.disabled = false;
+        btn.classList.remove('btn-secondary');
+        btn.classList.add('btn-danger');
+        btnText.innerHTML = '<i class="bi bi-exclamation-triangle"></i> Error - Try Again';
+        
+        setTimeout(() => {
+            btn.classList.remove('btn-danger');
+            btn.classList.add('btn-primary');
+            btnText.innerHTML = '<i class="bi bi-heart"></i> Request Analysis';
+        }, 3000);
+    }
 }
 
 function copyCardUrl() {
     navigator.clipboard.writeText(window.location.href).then(function() {
-        alert('Card URL copied to clipboard!');
+        // Show success feedback
+        const btn = event.target.closest('button');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="bi bi-check"></i> Copied!';
+        btn.classList.add('btn-success');
+        btn.classList.remove('btn-outline-info');
+        
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.classList.remove('btn-success');
+            btn.classList.add('btn-outline-info');
+        }, 2000);
+    }).catch(function() {
+        alert('Could not copy URL to clipboard');
     });
 }
 </script>
