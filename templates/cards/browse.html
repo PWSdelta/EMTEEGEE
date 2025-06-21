@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}Browse Cards - EMTEEGEE{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1>🃏 Browse Cards</h1>
+            <p class="lead">Explore our collection of {{ total_cards|floatformat:0 }} Magic: The Gathering cards.</p>
+            
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Card Administration</h5>
+                            <p class="card-text">
+                                Access the full card database with search, filtering, and detailed views.
+                            </p>
+                            <a href="/admin-cards/" class="btn btn-primary">
+                                Browse All Cards →
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Database Stats</h5>
+                            <ul class="list-unstyled">
+                                <li><strong>Total Cards:</strong> {{ total_cards|floatformat:0 }}</li>
+                                <li><strong>Source:</strong> MTGJson</li>
+                                <li><strong>Status:</strong> 
+                                    {% if total_cards > 0 %}
+                                        <span class="text-success">✅ Ready</span>
+                                    {% else %}
+                                        <span class="text-warning">⚠️ No Data</span>
+                                    {% endif %}
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-4">
+                <h3>Featured Examples</h3>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h6 class="card-title">Sol Ring</h6>
+                                <p class="card-text">The most iconic artifact in Magic.</p>
+                                <a href="{% url 'cards:card_detail' '9597254d-a2e7-4fe1-b88b-6a3290c06622' %}" 
+                                   class="btn btn-sm btn-outline-primary">View Details</a>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- More featured cards can be added here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

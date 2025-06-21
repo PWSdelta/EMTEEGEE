@@ -1,4 +1,4 @@
-# 🎯 Quick Start Guide - MagicAI Django + MongoDB
+# 🎯 Quick Start Guide - EMTEEGEE Django + MongoDB
 
 ## Ready to Import MTGJson Data!
 

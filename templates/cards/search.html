@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}Search Cards - EMTEEGEE{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1>🔍 Search Cards</h1>
+            
+            <!-- Search Form -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="get">
+                        <div class="input-group">
+                            <input type="text" class="form-control" name="q" 
+                                   placeholder="Search by card name..." 
+                                   value="{{ search_query }}">
+                            <button class="btn btn-primary" type="submit">Search</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Search Results -->
+            {% if search_query %}
+                <div class="mb-3">
+                    <h3>Search Results</h3>
+                    {% if found_cards > 0 %}
+                        <p class="text-muted">Found {{ found_cards }} card{{ found_cards|pluralize }} matching "{{ search_query }}"</p>
+                    {% else %}
+                        <p class="text-muted">No cards found matching "{{ search_query }}"</p>
+                    {% endif %}
+                </div>
+                
+                {% if cards %}
+                    <div class="row">
+                        {% for card in cards %}
+                        <div class="col-md-6 col-lg-4 mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h6 class="card-title">{{ card.name }}</h6>
+                                    {% if card.manaCost %}
+                                        <p class="card-text">
+                                            <small class="text-muted">
+                                                <code>{{ card.manaCost }}</code>
+                                            </small>
+                                        </p>
+                                    {% endif %}
+                                    {% if card.types %}
+                                        <p class="card-text">
+                                            <small>{{ card.types|join:" " }}</small>
+                                        </p>
+                                    {% endif %}
+                                    {% if card.text %}
+                                        <p class="card-text">
+                                            <small>{{ card.text|truncatewords:15 }}</small>
+                                        </p>
+                                    {% endif %}
+                                    <a href="{% url 'cards:card_detail' card.uuid %}" 
+                                       class="btn btn-sm btn-outline-primary">View Details</a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% else %}
+                <!-- Search Tips -->
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Search Tips</h5>
+                                <ul>
+                                    <li>Search by exact card name: <code>Sol Ring</code></li>
+                                    <li>Partial names work too: <code>Lightning</code></li>
+                                    <li>Search is case-insensitive</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Advanced Search</h5>
+                                <p class="card-text">
+                                    For advanced filtering by mana cost, color, type, and more, 
+                                    use our admin interface.
+                                </p>
+                                <a href="/admin-cards/" class="btn btn-outline-primary">
+                                    Advanced Search →
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

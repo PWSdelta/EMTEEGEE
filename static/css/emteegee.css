@@ -1,0 +1,138 @@
+/* EMTEEGEE - Django + MongoDB MTG Card Analysis Platform Custom Styles */
+
+/* Card rarity colors - matching MTG convention */
+.rarity-common { color: #0f0f23; }
+.rarity-uncommon { color: #708090; }
+.rarity-rare { color: #cd7f32; }
+.rarity-mythic { color: #bf4f36; }
+
+/* Mana symbols styling enhancement */
+.mana-cost {
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+}
+
+/* Card text box styling */
+.card-text-box {
+    background-color: #f8f9fa;
+    border-left: 4px solid #007bff;
+    padding: 1rem;
+    border-radius: 0.25rem;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+/* Power/toughness display */
+.power-toughness {
+    font-family: 'Georgia', serif;
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+/* Set symbol and info styling */
+.set-info {
+    font-size: 0.85rem;
+}
+
+/* Admin card list enhancements */
+.admin-card-item {
+    transition: all 0.2s ease;
+}
+
+.admin-card-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Search form enhancements */
+.search-form {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 10px;
+    padding: 2rem;
+    color: white;
+}
+
+.search-form .form-control {
+    border-radius: 25px;
+    border: none;
+    padding: 0.75rem 1.5rem;
+}
+
+.search-form .btn {
+    border-radius: 25px;
+    padding: 0.75rem 2rem;
+}
+
+/* Tooltip customization */
+.tooltip-inner {
+    max-width: 300px;
+    text-align: left;
+}
+
+/* Popover customization */
+.popover {
+    max-width: 400px;
+}
+
+.popover-body {
+    font-size: 0.875rem;
+}
+
+/* Responsive card grid */
+@media (max-width: 768px) {
+    .card-detail-sidebar {
+        margin-top: 1rem;
+    }
+}
+
+/* Loading states */
+.loading-spinner {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #007bff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Card image styling */
+.card-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Navigation enhancements */
+.navbar-brand {
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+/* Footer styling */
+footer {
+    background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+    color: white;
+    margin-top: auto;
+}
+
+/* Ensure body takes full height */
+html, body {
+    height: 100%;
+}
+
+#root {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+main {
+    flex: 1;
+}

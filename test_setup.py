@@ -102,7 +102,7 @@ def test_environment_variables():
 
 def main():
     """Run all tests."""
-    print("🔍 Testing MagicAI Django Setup")
+    print("🔍 Testing EMTEEGEE Django Setup")
     print("=" * 40)
     
     tests = [

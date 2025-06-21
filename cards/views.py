@@ -93,7 +93,55 @@ class OldCardDetailView(DetailView):
         return context
 
 
-class CardBrowseView(ListView):
+class CardBrowseView(TemplateView):
+    """
+    Simple card browse view that redirects to our MongoDB admin.
+    """
+    template_name = 'cards/browse.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Get some basic stats
+        try:
+            cards_collection = get_cards_collection()
+            context['total_cards'] = cards_collection.count_documents({})
+        except Exception:
+            context['total_cards'] = 0
+        return context
+
+
+class CardSearchView(TemplateView):
+    """
+    Basic search view - will be enhanced later with proper search functionality.
+    """
+    template_name = 'cards/search.html'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        search_query = self.request.GET.get('q', '')
+        context['search_query'] = search_query
+        
+        if search_query:
+            try:
+                cards_collection = get_cards_collection()
+                # Simple name search
+                cards = list(cards_collection.find(
+                    {"name": {"$regex": search_query, "$options": "i"}}
+                ).limit(20))
+                context['cards'] = cards
+                context['found_cards'] = len(cards)
+            except Exception:
+                context['cards'] = []
+                context['found_cards'] = 0
+        else:
+            context['cards'] = []
+            context['found_cards'] = 0
+            
+        return context
+
+
+# Keep existing classes for reference...
+class OldCardBrowseView(ListView):
     """
     Paginated card browser with filtering.
     """

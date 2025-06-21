@@ -1,4 +1,4 @@
-# MagicAI - Django Migration
+# EMTEEGEE - Django Migration
 
 A comprehensive Magic: The Gathering card analysis platform with AI-powered reviews, deck analysis, and pricing data. This Django application uses MongoDB and imports data directly from MTGJson.
 

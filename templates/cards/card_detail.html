@@ -4,51 +4,89 @@
 {% block title %}{{ card.name }} - EMTEEGEE{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <!-- Breadcrumb -->
+<div class="container mt-4">    <!-- Breadcrumb -->
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{% url 'cards:home' %}">Home</a></li>
-            <li class="breadcrumb-item"><a href="{% url 'cards:browse' %}">Cards</a></li>
+            <li class="breadcrumb-item"><a href="/admin-cards/">Cards</a></li>
             <li class="breadcrumb-item active">{{ card.name }}</li>
         </ol>
     </nav>
 
-    <div class="row">
-        <!-- Main Card Information -->
+    <div class="row">        <!-- Main Card Information -->
         <div class="col-lg-8">
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h1 class="h3 mb-0">🃏 {{ card.name }}</h1>
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h1 class="h3 mb-0">
+                        <i class="bi bi-gem"></i> {{ card.name }}
+                        {% if card.rarity %}
+                            <span class="badge 
+                                {% if card.rarity == 'common' %}bg-secondary
+                                {% elif card.rarity == 'uncommon' %}bg-success
+                                {% elif card.rarity == 'rare' %}bg-warning text-dark
+                                {% elif card.rarity == 'mythic' %}bg-danger
+                                {% else %}bg-light text-dark{% endif %} ms-2" 
+                                data-bs-toggle="tooltip" title="Rarity: {{ card.rarity|title }}">
+                                {{ card.rarity|title }}
+                            </span>
+                        {% endif %}
+                    </h1>
                     {% if card.uuid %}
-                        <small class="text-muted">UUID: {{ card.uuid }}</small>
+                        <small class="text-white-50">
+                            <i class="bi bi-fingerprint"></i> UUID: {{ card.uuid }}
+                        </small>
                     {% endif %}
                 </div>
-                <div class="card-body">
-                    <!-- Mana Cost and Type -->
+                <div class="card-body">                    <!-- Mana Cost and Type -->
                     <div class="row mb-3">
                         <div class="col-md-6">
                             {% if card.manaCost %}
-                                <h5>Mana Cost</h5>
-                                <p class="lead"><code>{{ card.manaCost }}</code></p>
+                                <h5><i class="bi bi-circle"></i> Mana Cost</h5>
+                                <p class="lead">
+                                    <code class="fs-4">{{ card.manaCost }}</code>
+                                    <button type="button" class="btn btn-outline-info btn-sm ms-2" 
+                                            data-bs-toggle="popover" data-bs-placement="top" 
+                                            data-bs-title="Mana Cost Help" 
+                                            data-bs-content="This shows the mana cost in MTG notation. {W}=White, {U}=Blue, {B}=Black, {R}=Red, {G}=Green, {C}=Colorless">
+                                        <i class="bi bi-question-circle"></i>
+                                    </button>
+                                </p>
                             {% endif %}
                         </div>
                         <div class="col-md-6">
                             {% if card.manaValue %}
-                                <h5>Mana Value</h5>
-                                <p class="lead">{{ card.manaValue }}</p>
+                                <h5><i class="bi bi-calculator"></i> Mana Value</h5>
+                                <p class="lead">
+                                    <span class="badge bg-info fs-6">{{ card.manaValue }}</span>
+                                    <small class="text-muted ms-2" data-bs-toggle="tooltip" 
+                                           title="Total converted mana cost of the card">CMC</small>
+                                </p>
                             {% endif %}
                         </div>
-                    </div>
-
-                    <!-- Type Line -->
+                    </div>                    <!-- Type Line -->
                     {% if card.types or card.subtypes or card.supertypes %}
                     <div class="mb-3">
-                        <h5>Type</h5>
+                        <h5><i class="bi bi-tag"></i> Type</h5>
                         <p class="lead">
-                            {% if card.supertypes %}{{ card.supertypes|join:" " }} {% endif %}
-                            {% if card.types %}{{ card.types|join:" " }}{% endif %}
-                            {% if card.subtypes %} — {{ card.subtypes|join:" " }}{% endif %}
+                            {% if card.supertypes %}
+                                {% for supertype in card.supertypes %}
+                                    <span class="badge bg-warning text-dark me-1" data-bs-toggle="tooltip" 
+                                          title="Supertype">{{ supertype }}</span>
+                                {% endfor %}
+                            {% endif %}
+                            {% if card.types %}
+                                {% for type in card.types %}
+                                    <span class="badge bg-primary me-1" data-bs-toggle="tooltip" 
+                                          title="Card Type">{{ type }}</span>
+                                {% endfor %}
+                            {% endif %}
+                            {% if card.subtypes %}
+                                —
+                                {% for subtype in card.subtypes %}
+                                    <span class="badge bg-secondary me-1" data-bs-toggle="tooltip" 
+                                          title="Subtype">{{ subtype }}</span>
+                                {% endfor %}
+                            {% endif %}
                         </p>
                     </div>
                     {% endif %}
@@ -85,15 +123,16 @@
                             {% endif %}
                         </div>
                     </div>
-                    {% endif %}
-
-                    <!-- Keywords -->
+                    {% endif %}                    <!-- Keywords -->
                     {% if card.keywords %}
                     <div class="mb-3">
-                        <h5>Keywords</h5>
+                        <h5><i class="bi bi-lightning"></i> Keywords</h5>
                         <div>
                             {% for keyword in card.keywords %}
-                                <span class="badge badge-info me-1">{{ keyword }}</span>
+                                <span class="badge bg-info me-1" data-bs-toggle="tooltip" 
+                                      title="Keyword ability: {{ keyword }}">
+                                    {{ keyword }}
+                                </span>
                             {% endfor %}
                         </div>
                     </div>

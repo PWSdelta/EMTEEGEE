@@ -46,11 +46,10 @@ INSTALLED_APPS = [
     'corsheaders',
     
     # Authentication
-    'allauth',
-    'allauth.account',
+    'allauth',    'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
-      # MagicAI apps
+      # EMTEEGEE apps
     'cards',
     'analyses',
     # 'users',  # Temporarily disabled - using Django's built-in User with allauth

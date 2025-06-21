@@ -1,5 +1,5 @@
 """
-Card and Deck models for the emteegee MagicAI Django project.
+Card and Deck models for the EMTEEGEE Django project.
 These are used for Django admin interface but actual data is stored in MongoDB.
 """
 
