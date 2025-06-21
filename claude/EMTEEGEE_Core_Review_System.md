@@ -1,4 +1,4 @@
-# MagicAI Core Card Review System
+# EMTEEGEE Core Card Review System
 ## Essential Guide for Claude 4.0 Django Implementation
 
 **Purpose:** Recreate the AI-powered MTG card analysis system in Django  
@@ -8,7 +8,7 @@
 
 ## 1. System Overview
 
-MagicAI generates comprehensive card analyses using local Ollama models. Each card gets 20 different analysis components, and the `fully_analyzed` flag is set to `True` only when all 20 components exist.
+EMTEEGEE generates comprehensive card analyses using local Ollama models. Each card gets 20 different analysis components, and the `fully_analyzed` flag is set to `True` only when all 20 components exist.
 
 **Key Concepts:**
 - **4 AI Models** - Different perspectives for different analysis types
