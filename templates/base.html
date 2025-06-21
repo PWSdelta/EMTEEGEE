@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}MagicAI - MTG Card Analysis{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/magic-ai.css' %}">
+    
+    <!-- Mana symbols font -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mana-font@latest/css/mana.css">
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'cards:home' %}">
+                <strong>MagicAI</strong>
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'cards:home' %}">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'cards:browse' %}">Browse Cards</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'cards:deck_list' %}">Browse Decks</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'cards:search' %}">Search</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'cards:random_card' %}">Random Card</a>
+                    </li>
+                </ul>
+                
+                <!-- Search form -->
+                <form class="d-flex me-3" method="get" action="{% url 'cards:search' %}">
+                    <input class="form-control me-2" type="search" name="q" placeholder="Search cards..." 
+                           value="{{ request.GET.q }}">
+                    <button class="btn btn-outline-light" type="submit">Search</button>
+                </form>
+                
+                <!-- User menu -->
+                <ul class="navbar-nav">
+                    {% if user.is_authenticated %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" 
+                               data-bs-toggle="dropdown">
+                                {{ user.username }}
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{% url 'users:profile' %}">Profile</a></li>
+                                <li><a class="dropdown-item" href="{% url 'users:favorites' %}">Favorites</a></li>
+                                <li><a class="dropdown-item" href="{% url 'users:collections' %}">Collections</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{% url 'users:logout' %}">Logout</a></li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'users:login' %}">Login</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'users:signup' %}">Sign Up</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Messages -->
+    {% if messages %}
+        <div class="container mt-3">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Main content -->
+    <main class="container-fluid">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-light mt-5 py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>MagicAI</h5>
+                    <p class="text-muted">AI-powered Magic: The Gathering card analysis and deck building.</p>
+                </div>
+                <div class="col-md-6">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Cards</h6>
+                            <ul class="list-unstyled">
+                                <li><a href="{% url 'cards:browse' %}" class="text-muted">Browse Cards</a></li>
+                                <li><a href="{% url 'cards:search' %}" class="text-muted">Search</a></li>
+                                <li><a href="{% url 'cards:random_card' %}" class="text-muted">Random Card</a></li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Decks</h6>
+                            <ul class="list-unstyled">
+                                <li><a href="{% url 'cards:deck_list' %}" class="text-muted">Browse Decks</a></li>
+                                <li><a href="{% url 'cards:random_deck' %}" class="text-muted">Random Deck</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <hr class="my-4">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <p class="mb-0 text-muted">&copy; 2025 MagicAI. All rights reserved.</p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <small class="text-muted">
+                        Powered by <a href="https://scryfall.com/" class="text-muted">Scryfall</a> API
+                    </small>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JS -->
+    <script src="{% static 'js/magic-ai.js' %}"></script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

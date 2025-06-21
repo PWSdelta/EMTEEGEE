@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EmTeeGee - Magic: The Gathering Analysis Platform</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .stats {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .auth-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #007cba;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            margin: 5px;
+        }
+        .btn:hover {
+            background: #005a87;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎴 EmTeeGee</h1>
+        <p>Magic: The Gathering Analysis Platform</p>
+    </div>
+
+    <div class="stats">
+        <h2>📊 Platform Status</h2>
+        <p><strong>✅ MongoDB Import Complete:</strong> {{ card_count|default:"Loading..." }} cards imported</p>
+        <p><strong>✅ Django Admin:</strong> Available for card management</p>
+        <p><strong>✅ Google OAuth:</strong> Ready for configuration</p>
+    </div>
+
+    <div class="auth-section">
+        <h2>🔐 Authentication</h2>
+        {% if user.is_authenticated %}
+            <p>Welcome, {{ user.email|default:user.username }}!</p>
+            <a href="{% url 'admin:index' %}" class="btn">Django Admin</a>
+            <a href="{% url 'account_logout' %}" class="btn">Logout</a>
+        {% else %}
+            <p>Sign in to access card analysis features:</p>
+            <a href="{% url 'account_login' %}" class="btn">Login</a>
+            <a href="{% url 'account_signup' %}" class="btn">Sign Up</a>
+            <a href="{% url 'admin:index' %}" class="btn">Admin Login</a>
+        {% endif %}
+    </div>
+
+    <div class="stats">
+        <h2>🔧 Setup Complete</h2>
+        <ul>
+            <li>✅ Django + MongoDB integration</li>
+            <li>✅ MTGJson AtomicCards import ({{ card_count|default:"32,811" }} cards)</li>
+            <li>✅ Django-allauth for Google OAuth</li>
+            <li>✅ Downloads directory (gitignored)</li>
+            <li>✅ Admin interface for card management</li>
+        </ul>
+        
+        <h3>Next Steps:</h3>
+        <ul>
+            <li>Configure Google OAuth credentials</li>
+            <li>Import deck data from MTGJson</li>
+            <li>Build card analysis features</li>
+        </ul>
+    </div>
+</body>
+</html>
