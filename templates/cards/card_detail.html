@@ -62,10 +62,9 @@
                         <div class="col-md-8">                            <!-- Type and Text -->
                             {% if card.type %}
                                 <h5><i class="bi bi-tag"></i> {{ card.type|format_card_types }}</h5>
-                            {% endif %}
-                            {% if card.text %}
+                            {% endif %}                            {% if card.text %}
                                 <div class="card-text-box mb-3">
-                                    {{ card.text|scryfall_parse_text|linebreaks }}
+                                    {{ card.text|scryfall_parse_text_with_breaks }}
                                 </div>
                             {% endif %}
                             {% if card.flavorText %}

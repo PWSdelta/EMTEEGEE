@@ -12,6 +12,23 @@
     font-weight: bold;
 }
 
+/* Mana symbol styling */
+.mana-symbol {
+    height: 1.2em;
+    width: 1.2em;
+    display: inline-block;
+    vertical-align: text-top;
+    margin: 0 2px;
+}
+
+.mana-symbol-text {
+    height: 1em;
+    width: 1em;
+    display: inline-block;
+    vertical-align: baseline;
+    margin: 0 1px;
+}
+
 /* Card text box styling */
 .card-text-box {
     background-color: #f8f9fa;

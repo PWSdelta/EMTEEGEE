@@ -1,17 +1,27 @@
-from django import template
-from django.utils.safestring import mark_safe
+"""
+Custom template filters for the cards app.
+"""
+
 import re
 import markdown
+from django import template
+from django.utils.safestring import mark_safe
 
 register = template.Library()
 
 @register.filter
-def analyze_markdown(value):
-    """Convert markdown to HTML with card linking."""
+def markdown_to_html(value):
+    """
+    Convert markdown text to HTML with card name linking.
+    
+    This filter:
+    1. Converts markdown to HTML
+    2. Converts [[card name]] patterns to clickable links
+    """
     if not value:
         return ""
     
-    # Configure markdown with extensions
+    # Convert markdown to HTML
     md = markdown.Markdown(extensions=['extra', 'codehilite'])
     html_content = md.convert(value)
     
@@ -94,14 +104,16 @@ def scryfall_mana_symbols(mana_cost):
     if '<img' in cost_str and 'mana-symbol' in cost_str:
         return mark_safe(cost_str)
     
+    import re
+    
     # Pattern to match {X} style mana symbols
     symbol_pattern = r'\{([^}]+)\}'
     
     def replace_symbol(match):
         symbol = match.group(1).upper()
-        
-        # Handle hybrid mana (like W/U, 2/W, etc.)
+          # Handle hybrid mana (like W/U, 2/W, etc.)
         if '/' in symbol:
+            # For hybrid symbols, create proper name
             parts = symbol.split('/')
             if len(parts) == 2:
                 hybrid_name = ''.join(part.lower() for part in parts)
@@ -115,16 +127,25 @@ def scryfall_mana_symbols(mana_cost):
         
         # Handle basic mana symbols
         symbol_map = {
-            'W': 'w', 'U': 'u', 'B': 'b', 'R': 'r', 'G': 'g',
-            'C': 'c', 'X': 'x', 'S': 's', 'T': 't', 'Q': 'q', 'E': 'e'
+            'W': 'w', 'U': 'u', 'B': 'b', 'R': 'r', 'G': 'g',  # Basic colors
+            'C': 'c',  # Colorless
+            'X': 'x',  # Variable
+            'S': 's',  # Snow
+            'T': 't',  # Tap
+            'Q': 'q',  # Untap
+            'E': 'e',  # Energy
         }
         
+        # Get the symbol or use lowercase version
         scryfall_symbol = symbol_map.get(symbol, symbol.lower())
+        
         return f'<img src="https://svgs.scryfall.io/card-symbols/{scryfall_symbol}.svg" alt="{{{symbol}}}" class="mana-symbol" title="Mana cost: {{{symbol}}}">'
     
     # Replace all {X} patterns with symbol images
     html_with_symbols = re.sub(symbol_pattern, replace_symbol, cost_str)
+    
     return mark_safe(html_with_symbols)
+
 
 @register.filter
 def scryfall_parse_text(card_text):
@@ -137,14 +158,17 @@ def scryfall_parse_text(card_text):
     if '<img' in text_str and 'mana-symbol' in text_str:
         return mark_safe(text_str)
     
-    # Pattern to match {X} style mana symbols
+    import re
+    
+    # Pattern to match {X} style mana symbols in card text
     symbol_pattern = r'\{([^}]+)\}'
     
     def replace_symbol(match):
         symbol = match.group(1).upper()
         
-        # Handle hybrid mana (like W/U, 2/W, etc.)
+        # Handle hybrid mana (e.g., {W/U})
         if '/' in symbol:
+            # For hybrid symbols, use the format like "wu" for {W/U}
             parts = symbol.split('/')
             if len(parts) == 2:
                 hybrid_name = ''.join(part.lower() for part in parts)
@@ -158,9 +182,15 @@ def scryfall_parse_text(card_text):
         
         # Handle common symbols in card text
         symbol_map = {
-            'W': 'w', 'U': 'u', 'B': 'b', 'R': 'r', 'G': 'g',
-            'C': 'c', 'X': 'x', 'T': 't', 'Q': 'q', 'E': 'e', 'S': 's',
-            'CHAOS': 'chaos', 'PW': 'pw'
+            'W': 'w', 'U': 'u', 'B': 'b', 'R': 'r', 'G': 'g',  # Basic colors
+            'C': 'c',  # Colorless
+            'X': 'x',  # Variable
+            'T': 't',  # Tap
+            'Q': 'q',  # Untap
+            'E': 'e',  # Energy
+            'S': 's',  # Snow
+            'CHAOS': 'chaos',
+            'PW': 'pw'
         }
         
         # Get the appropriate symbol name
@@ -170,7 +200,9 @@ def scryfall_parse_text(card_text):
     
     # Replace all {X} patterns with symbol images
     html_with_symbols = re.sub(symbol_pattern, replace_symbol, text_str)
+    
     return mark_safe(html_with_symbols)
+
 
 @register.filter  
 def format_card_types(type_line):
@@ -206,15 +238,3 @@ def scryfall_parse_text_with_breaks(card_text):
             html_lines.append('<br>')
     
     return mark_safe(''.join(html_lines))
-
-@register.filter
-def markdown_to_html(value):
-    """Convert markdown to HTML."""
-    if not value:
-        return ""
-    
-    # Configure markdown with extensions
-    md = markdown.Markdown(extensions=['extra', 'codehilite'])
-    html_content = md.convert(value)
-    
-    return mark_safe(html_content)
