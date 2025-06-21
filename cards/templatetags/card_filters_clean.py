@@ -2,7 +2,6 @@ from django import template
 from django.utils.safestring import mark_safe
 import re
 import markdown
-from ..scryfall_utils import ScryfallDataHelper
 
 register = template.Library()
 
@@ -207,47 +206,3 @@ def scryfall_parse_text_with_breaks(card_text):
             html_lines.append('<br>')
     
     return mark_safe(''.join(html_lines))
-
-@register.filter
-def markdown_to_html(value):
-    """Convert markdown to HTML."""
-    if not value:
-        return ""
-    
-    # Configure markdown with extensions
-    md = markdown.Markdown(extensions=['extra', 'codehilite'])
-    html_content = md.convert(value)
-    
-    return mark_safe(html_content)
-
-@register.filter
-def card_image(card, size='normal'):
-    """Get image URL for a card."""
-    return ScryfallDataHelper.get_best_image_url(card, size)
-
-@register.filter
-def card_price(card, price_type='usd'):
-    """Get formatted price for a card."""
-    prices = ScryfallDataHelper.get_card_prices(card)
-    price_str = prices.get(price_type)
-    return ScryfallDataHelper.format_price(price_str)
-
-@register.filter
-def has_enhanced_data(card):
-    """Check if card has enhanced Scryfall data."""
-    return ScryfallDataHelper.has_scryfall_data(card)
-
-@register.filter
-def card_legalities(card):
-    """Get card format legalities."""
-    return ScryfallDataHelper.get_card_legalities(card)
-
-@register.filter
-def card_scryfall_url(card):
-    """Get Scryfall page URL for a card."""
-    return ScryfallDataHelper.get_scryfall_url(card)
-
-@register.filter
-def card_artist(card):
-    """Get card artist information."""
-    return ScryfallDataHelper.get_artist_info(card)

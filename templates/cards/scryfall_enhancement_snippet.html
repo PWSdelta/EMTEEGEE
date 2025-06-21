@@ -1,0 +1,100 @@
+<!-- Enhanced Card Detail Template with Scryfall Data -->
+<!-- Add this section right after the existing card properties -->
+
+{% if card|has_scryfall %}
+    <!-- Scryfall Enhanced Data Section -->
+    <div class="card bg-light mt-3">
+        <div class="card-body p-3">
+            <h6 class="card-title">
+                <i class="bi bi-star-fill text-warning"></i> Enhanced Information
+                <small class="text-muted">(via Scryfall)</small>
+            </h6>
+            
+            <!-- High Quality Image -->
+            {% with card|scryfall_image:"large" as large_image %}
+                {% if large_image %}
+                    <div class="mb-3 text-center">
+                        <img src="{{ large_image }}" 
+                             alt="{{ card.name }}" 
+                             class="img-fluid rounded shadow-sm"
+                             style="max-width: 100%; max-height: 300px;">
+                    </div>
+                {% endif %}
+            {% endwith %}
+            
+            <!-- Pricing Information -->
+            <div class="mb-3">
+                <h6><i class="bi bi-currency-dollar"></i> Current Prices</h6>
+                <div class="row">
+                    <div class="col-sm-6">
+                        <small class="text-muted">USD:</small>
+                        <span class="fw-bold">{{ card|scryfall_price:"usd" }}</span>
+                    </div>
+                    <div class="col-sm-6">
+                        <small class="text-muted">Foil:</small>
+                        <span class="fw-bold">{{ card|scryfall_price:"usd_foil" }}</span>
+                    </div>
+                </div>
+                <div class="row mt-1">
+                    <div class="col-sm-6">
+                        <small class="text-muted">EUR:</small>
+                        <span class="fw-bold">{{ card|scryfall_price:"eur" }}</span>
+                    </div>
+                    <div class="col-sm-6">
+                        <small class="text-muted">TIX:</small>
+                        <span class="fw-bold">{{ card|scryfall_price:"tix" }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Format Legalities -->
+            {% with card|scryfall_legalities as legalities %}
+                {% if legalities %}
+                    <div class="mb-3">
+                        <h6><i class="bi bi-award"></i> Format Legality</h6>
+                        <div class="d-flex flex-wrap gap-1">
+                            {% for format, status in legalities.items %}
+                                {% if status == "legal" %}
+                                    <span class="badge bg-success">{{ format|title }}</span>
+                                {% elif status == "restricted" %}
+                                    <span class="badge bg-warning text-dark">{{ format|title }} (R)</span>
+                                {% elif status == "banned" %}
+                                    <span class="badge bg-danger">{{ format|title }} (B)</span>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+            {% endwith %}
+            
+            <!-- Artist Information -->
+            <div class="mb-3">
+                <h6><i class="bi bi-palette"></i> Artist</h6>
+                <p class="mb-0">{{ card|card_artist }}</p>
+            </div>
+            
+            <!-- Scryfall Link -->
+            {% with card|scryfall_url as scryfall_link %}
+                {% if scryfall_link %}
+                    <div class="d-grid">
+                        <a href="{{ scryfall_link }}" 
+                           target="_blank" 
+                           class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-box-arrow-up-right"></i> View on Scryfall
+                        </a>
+                    </div>
+                {% endif %}
+            {% endwith %}
+        </div>
+    </div>
+{% else %}
+    <!-- Encourage Scryfall Import -->
+    <div class="card bg-warning bg-opacity-10 border-warning mt-3">
+        <div class="card-body p-3 text-center">
+            <i class="bi bi-info-circle text-warning fs-4"></i>
+            <h6 class="mt-2">Enhanced Data Available</h6>
+            <p class="mb-2 small">Import Scryfall data to see pricing, high-res images, and more!</p>
+            <code class="small">python manage.py import_scryfall_data</code>
+        </div>
+    </div>
+{% endif %}

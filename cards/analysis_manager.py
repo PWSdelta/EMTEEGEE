@@ -28,6 +28,7 @@ ANALYSIS_LAST_UPDATED = "analysis.last_updated"
 ANALYSIS_COMPONENT_COUNT = "analysis.component_count"
 ANALYSIS_COMPLETED_AT = "analysis.analysis_completed_at"
 ANALYSIS_REQUEST_COUNT = "analysis.request_count"
+ANALYSIS_REQUESTED = "analysis.requested"
 MONGODB_EXISTS = "$exists"
 MONGODB_GT = "$gt"
 
@@ -109,19 +110,28 @@ class CardAnalysisManager:
                     non_requested_cards = list(
                         self.cards_collection.find({
                             **query,
-                            "$or": [
-                                {ANALYSIS_REQUEST_COUNT: {MONGODB_EXISTS: False}},
-                                {ANALYSIS_REQUEST_COUNT: {"$lte": 0}}
-                            ]
-                        }).limit(remaining_limit)
+                            ANALYSIS_REQUESTED: {'$ne': True},
+                            'edhrecPriorityScore': {'$exists': True}  # Only cards with EDHREC data
+                        }).sort('edhrecPriorityScore', -1).limit(remaining_limit)  # Highest priority first
                     )
+                    
+                    # If we don't have enough EDHREC-prioritized cards, fall back to random
+                    if len(non_requested_cards) < remaining_limit:
+                        additional_random = list(
+                            self.cards_collection.find({
+                                **query,
+                                ANALYSIS_REQUESTED: {'$ne': True},
+                                'edhrecPriorityScore': {'$exists': False}  # Cards without EDHREC data
+                            }).limit(remaining_limit - len(non_requested_cards))
+                        )
+                        non_requested_cards.extend(additional_random)
                     
                     all_cards = requested_cards + non_requested_cards
                 else:
                     all_cards = requested_cards
                 
                 logger.info(f"📋 Priority queue: {requested_count} requested cards, "
-                           f"{len(all_cards) - requested_count} random cards")
+                           f"{len(all_cards) - requested_count} EDHREC-prioritized cards")
                 
                 return all_cards
             else:
