@@ -1,0 +1,276 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{{ card.name }} - EMTEEGEE{% endblock %}
+
+{% block content %}
+<div class="container mt-4">    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'cards:home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="/admin-cards/">Cards</a></li>
+            <li class="breadcrumb-item active">{{ card.name }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">        <!-- Main Card Information -->
+        <div class="col-lg-8">
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h1 class="h3 mb-0">
+                        <i class="bi bi-gem"></i> {{ card.name }}
+                        {% if card.rarity %}
+                            <span class="badge 
+                                {% if card.rarity == 'common' %}bg-secondary
+                                {% elif card.rarity == 'uncommon' %}bg-success
+                                {% elif card.rarity == 'rare' %}bg-warning text-dark
+                                {% elif card.rarity == 'mythic' %}bg-danger
+                                {% else %}bg-light text-dark{% endif %} ms-2" 
+                                data-bs-toggle="tooltip" title="Rarity: {{ card.rarity|title }}">
+                                {{ card.rarity|title }}
+                            </span>
+                        {% endif %}
+                    </h1>
+                    {% if card.uuid %}
+                        <small class="text-white-50">
+                            <i class="bi bi-fingerprint"></i> UUID: {{ card.uuid }}
+                        </small>
+                    {% endif %}
+                </div>
+                <div class="card-body">                    <!-- Mana Cost and Type -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            {% if card.manaCost %}
+                                <h5><i class="bi bi-circle"></i> Mana Cost</h5>
+                                <p class="lead">
+                                    <code class="fs-4">{{ card.manaCost }}</code>
+                                    <button type="button" class="btn btn-outline-info btn-sm ms-2" 
+                                            data-bs-toggle="popover" data-bs-placement="top" 
+                                            data-bs-title="Mana Cost Help" 
+                                            data-bs-content="This shows the mana cost in MTG notation. {W}=White, {U}=Blue, {B}=Black, {R}=Red, {G}=Green, {C}=Colorless">
+                                        <i class="bi bi-question-circle"></i>
+                                    </button>
+                                </p>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            {% if card.manaValue %}
+                                <h5><i class="bi bi-calculator"></i> Mana Value</h5>
+                                <p class="lead">
+                                    <span class="badge bg-info fs-6">{{ card.manaValue }}</span>
+                                    <small class="text-muted ms-2" data-bs-toggle="tooltip" 
+                                           title="Total converted mana cost of the card">CMC</small>
+                                </p>
+                            {% endif %}
+                        </div>
+                    </div>                    <!-- Type Line -->
+                    {% if card.types or card.subtypes or card.supertypes %}
+                    <div class="mb-3">
+                        <h5><i class="bi bi-tag"></i> Type</h5>
+                        <p class="lead">
+                            {% if card.supertypes %}
+                                {% for supertype in card.supertypes %}
+                                    <span class="badge bg-warning text-dark me-1" data-bs-toggle="tooltip" 
+                                          title="Supertype">{{ supertype }}</span>
+                                {% endfor %}
+                            {% endif %}
+                            {% if card.types %}
+                                {% for type in card.types %}
+                                    <span class="badge bg-primary me-1" data-bs-toggle="tooltip" 
+                                          title="Card Type">{{ type }}</span>
+                                {% endfor %}
+                            {% endif %}
+                            {% if card.subtypes %}
+                                —
+                                {% for subtype in card.subtypes %}
+                                    <span class="badge bg-secondary me-1" data-bs-toggle="tooltip" 
+                                          title="Subtype">{{ subtype }}</span>
+                                {% endfor %}
+                            {% endif %}
+                        </p>
+                    </div>
+                    {% endif %}
+
+                    <!-- Card Text -->
+                    {% if card.text %}
+                    <div class="mb-3">
+                        <h5>Card Text</h5>
+                        <div class="card-text-box">
+                            {{ card.text|linebreaks }}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Power/Toughness/Loyalty -->
+                    {% if card.power or card.toughness or card.loyalty %}
+                    <div class="mb-3">
+                        <h5>Stats</h5>
+                        <div class="row">
+                            {% if card.power %}
+                            <div class="col-md-4">
+                                <strong>Power:</strong> {{ card.power }}
+                            </div>
+                            {% endif %}
+                            {% if card.toughness %}
+                            <div class="col-md-4">
+                                <strong>Toughness:</strong> {{ card.toughness }}
+                            </div>
+                            {% endif %}
+                            {% if card.loyalty %}
+                            <div class="col-md-4">
+                                <strong>Loyalty:</strong> {{ card.loyalty }}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}                    <!-- Keywords -->
+                    {% if card.keywords %}
+                    <div class="mb-3">
+                        <h5><i class="bi bi-lightning"></i> Keywords</h5>
+                        <div>
+                            {% for keyword in card.keywords %}
+                                <span class="badge bg-info me-1" data-bs-toggle="tooltip" 
+                                      title="Keyword ability: {{ keyword }}">
+                                    {{ keyword }}
+                                </span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Flavor Text -->
+            {% if card.flavorText %}
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5>Flavor Text</h5>
+                    <blockquote class="blockquote">
+                        <p class="mb-0 font-italic">{{ card.flavorText }}</p>
+                    </blockquote>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Properties Card -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Properties</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Colors -->
+                    <div class="mb-3">
+                        <strong>Colors:</strong>
+                        {% if card.colors %}
+                            {% for color in card.colors %}
+                                <span class="badge 
+                                    {% if color == 'W' %}bg-light text-dark
+                                    {% elif color == 'U' %}bg-primary
+                                    {% elif color == 'B' %}bg-dark
+                                    {% elif color == 'R' %}bg-danger
+                                    {% elif color == 'G' %}bg-success
+                                    {% else %}bg-secondary{% endif %} me-1">
+                                    {{ color }}
+                                </span>
+                            {% endfor %}
+                        {% else %}
+                            <span class="text-muted">Colorless</span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Color Identity -->
+                    {% if card.colorIdentity %}
+                    <div class="mb-3">
+                        <strong>Color Identity:</strong>
+                        {% for color in card.colorIdentity %}
+                            <span class="badge bg-outline-secondary me-1">{{ color }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Rarity -->
+                    {% if card.rarity %}
+                    <div class="mb-3">
+                        <strong>Rarity:</strong>
+                        <span class="badge 
+                            {% if card.rarity == 'common' %}bg-secondary
+                            {% elif card.rarity == 'uncommon' %}bg-success
+                            {% elif card.rarity == 'rare' %}bg-warning text-dark
+                            {% elif card.rarity == 'mythic' %}bg-danger
+                            {% else %}bg-light text-dark{% endif %}">
+                            {{ card.rarity|title }}
+                        </span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Format Legality -->
+            {% if card.legalities %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Format Legality</h5>
+                </div>
+                <div class="card-body">
+                    {% for format, status in card.legalities.items %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <strong>{{ format|title }}:</strong>
+                        <span class="badge 
+                            {% if status == 'Legal' %}bg-success
+                            {% elif status == 'Banned' %}bg-danger
+                            {% elif status == 'Restricted' %}bg-warning text-dark
+                            {% else %}bg-secondary{% endif %}">
+                            {{ status }}
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Printings -->
+            {% if card.printings %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Printings</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-2">
+                        {% for printing in card.printings %}
+                            <span class="badge bg-light text-dark me-1">{{ printing }}</span>
+                        {% endfor %}
+                    </div>
+                    <small class="text-muted">
+                        {{ card.printings|length }} printing{{ card.printings|length|pluralize }}
+                    </small>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.card-text-box {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 5px;
+    border-left: 4px solid #007bff;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+}
+
+.badge {
+    font-size: 0.9em;
+}
+
+.breadcrumb {
+    background: transparent;
+    padding: 0;
+}
+</style>
+
+{% endblock %}

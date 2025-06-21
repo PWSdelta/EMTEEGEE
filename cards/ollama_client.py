@@ -175,48 +175,47 @@ Type: {type_line}
             base_context += f"Power/Toughness: {power}/{toughness}\n"
             
         base_context += f"Oracle Text: {oracle_text}\n"
-        
-        # Component-specific prompts
+          # Component-specific prompts
         prompts = {
-            'tactical_analysis': f"{base_context}\nProvide deep tactical analysis focusing on:\n- Optimal timing and sequencing\n- Key interactions and synergies\n- Play patterns and decision points\n- Situational considerations\nWrite 300-500 words in markdown format.",
+            'tactical_analysis': f"{base_context}\nProvide deep tactical analysis focusing on:\n- Optimal timing and sequencing\n- Key interactions and synergies\n- Play patterns and decision points\n- Situational considerations\nAlways enclose card names in [[ card name ]] double square brackets to make card parsing easier. Write 300-500 words in markdown format.",
             
-            'play_tips': f"{base_context}\nProvide 4-5 practical tips for playing this card effectively:\n- When to play it\n- What to watch out for\n- Common mistakes to avoid\n- Timing considerations\nWrite in bullet points, 200-300 words total.",
+            'play_tips': f"{base_context}\nProvide 4-5 practical tips for playing this card effectively:\n- When to play it\n- What to watch out for\n- Common mistakes to avoid\n- Timing considerations\nAlways enclose card names in [[ card name ]] double square brackets to make card parsing easier. Write in bullet points, 200-300 words total.",
             
-            'thematic_analysis': f"{base_context}\nAnalyze the thematic and flavor elements:\n- Lore and story connections\n- Flavor text significance\n- Thematic coherence with mechanics\n- Place in MTG's world-building\nWrite 250-400 words in markdown format.",
+            'thematic_analysis': f"{base_context}\nAnalyze the thematic and flavor elements:\n- Lore and story connections\n- Flavor text significance\n- Thematic coherence with mechanics\n- Place in MTG's world-building\nAlways enclose card names in [[ card name ]] double square brackets to make card parsing easier. Write 250-400 words in markdown format.",
             
-            'synergy_analysis': f"{base_context}\nAnalyze card synergies and combinations:\n- Cards that work well with this\n- Archetype synergies\n- Combo potential\n- Anti-synergies to avoid\nWrite 300-450 words in markdown format.",
+            'synergy_analysis': f"{base_context}\nAnalyze card synergies and combinations:\n- Cards that work well with this\n- Archetype synergies\n- Combo potential\n- Anti-synergies to avoid\nAlways enclose card names in [[ card name ]] double square brackets to make card parsing easier. Write 300-450 words in markdown format.",
             
-            'competitive_analysis': f"{base_context}\nAnalyze competitive tournament viability:\n- Current meta positioning\n- Competitive formats where it's viable\n- Tournament results and trends\n- Competitive deck considerations\nWrite 300-500 words in markdown format.",
+            'competitive_analysis': f"{base_context}\nAnalyze competitive tournament viability:\n- Current meta positioning\n- Competitive formats where it's viable\n- Tournament results and trends\n- Competitive deck considerations\nAlways enclose card names in [[ card name ]] double square brackets to make card parsing easier. Write 300-500 words in markdown format.",
             
-            'format_analysis': f"{base_context}\nAnalyze performance across MTG formats:\n- Standard viability\n- Modern applications\n- Legacy/Vintage considerations\n- Commander/EDH role\n- Limited/Draft value\nWrite 350-500 words in markdown format.",
+            'format_analysis': f"{base_context}\nAnalyze performance across MTG formats:\n- Standard viability\n- Modern applications\n- Legacy/Vintage considerations\n- Commander/EDH role\n- Limited/Draft value\nAlways enclose card names in [[ card name ]] double square brackets to make card parsing easier. Write 350-500 words in markdown format.",
             
-            'power_level_assessment': f"{base_context}\nProvide comprehensive power level assessment:\n- Overall power rating (1-10)\n- Comparison to similar cards\n- Power level in different contexts\n- Historical power level perspective\nWrite 300-450 words in markdown format.",
+            'power_level_assessment': f"{base_context}\nProvide comprehensive power level assessment:\n- Overall power rating (1-10)\n- Comparison to similar cards\n- Power level in different contexts\n- Historical power level perspective\nAlways enclose card names in [[ card name ]] double square brackets to make card parsing easier. Write 300-450 words in markdown format.",
             
-            'deck_archetypes': f"{base_context}\nIdentify suitable deck archetypes:\n- Primary deck types that want this card\n- Role in each archetype\n- Deck building considerations\n- Alternative inclusions\nWrite 300-450 words in markdown format.",
+            'deck_archetypes': f"{base_context}\nIdentify suitable deck archetypes:\n- Primary deck types that want this card\n- Role in each archetype\n- Deck building considerations\n- Alternative inclusions\nAlways enclose card names in [[ card name ]] double square brackets to make card parsing easier. Write 300-450 words in markdown format.",
             
-            'sideboard_guide': f"{base_context}\nProvide sideboarding strategies:\n- When to sideboard in/out\n- Matchups where it's important\n- Sideboard card interactions\n- Meta-specific considerations\nWrite 250-400 words in markdown format.",
+            'sideboard_guide': f"{base_context}\nProvide sideboarding strategies:\n- When to sideboard in/out\n- Matchups where it's important\n- Sideboard card interactions\n- Meta-specific considerations\nAlways enclose card names in [[ card name ]] double square brackets to make card parsing easier. Write 250-400 words in markdown format.",
             
-            'mulligan_considerations': f"{base_context}\nAnalyze mulligan decisions involving this card:\n- When to keep hands with this card\n- When to mulligan it away\n- Hand quality evaluation\n- Opening hand priorities\nWrite 200-350 words in markdown format.",
+            'mulligan_considerations': f"{base_context}\nAnalyze mulligan decisions involving this card:\n- When to keep hands with this card\n- When to mulligan it away\n- Hand quality evaluation\n- Opening hand priorities\nAlways enclose card names in [[ card name ]] double square brackets to make card parsing easier. Write 200-350 words in markdown format.",
             
-            'combo_suggestions': f"{base_context}\nSuggest card combinations and combos:\n- Direct combo pieces\n- Synergistic packages\n- Engine components\n- Win condition setups\nWrite 300-450 words in markdown format.",
+            'combo_suggestions': f"{base_context}\nSuggest card combinations and combos:\n- Direct combo pieces\n- Synergistic packages\n- Engine components\n- Win condition setups\nAlways enclose card names in [[ card name ]] double square brackets to make card parsing easier. Write 300-450 words in markdown format.",
             
-            'budget_alternatives': f"{base_context}\nSuggest budget-friendly alternatives:\n- Cheaper cards with similar effects\n- Budget deck considerations\n- Cost-effective substitutions\n- Performance trade-offs\nWrite 250-400 words in markdown format.",
+            'budget_alternatives': f"{base_context}\nSuggest budget-friendly alternatives:\n- Cheaper cards with similar effects\n- Budget deck considerations\n- Cost-effective substitutions\n- Performance trade-offs\nAlways enclose card names in [[ card name ]] double square brackets to make card parsing easier. Write 250-400 words in markdown format.",
             
-            'new_player_guide': f"{base_context}\nExplain this card for new players:\n- Basic functionality explained simply\n- Why it's good/bad for beginners\n- Learning opportunities it provides\n- Common beginner mistakes\nWrite 300-450 words in accessible language. Write in markdown format.",
+            'new_player_guide': f"{base_context}\nExplain this card for new players:\n- Basic functionality explained simply\n- Why it's good/bad for beginners\n- Learning opportunities it provides\n- Common beginner mistakes\nAlways enclose card names in [[ card name ]] double square brackets to make card parsing easier. Write 300-450 words in accessible language. Write in markdown format.",
             
-            'rules_clarifications': f"{base_context}\nClarify rules and common questions:\n- Complex rules interactions\n- Common misconceptions\n- Timing rules\n- Edge cases and rulings\nWrite 250-400 words in clear, instructional format. Write in markdown format.",
+            'rules_clarifications': f"{base_context}\nClarify rules and common questions:\n- Complex rules interactions\n- Common misconceptions\n- Timing rules\n- Edge cases and rulings\nAlways enclose card names in [[ card name ]] double square brackets to make card parsing easier. Write 250-400 words in clear, instructional format. Write in markdown format.",
             
-            'historical_context': f"{base_context}\nProvide historical context:\n- When it was printed and why\n- Meta impact when released\n- Design evolution it represents\n- Historical significance in MTG\nWrite 300-450 words in markdown format.",
+            'historical_context': f"{base_context}\nProvide historical context:\n- When it was printed and why\n- Meta impact when released\n- Design evolution it represents\n- Historical significance in MTG\nAlways enclose card names in [[ card name ]] double square brackets to make card parsing easier. Write 300-450 words in markdown format.",
             
-            'art_flavor_analysis': f"{base_context}\nAnalyze art and flavor elements:\n- Artistic style and techniques\n- Flavor text analysis\n- Visual storytelling\n- Aesthetic contribution to the set\nWrite 250-400 words in markdown format.",
+            'art_flavor_analysis': f"{base_context}\nAnalyze art and flavor elements:\n- Artistic style and techniques\n- Flavor text analysis\n- Visual storytelling\n- Aesthetic contribution to the set\nAlways enclose card names in [[ card name ]] double square brackets to make card parsing easier. Write 250-400 words in markdown format.",
             
-            'design_philosophy': f"{base_context}\nAnalyze the design philosophy:\n- Design goals and intentions\n- Mechanical innovation\n- Balance considerations\n- Design space exploration\nWrite 300-450 words in markdown format.",
+            'design_philosophy': f"{base_context}\nAnalyze the design philosophy:\n- Design goals and intentions\n- Mechanical innovation\n- Balance considerations\n- Design space exploration\nAlways enclose card names in [[ card name ]] double square brackets to make card parsing easier. Write 300-450 words in markdown format.",
             
-            'investment_outlook': f"{base_context}\nAnalyze financial and collectible aspects:\n- Current market trends\n- Long-term value prospects\n- Collectibility factors\n- Reprint considerations\nWrite 300-450 words. Focus on game impact over financial advice.  Write in markdown format.",
+            'investment_outlook': f"{base_context}\nAnalyze financial and collectible aspects:\n- Current market trends\n- Long-term value prospects\n- Collectibility factors\n- Reprint considerations\nAlways enclose card names in [[ card name ]] double square brackets to make card parsing easier. Write 300-450 words. Focus on game impact over financial advice.  Write in markdown format.",
             
-            'meta_positioning': f"{base_context}\nAnalyze current metagame positioning:\n- Role in current meta\n- Matchup considerations\n- Meta shifts that affect it\n- Adaptation potential\nWrite 300-500 words in markdown format.",
+            'meta_positioning': f"{base_context}\nAnalyze current metagame positioning:\n- Role in current meta\n- Matchup considerations\n- Meta shifts that affect it\n- Adaptation potential\nAlways enclose card names in [[ card name ]] double square brackets to make card parsing easier. Write 300-500 words in markdown format.",
             
-            'advanced_interactions': f"{base_context}\nExplore advanced rules interactions:\n- Complex edge cases\n- Layer system interactions\n- Timing and priority issues\n- Judge call scenarios\nWrite 350-500 words with specific examples.  Write in markdown format."
+            'advanced_interactions': f"{base_context}\nExplore advanced rules interactions:\n- Complex edge cases\n- Layer system interactions\n- Timing and priority issues\n- Judge call scenarios\nAlways enclose card names in [[ card name ]] double square brackets to make card parsing easier. Write 350-500 words with specific examples.  Write in markdown format."
         }
         
         return prompts.get(component_type, f"{base_context}\nProvide analysis of this card focusing on {component_type.replace('_', ' ')}.")

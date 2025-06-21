@@ -1,11 +1,11 @@
 # EMTEEGEE Living Manual
 ## The Complete Chilton's-Style Guide for Django + MongoDB + MTGJson Magic: The Gathering Platform
 
-**Version**: 1.1  
-**Last Updated**: 2025-01-27  
-**Project Status**: Core Development Complete - Ready for Enhancement  
+**Version**: 1.2  
+**Last Updated**: 2025-06-21  
+**Project Status**: Enhanced Analysis System - Markdown Rendering & Card Linking Active  
 **Claude Optimization**: Designed for Claude 4.0+ ingestion  
-**Key Achievement**: Full MTGJson import pipeline operational with 32,811+ cards
+**Key Achievement**: Enhanced card analysis with Markdown rendering and intelligent card linking
 
 ---
 
@@ -595,11 +595,6 @@ venv\Scripts\activate : cannot be loaded because running scripts is disabled
 2. Or for current user: Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 3. Alternative: python -m venv venv && venv\Scripts\python.exe -m pip install -r requirements.txt
 ```
-1. Download AtomicCards.json from MTGJson
-2. Check file path in command
-3. Ensure downloads/ directory exists
-4. Verify file permissions
-```
 
 #### Django Admin Issues
 ```bash
@@ -1029,4 +1024,37 @@ python manage.py runserver --settings=emteegee.settings
 
 **Next Update Schedule**: Update to v1.2 when REST API endpoints are implemented or significant new features are added.
 
-**Claude 4.0 Context**: This manual is optimized for Claude ingestion and provides complete project context including setup, architecture, commands, troubleshooting, and development workflow. Use this as your primary reference for all EMTEEGEE-related questions and development tasks.*
+**Claude 4.0 Context**: This manual is optimized for Claude ingestion and provides complete project context including setup, architecture, commands, troubleshooting, and development workflow. Use this as your primary reference for all EMTEEGEE-related questions and development tasks.
+
+---
+
+## 🆕 Recent Updates
+
+### Version 1.2 - June 21, 2025: Markdown Analysis Enhancement
+**Major enhancement to card analysis system with professional content rendering and intelligent linking.**
+
+#### ✅ What's New
+- **Markdown-to-HTML Rendering**: Analysis output now supports rich formatting (headers, lists, emphasis, code blocks)
+- **Intelligent Card Linking**: `[[card name]]` references automatically become clickable search links
+- **Enhanced Card Detail Page**: Bootstrap Scrollspy navigation with sticky sidebar for analysis sections
+- **Database Cleanup**: All existing analysis components cleared for fresh start with new format
+- **Standardized AI Prompts**: All 20 analysis prompts updated to use `[[card name]]` bracket format
+
+#### 🔧 Technical Changes
+- **New:** `cards/templatetags/card_filters.py` - Custom Django template filters
+- **New:** `cards/management/commands/clear_components.py` - Component cleanup command
+- **Enhanced:** `cards/ollama_client.py` - Updated all 20 AI analysis prompts
+- **Enhanced:** `templates/cards/card_detail.html` - Redesigned with Scrollspy and rich formatting
+- **Updated:** `requirements.txt` - Added markdown>=3.5.0 dependency
+
+#### 🎯 Impact
+- **Users**: Richer, more interactive card analysis experience with clickable cross-references
+- **Content**: Consistent formatting and better parsing for future enhancements
+- **System**: Professional-grade content rendering with room for complex formatting
+
+#### 📋 Next Steps
+1. Run `python manage.py whole_shebang` to generate fresh analysis with new formatting
+2. Test card linking functionality on analysis pages
+3. Monitor AI analysis quality with enhanced prompts
+
+---

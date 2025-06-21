@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 {% load i18n %}
-{% load card_filters %}
 
 {% block title %}{{ card.name }} - EMTEEGEE{% endblock %}
 
@@ -170,8 +169,9 @@
                                                 <i class="bi bi-clock"></i> {{ component_data.generated_at|date:"M j, Y" }}
                                             </small>
                                         {% endif %}
-                                    </div>                                    <div class="analysis-content">
-                                        {{ component_data.content|markdown_to_html }}
+                                    </div>
+                                    <div class="analysis-content">
+                                        {{ component_data.content|linebreaks }}
                                     </div>
                                     {% if component_data.model %}
                                         <div class="mt-3">
@@ -371,22 +371,6 @@ html {
 /* Section padding for scrollspy */
 section[id] {
     scroll-margin-top: 120px;
-}
-
-/* Card name links from markdown */
-.card-link {
-    color: #0066cc;
-    text-decoration: none;
-    border-bottom: 1px dotted #0066cc;
-    transition: all 0.2s ease;
-}
-
-.card-link:hover {
-    color: #004499;
-    border-bottom: 1px solid #004499;
-    background-color: rgba(0, 102, 204, 0.1);
-    padding: 2px 4px;
-    border-radius: 3px;
 }
 </style>
 
