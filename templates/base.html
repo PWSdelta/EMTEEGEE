@@ -47,27 +47,26 @@
                         <a class="nav-link" href="{% url 'cards:browse' %}">Browse Cards</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'cards:deck_list' %}">Browse Decks</a>
+                        <a class="nav-link" href="#" onclick="alert('Deck browsing coming soon!')">Browse Decks</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'cards:search' %}">Search</a>
+                        <a class="nav-link" href="{% url 'cards:browse' %}">Search</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'cards:random_card' %}">Random Card</a>
+                        <a class="nav-link" href="#" onclick="alert('Random card feature coming soon!')">Random Card</a>
                     </li>
                     -->
                 </ul>
                 
                 <!-- Search form - disabled until search view is implemented -->
                 <!--
-                <form class="d-flex me-3" method="get" action="{% url 'cards:search' %}">
+                <form class="d-flex me-3" method="get" action="{% url 'cards:browse' %}">
                     <input class="form-control me-2" type="search" name="q" placeholder="Search cards..." 
                            value="{{ request.GET.q }}">
                     <button class="btn btn-outline-light" type="submit">Search</button>
                 </form>
                 -->
-                
-                <!-- User menu -->
+                  <!-- User authentication features not yet implemented
                 <ul class="navbar-nav">
                     {% if user.is_authenticated %}
                         <li class="nav-item dropdown">
@@ -76,22 +75,23 @@
                                 {{ user.username }}
                             </a>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="{% url 'users:profile' %}">Profile</a></li>
-                                <li><a class="dropdown-item" href="{% url 'users:favorites' %}">Favorites</a></li>
-                                <li><a class="dropdown-item" href="{% url 'users:collections' %}">Collections</a></li>
+                                <li><a class="dropdown-item" href="#">Profile</a></li>
+                                <li><a class="dropdown-item" href="#">Favorites</a></li>
+                                <li><a class="dropdown-item" href="#">Collections</a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{% url 'users:logout' %}">Logout</a></li>
+                                <li><a class="dropdown-item" href="#">Logout</a></li>
                             </ul>
                         </li>
                     {% else %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'users:login' %}">Login</a>
+                            <a class="nav-link" href="#">Login</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'users:signup' %}">Sign Up</a>
+                            <a class="nav-link" href="#">Sign Up</a>
                         </li>
                     {% endif %}
                 </ul>
+                -->
             </div>
         </div>
     </nav>
@@ -127,15 +127,15 @@
                             <h6>Cards</h6>
                             <ul class="list-unstyled">
                                 <li><a href="{% url 'cards:browse' %}" class="text-muted">Browse Cards</a></li>
-                                <li><a href="{% url 'cards:search' %}" class="text-muted">Search</a></li>
-                                <li><a href="{% url 'cards:random_card' %}" class="text-muted">Random Card</a></li>
+                                <li><a href="{% url 'cards:browse' %}" class="text-muted">Search</a></li>
+                                <li><a href="#" onclick="alert('Random card feature coming soon!')" class="text-muted">Random Card</a></li>
                             </ul>
                         </div>
                         <div class="col-md-6">
                             <h6>Decks</h6>
                             <ul class="list-unstyled">
-                                <li><a href="{% url 'cards:deck_list' %}" class="text-muted">Browse Decks</a></li>
-                                <li><a href="{% url 'cards:random_deck' %}" class="text-muted">Random Deck</a></li>
+                                <li><a href="#" onclick="alert('Deck browsing coming soon!')" class="text-muted">Browse Decks</a></li>
+                                <li><a href="#" onclick="alert('Random deck feature coming soon!')" class="text-muted">Random Deck</a></li>
                             </ul>
                         </div>
                     </div>
