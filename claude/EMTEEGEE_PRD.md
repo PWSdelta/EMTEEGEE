@@ -1,4 +1,4 @@
-# EMTEEGEE - Product Requirements Document
+# MagicAI - Product Requirements Document
 ## Technical Architecture & Migration Guide
 
 **Document Version:** 1.0  

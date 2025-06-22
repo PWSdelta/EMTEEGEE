@@ -1,4 +1,4 @@
-# EMTEEGEE Card Review System - Summary for Claude 4.0
+# MagicAI Card Review System - Summary for Claude 4.0
 ## Django Migration Guide
 
 **Date:** June 21, 2025  
@@ -8,7 +8,7 @@
 
 ## 1. Overview
 
-EMTEEGEE generates comprehensive MTG card analyses using **4 Ollama models** to create **20 different component types** per card. Cards are marked `fully_analyzed=True` when all 20 components are generated.
+MagicAI generates comprehensive MTG card analyses using **4 Ollama models** to create **20 different component types** per card. Cards are marked `fully_analyzed=True` when all 20 components are generated.
 
 ---
 

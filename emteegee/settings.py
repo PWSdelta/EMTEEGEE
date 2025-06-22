@@ -11,7 +11,6 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
-import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,12 +20,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-dev-key-change-in-production')
+SECRET_KEY = 'django-insecure-d2hi@3x*dquyd&r$egqz&3sspc=d@ffvra-555&vm0k^_281@i'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
+DEBUG = True
 
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -38,31 +37,17 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django.contrib.sites',  # Required for allauth
-    
-    # Third-party apps
-    'rest_framework',
-    'django_filters',
-    'corsheaders',
-    
-    # Authentication
-    'allauth',    'allauth.account',
-    'allauth.socialaccount',
-    'allauth.socialaccount.providers.google',
-      # EMTEEGEE apps
     'cards',
     'analyses',
-    # 'users',  # Temporarily disabled - using Django's built-in User with allauth
+    'users',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'allauth.account.middleware.AccountMiddleware',  # Required for allauth
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -76,7 +61,6 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
-                'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
@@ -88,7 +72,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'emteegee.wsgi.application'
 
 
-# Database - Using standard Django SQLite for Django admin/auth, MongoDB for card data
+# Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
@@ -96,15 +80,6 @@ DATABASES = {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
-}
-
-# MongoDB settings for card data (direct PyMongo connection)
-MONGODB_SETTINGS = {
-    'host': os.environ.get('MONGODB_URI', 'mongodb://localhost:27017'),
-    'db_name': os.environ.get('DB_NAME', 'emteegee_dev'),
-    'username': os.environ.get('DB_USER', ''),
-    'password': os.environ.get('DB_PASSWORD', ''),
-    'auth_source': os.environ.get('DB_AUTH_SOURCE', 'admin'),
 }
 
 
@@ -143,137 +118,18 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
-
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
 
-# Media files (for card images, etc.)
-MEDIA_URL = 'media/'
-MEDIA_ROOT = BASE_DIR / 'media'
-
-# Caching configuration
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
-        'LOCATION': os.environ.get('REDIS_URL', 'redis://127.0.0.1:6379/1'),
-    } if os.environ.get('REDIS_URL') else {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'unique-snowflake',
-    }
+# MongoDB Configuration
+MONGODB_SETTINGS = {
+    'host': 'localhost:27017',
+    'db_name': 'emteegee',
+    'username': '',
+    'password': '',
+    'auth_source': 'admin'
 }
-
-# Celery Configuration (for background tasks)
-CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', 'redis://localhost:6379/0')
-CELERY_RESULT_BACKEND = os.environ.get('CELERY_RESULT_BACKEND', 'redis://localhost:6379/0')
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_SERIALIZER = 'json'
-CELERY_TIMEZONE = TIME_ZONE
-
-# External APIs
-SCRYFALL_API_BASE = 'https://api.scryfall.com'
-MTGJSON_API_BASE = 'https://mtgjson.com/api/v5'
-
-# Pagination
-PAGINATE_BY = 24
-
-# Logging configuration
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
-            'style': '{',
-        },
-    },
-    'handlers': {
-        'file': {
-            'level': 'INFO',
-            'class': 'logging.FileHandler',
-            'filename': BASE_DIR / 'logs' / 'django.log',
-            'formatter': 'verbose',
-        },
-        'console': {
-            'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
-            'formatter': 'verbose',
-        },
-    },
-    'root': {
-        'handlers': ['console', 'file'] if not DEBUG else ['console'],
-        'level': 'INFO',
-    },
-}
-
-# Custom user model (commented out for now)
-# AUTH_USER_MODEL = 'users.User'
-
-# Django REST Framework configuration
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.TokenAuthentication',
-    ],
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
-    ],
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 24,
-    'DEFAULT_FILTER_BACKENDS': [
-        'django_filters.rest_framework.DjangoFilterBackend',
-        'rest_framework.filters.SearchFilter',
-        'rest_framework.filters.OrderingFilter',
-    ],
-    'DEFAULT_RENDERER_CLASSES': [
-        'rest_framework.renderers.JSONRenderer',
-        'rest_framework.renderers.BrowsableAPIRenderer',
-    ],
-}
-
-# CORS settings (for API access)
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://localhost:8080",
-    "http://127.0.0.1:8080",
-]
-
-CORS_ALLOW_CREDENTIALS = True
-
-# Django Allauth Configuration
-SITE_ID = 1
-
-AUTHENTICATION_BACKENDS = [
-    'django.contrib.auth.backends.ModelBackend',
-    'allauth.account.auth_backends.AuthenticationBackend',
-]
-
-# Allauth settings (updated for django-allauth 65.x)
-ACCOUNT_LOGIN_METHODS = {'email'}
-ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
-ACCOUNT_EMAIL_VERIFICATION = 'optional'
-ACCOUNT_UNIQUE_EMAIL = True
-ACCOUNT_SESSION_REMEMBER = True
-
-# Social auth settings
-SOCIALACCOUNT_PROVIDERS = {
-    'google': {
-        'SCOPE': [
-            'profile',
-            'email',
-        ],
-        'AUTH_PARAMS': {
-            'access_type': 'online',
-        }
-    }
-}
-
-# Redirect URLs after login/logout
-LOGIN_REDIRECT_URL = '/'
-LOGOUT_REDIRECT_URL = '/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

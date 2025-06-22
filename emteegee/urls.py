@@ -15,31 +15,8 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include
-from django.conf import settings
-from django.conf.urls.static import static
-from cards.admin import mongo_card_admin
+from django.urls import path
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    
-    # Custom MongoDB admin views (separate namespace)
-    path('admin-cards/', include(([
-        path('', mongo_card_admin.card_list_view, name='cards-list'),
-        path('<str:card_uuid>/', mongo_card_admin.card_detail_view, name='card-detail'),
-    ], 'admin-cards'), namespace='admin-cards')),
-    
-    # Authentication URLs
-    path('accounts/', include('allauth.urls')),
-    
-    # Main app URLs
-    path('', include('cards.urls')),
-    path('api/', include('cards.api_urls')),
-    path('analyses/', include('analyses.urls')),
-    path('users/', include('users.urls')),
 ]
-
-# Serve media files in development
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
