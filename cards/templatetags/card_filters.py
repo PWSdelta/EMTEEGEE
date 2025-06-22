@@ -251,3 +251,114 @@ def card_scryfall_url(card):
 def card_artist(card):
     """Get card artist information."""
     return ScryfallDataHelper.get_artist_info(card)
+
+@register.filter
+def advanced_price(card, price_type='best_usd'):
+    """
+    Get advanced pricing with MTGjson intelligence.
+    
+    price_type options:
+    - 'best_usd': Best USD price (TCGPlayer or average)
+    - 'best_eur': Best EUR price (CardMarket)
+    - 'tcgplayer': Specific TCGPlayer price
+    - 'cardmarket': Specific CardMarket price
+    - 'trend': Price trend percentage
+    - 'category': Trend category (rising/falling/stable)
+    """
+    prices = card.get('prices', {})
+    
+    if price_type == 'best_usd':
+        # Try sources in order of preference
+        sources = prices.get('price_sources', {})
+        for source in ['tcgplayer', 'cardkingdom']:
+            if sources.get(source, 0) > 0:
+                return f"${sources[source]:.2f}"
+        return f"${prices.get('usd', 0):.2f}" if prices.get('usd', 0) > 0 else "N/A"
+    
+    elif price_type == 'best_eur':
+        sources = prices.get('price_sources', {})
+        if sources.get('cardmarket', 0) > 0:
+            return f"€{sources['cardmarket']:.2f}"
+        return f"€{prices.get('eur', 0):.2f}" if prices.get('eur', 0) > 0 else "N/A"
+    
+    elif price_type == 'tcgplayer':
+        sources = prices.get('price_sources', {})
+        tcg_price = sources.get('tcgplayer', 0)
+        return f"${tcg_price:.2f}" if tcg_price > 0 else "N/A"
+    
+    elif price_type == 'cardmarket':
+        sources = prices.get('price_sources', {})
+        cm_price = sources.get('cardmarket', 0)
+        return f"€{cm_price:.2f}" if cm_price > 0 else "N/A"
+    
+    elif price_type == 'trend':
+        trend = prices.get('price_trend_30d', 0)
+        if trend > 0:
+            return f"+{trend:.1f}%"
+        else:
+            return f"{trend:.1f}%"
+    
+    elif price_type == 'category':
+        return prices.get('trend_category', 'unknown').replace('_', ' ').title()
+    
+    return "N/A"
+
+@register.filter
+def price_trend_icon(card):
+    """Get an icon representing the price trend."""
+    prices = card.get('prices', {})
+    category = prices.get('trend_category', 'unknown')
+    
+    icons = {
+        'rising_fast': 'bi-graph-up-arrow text-success',
+        'rising': 'bi-graph-up text-success',
+        'stable': 'bi-dash-circle text-muted',
+        'falling': 'bi-graph-down text-warning',
+        'falling_fast': 'bi-graph-down-arrow text-danger',
+        'unknown': 'bi-question-circle text-muted'
+    }
+    
+    return icons.get(category, icons['unknown'])
+
+@register.filter
+def price_volatility(card):
+    """Get price volatility as a user-friendly string."""
+    prices = card.get('prices', {})
+    volatility = prices.get('volatility', 0)
+    
+    if volatility > 2:
+        return "High"
+    elif volatility > 1:
+        return "Medium"
+    elif volatility > 0.5:
+        return "Low"
+    else:
+        return "Stable"
+
+@register.filter
+def pricing_data_quality(card):
+    """Get pricing data quality indicator."""
+    prices = card.get('prices', {})
+    sources = prices.get('data_sources', [])
+    
+    if len(sources) >= 3:
+        return "Excellent"
+    elif len(sources) >= 2:
+        return "Good"
+    elif len(sources) >= 1:
+        return "Fair"
+    else:
+        return "Limited"
+
+@register.filter
+def price_comparison(card):
+    """Get price comparison across sources."""
+    prices = card.get('prices', {})
+    sources = prices.get('price_sources', {})
+    
+    comparisons = []
+    for source, price in sources.items():
+        if price > 0:
+            comparisons.append(f"{source.title()}: ${price:.2f}")
+    
+    return " | ".join(comparisons) if comparisons else "No price data"

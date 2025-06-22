@@ -13,6 +13,7 @@ urlpatterns = [
     path('', views.home, name='home'),
     path('card/<str:card_uuid>/', views.card_detail, name='card_detail'),
     path('browse/', views.browse_cards, name='browse'),
+    path('abyss/', views.the_abyss, name='the_abyss'),
     
     # Analysis features
     path('analysis/dashboard/', views.analysis_dashboard, name='analysis_dashboard'),

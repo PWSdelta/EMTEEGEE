@@ -1,0 +1,381 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load card_filters %}
+
+{% block title %}The Abyss - Card Discovery{% endblock %}
+
+{% block content %}
+<div class="container-xxl">
+    <!-- Abyss Header -->
+    <div class="abyss-header">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="abyss-title">
+                    <span class="abyss-icon">🕳️</span>
+                    <span class="abyss-name">The Abyss</span>
+                </h1>
+                <p class="abyss-subtitle">
+                    {% if is_search %}
+                        {% if search_query %}
+                            Search results for "{{ search_query }}"
+                        {% else %}
+                            Filtered card results
+                        {% endif %}
+                    {% else %}
+                        Dive deep into the vast collection of Magic cards. Search, discover, and explore.
+                    {% endif %}
+                </p>
+            </div>            <div class="col-lg-4 text-lg-end">
+                <div class="abyss-stats">
+                    <div class="stat-item">
+                        <div class="stat-number">{{ total_cards|default:"0" }}</div>
+                        <div class="stat-label">
+                            {% if is_search %}Found{% else %}Total{% endif %} Cards
+                        </div>
+                    </div>
+                    {% if price_stats and is_search %}
+                        <div class="stat-item mt-2">
+                            <div class="stat-number small">{{ price_stats.currency }}{{ price_stats.average }}</div>
+                            <div class="stat-label small">Avg Price</div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>    <!-- Advanced Search Form -->
+    <div class="abyss-search-section">
+        <form method="get" class="abyss-search-form">
+            <div class="row g-3 mb-3">
+                <div class="col-lg-3">
+                    <div class="form-floating">
+                        <input type="text" class="form-control" id="searchQuery" name="q" 
+                               value="{{ search_query }}" placeholder="Search cards...">
+                        <label for="searchQuery">
+                            <i class="bi bi-search"></i> Search Cards
+                        </label>
+                    </div>
+                </div>
+                <div class="col-lg-2">
+                    <div class="form-floating">
+                        <select class="form-select" id="colorFilter" name="colors">
+                            <option value="">Any Color</option>
+                            <option value="W" {% if color_filter == 'W' %}selected{% endif %}>White</option>
+                            <option value="U" {% if color_filter == 'U' %}selected{% endif %}>Blue</option>
+                            <option value="B" {% if color_filter == 'B' %}selected{% endif %}>Black</option>
+                            <option value="R" {% if color_filter == 'R' %}selected{% endif %}>Red</option>
+                            <option value="G" {% if color_filter == 'G' %}selected{% endif %}>Green</option>
+                            <option value="C" {% if color_filter == 'C' %}selected{% endif %}>Colorless</option>
+                        </select>
+                        <label for="colorFilter">Colors</label>
+                    </div>
+                </div>
+                <div class="col-lg-2">
+                    <div class="form-floating">
+                        <select class="form-select" id="rarityFilter" name="rarity">
+                            <option value="">Any Rarity</option>
+                            <option value="common" {% if rarity_filter == 'common' %}selected{% endif %}>Common</option>
+                            <option value="uncommon" {% if rarity_filter == 'uncommon' %}selected{% endif %}>Uncommon</option>
+                            <option value="rare" {% if rarity_filter == 'rare' %}selected{% endif %}>Rare</option>
+                            <option value="mythic" {% if rarity_filter == 'mythic' %}selected{% endif %}>Mythic</option>
+                        </select>
+                        <label for="rarityFilter">Rarity</label>
+                    </div>
+                </div>
+                <div class="col-lg-2">
+                    <div class="form-floating">
+                        <select class="form-select" id="typeFilter" name="type">
+                            <option value="">Any Type</option>
+                            <option value="creature" {% if type_filter == 'creature' %}selected{% endif %}>Creature</option>
+                            <option value="instant" {% if type_filter == 'instant' %}selected{% endif %}>Instant</option>
+                            <option value="sorcery" {% if type_filter == 'sorcery' %}selected{% endif %}>Sorcery</option>
+                            <option value="enchantment" {% if type_filter == 'enchantment' %}selected{% endif %}>Enchantment</option>
+                            <option value="artifact" {% if type_filter == 'artifact' %}selected{% endif %}>Artifact</option>
+                            <option value="planeswalker" {% if type_filter == 'planeswalker' %}selected{% endif %}>Planeswalker</option>
+                            <option value="land" {% if type_filter == 'land' %}selected{% endif %}>Land</option>
+                        </select>
+                        <label for="typeFilter">Type</label>
+                    </div>
+                </div>
+                <div class="col-lg-1">
+                    <button type="submit" class="btn btn-primary h-100 w-100">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Pricing Filters Row -->
+            <div class="row g-3">
+                <div class="col-lg-2">
+                    <div class="form-floating">
+                        <select class="form-select" id="priceCurrency" name="price_currency">
+                            <option value="usd" {% if price_currency == 'usd' %}selected{% endif %}>USD ($)</option>
+                            <option value="eur" {% if price_currency == 'eur' %}selected{% endif %}>EUR (€)</option>
+                        </select>
+                        <label for="priceCurrency">Currency</label>
+                    </div>
+                </div>
+                <div class="col-lg-2">
+                    <div class="form-floating">
+                        <input type="number" class="form-control" id="priceMin" name="price_min" 
+                               value="{{ price_min }}" placeholder="0.00" step="0.01" min="0">
+                        <label for="priceMin">Min Price</label>
+                    </div>
+                </div>
+                <div class="col-lg-2">
+                    <div class="form-floating">
+                        <input type="number" class="form-control" id="priceMax" name="price_max" 
+                               value="{{ price_max }}" placeholder="1000.00" step="0.01" min="0">
+                        <label for="priceMax">Max Price</label>
+                    </div>
+                </div>
+                <div class="col-lg-2">
+                    <div class="form-floating">
+                        <input type="text" class="form-control" id="setFilter" name="set" 
+                               value="{{ set_filter }}" placeholder="MH3, DOM...">
+                        <label for="setFilter">Set Code</label>
+                    </div>
+                </div>                <div class="col-lg-4">
+                    <div class="d-flex gap-2 h-100 align-items-end price-buttons">
+                        <button type="button" class="btn btn-outline-success btn-sm" onclick="setQuickPrice('budget')">
+                            <i class="bi bi-piggy-bank"></i> Budget (&lt;$1)
+                        </button>
+                        <button type="button" class="btn btn-outline-warning btn-sm" onclick="setQuickPrice('mid')">
+                            <i class="bi bi-cash"></i> Mid ($1-10)
+                        </button>
+                        <button type="button" class="btn btn-outline-danger btn-sm" onclick="setQuickPrice('expensive')">
+                            <i class="bi bi-gem"></i> High ($20+)
+                        </button>
+                        <button type="button" class="btn btn-outline-info btn-sm" onclick="setTrendFilter('rising')">
+                            <i class="bi bi-graph-up"></i> Rising
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            {% if is_search %}
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <a href="/abyss/" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-x-circle"></i> Clear All Filters
+                        </a>                        {% if collection %}
+                            <span class="badge bg-primary ms-2">
+                                Collection: 
+                                {% if collection == 'commanders' %}Top Commanders
+                                {% elif collection == 'budget' %}Budget Gems
+                                {% elif collection == 'expensive' %}High Value Cards
+                                {% else %}{{ collection|title }}{% endif %}
+                            </span>
+                        {% endif %}                        {% if price_min or price_max %}
+                            <span class="badge bg-success ms-2">
+                                Price: 
+                                {% if price_min and price_max %}
+                                    {% if price_currency == 'eur' %}€{% else %}${% endif %}{{ price_min }} - {% if price_currency == 'eur' %}€{% else %}${% endif %}{{ price_max }}
+                                {% elif price_min %}
+                                    {% if price_currency == 'eur' %}€{% else %}${% endif %}{{ price_min }}+
+                                {% elif price_max %}
+                                    Under {% if price_currency == 'eur' %}€{% else %}${% endif %}{{ price_max }}
+                                {% endif %}
+                            </span>
+                        {% endif %}
+                        {% if price_stats %}
+                            <span class="badge bg-info ms-2">
+                                Market: {{ price_stats.count_with_price }} cards priced • Avg {{ price_stats.currency }}{{ price_stats.average }}
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+        </form>
+    </div>    <script>
+    function setQuickPrice(type) {
+        const minInput = document.getElementById('priceMin');
+        const maxInput = document.getElementById('priceMax');
+        const currencySelect = document.getElementById('priceCurrency');
+        
+        currencySelect.value = 'usd';
+        
+        if (type === 'budget') {
+            minInput.value = '';
+            maxInput.value = '1';
+        } else if (type === 'mid') {
+            minInput.value = '1';
+            maxInput.value = '10';
+        } else if (type === 'expensive') {
+            minInput.value = '20';
+            maxInput.value = '';
+        }
+        
+        // Add visual feedback
+        const buttons = document.querySelectorAll('.price-buttons .btn');
+        buttons.forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
+    }
+      // Auto-submit form when quick price buttons are clicked
+    function setQuickPriceAndSubmit(type) {
+        setQuickPrice(type);
+        setTimeout(() => {
+            document.querySelector('.abyss-search-form').submit();
+        }, 100);
+    }
+    
+    // Add trend filtering function
+    function setTrendFilter(trend) {
+        const form = document.querySelector('.abyss-search-form');
+        
+        // Remove existing trend input if present
+        const existingTrend = form.querySelector('input[name="trend"]');
+        if (existingTrend) {
+            existingTrend.remove();
+        }
+        
+        // Add new trend filter
+        const trendInput = document.createElement('input');
+        trendInput.type = 'hidden';
+        trendInput.name = 'trend';
+        trendInput.value = trend;
+        form.appendChild(trendInput);
+        
+        setTimeout(() => form.submit(), 100);
+    }
+    
+    // Update quick price buttons to use the new function
+    document.addEventListener('DOMContentLoaded', function() {
+        const quickPriceButtons = document.querySelectorAll('.price-buttons .btn');
+        quickPriceButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const type = this.getAttribute('onclick').match(/'(\w+)'/)[1];
+                setQuickPriceAndSubmit(type);
+            });
+        });
+    });
+    </script>
+
+    <!-- Featured Collections (shown when no search) -->
+    {% if not is_search and featured_collections %}
+    <div class="featured-collections">
+        <h2 class="section-title">
+            <i class="bi bi-stars"></i> Explore Collections
+        </h2>
+        <div class="row g-3">
+            {% for collection in featured_collections %}
+                <div class="col-lg-2 col-md-4 col-sm-6">
+                    <a href="?q={{ collection.query }}" class="collection-card">
+                        <div class="collection-icon">
+                            <i class="{{ collection.icon }}"></i>
+                        </div>
+                        <h3 class="collection-name">{{ collection.name }}</h3>
+                        <p class="collection-description">{{ collection.description }}</p>
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Cards Grid -->
+    {% if cards %}
+    <div class="abyss-cards-section">
+        <div class="abyss-cards-grid">
+            {% for card in cards %}
+                <div class="abyss-card">
+                    <div class="abyss-card-image">
+                        {% with card|card_image:'small' as card_image_url %}
+                            {% if card_image_url %}
+                                <img src="{{ card_image_url }}" alt="{{ card.name }}" loading="lazy">
+                            {% else %}
+                                <div class="abyss-card-placeholder">
+                                    <i class="bi bi-image"></i>
+                                </div>
+                            {% endif %}
+                        {% endwith %}
+                    </div>
+                    <div class="abyss-card-info">
+                        <h3 class="abyss-card-name">{{ card.name }}</h3>
+                        <p class="abyss-card-type">{{ card.type|format_card_types }}</p>
+                        <div class="abyss-card-meta">
+                            {% if card.rarity %}
+                                <span class="rarity-dot {{ card.rarity }}"></span>
+                            {% endif %}
+                            {% if card.setCode %}
+                                <span class="set-code">{{ card.setCode|upper }}</span>
+                            {% endif %}                            {% if card.prices.usd or card.prices.eur %}
+                                <div class="card-price-advanced">
+                                    <div class="price-main">
+                                        {% if price_currency == 'eur' %}
+                                            <span class="price-primary">{{ card|advanced_price:'best_eur' }}</span>
+                                            {% if card|advanced_price:'best_usd' != 'N/A' %}
+                                                <span class="price-secondary">{{ card|advanced_price:'best_usd' }}</span>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="price-primary">{{ card|advanced_price:'best_usd' }}</span>
+                                            {% if card|advanced_price:'best_eur' != 'N/A' %}
+                                                <span class="price-secondary">{{ card|advanced_price:'best_eur' }}</span>
+                                            {% endif %}
+                                        {% endif %}
+                                    </div>
+                                    {% if card|advanced_price:'trend' != '0.0%' %}
+                                        <div class="price-trend">
+                                            <i class="{{ card|price_trend_icon }}"></i>
+                                            <span class="trend-value">{{ card|advanced_price:'trend' }}</span>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <a href="{% url 'cards:card_detail' card.uuid %}" class="abyss-card-link">
+                        <span class="abyss-card-overlay">
+                            <i class="bi bi-eye"></i>
+                            <span>View Details</span>
+                        </span>
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if total_pages > 1 %}
+        <div class="abyss-pagination">
+            <nav aria-label="Card navigation">
+                <ul class="pagination justify-content-center">                    {% if has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if color_filter %}colors={{ color_filter }}&{% endif %}{% if rarity_filter %}rarity={{ rarity_filter }}&{% endif %}{% if type_filter %}type={{ type_filter }}&{% endif %}{% if set_filter %}set={{ set_filter }}&{% endif %}{% if price_min %}price_min={{ price_min }}&{% endif %}{% if price_max %}price_max={{ price_max }}&{% endif %}{% if price_currency %}price_currency={{ price_currency }}&{% endif %}{% if collection %}collection={{ collection }}&{% endif %}page={{ previous_page }}">
+                                <i class="bi bi-chevron-left"></i> Previous
+                            </a>
+                        </li>
+                    {% endif %}
+                    
+                    {% for page_num in "123456789"|make_list %}
+                        {% if page_num|add:0 <= total_pages %}
+                            <li class="page-item {% if page_num|add:0 == page %}active{% endif %}">
+                                <a class="page-link" href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if color_filter %}colors={{ color_filter }}&{% endif %}{% if rarity_filter %}rarity={{ rarity_filter }}&{% endif %}{% if type_filter %}type={{ type_filter }}&{% endif %}{% if set_filter %}set={{ set_filter }}&{% endif %}{% if price_min %}price_min={{ price_min }}&{% endif %}{% if price_max %}price_max={{ price_max }}&{% endif %}{% if price_currency %}price_currency={{ price_currency }}&{% endif %}{% if collection %}collection={{ collection }}&{% endif %}page={{ page_num }}">{{ page_num }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if color_filter %}colors={{ color_filter }}&{% endif %}{% if rarity_filter %}rarity={{ rarity_filter }}&{% endif %}{% if type_filter %}type={{ type_filter }}&{% endif %}{% if set_filter %}set={{ set_filter }}&{% endif %}{% if price_min %}price_min={{ price_min }}&{% endif %}{% if price_max %}price_max={{ price_max }}&{% endif %}{% if price_currency %}price_currency={{ price_currency }}&{% endif %}{% if collection %}collection={{ collection }}&{% endif %}page={{ next_page }}">
+                                Next <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+    {% elif is_search %}
+        <div class="abyss-no-results">
+            <div class="no-results-content">
+                <i class="bi bi-search"></i>
+                <h2>No Cards Found</h2>
+                <p>Try adjusting your search terms or filters.</p>
+                <a href="/abyss/" class="btn btn-primary">
+                    <i class="bi bi-arrow-left"></i> Back to The Abyss
+                </a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

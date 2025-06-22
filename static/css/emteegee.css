@@ -284,6 +284,95 @@
     font-size: 0.875rem;
 }
 
+/* Enhanced Pricing Filter Styling */
+.abyss-search-form .price-buttons {
+    gap: 8px;
+}
+
+.abyss-search-form .price-buttons .btn {
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-radius: 6px;
+    padding: 8px 12px;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+    white-space: nowrap;
+}
+
+.abyss-search-form .price-buttons .btn-outline-secondary {
+    border-color: #6c757d;
+    color: #6c757d;
+    background: rgba(108, 117, 125, 0.1);
+}
+
+.abyss-search-form .price-buttons .btn-outline-secondary:hover {
+    background: #6c757d;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+}
+
+.abyss-search-form .price-buttons .btn i {
+    margin-right: 4px;
+}
+
+/* Price badge styling */
+.badge.bg-success {
+    background-color: #28a745 !important;
+    color: white;
+    font-weight: 500;
+}
+
+/* Enhanced form controls for pricing */
+.abyss-search-form input[type="number"] {
+    font-family: 'Courier New', monospace;
+    font-weight: 500;
+}
+
+.abyss-search-form .form-floating > .form-control:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+/* Price range indicators */
+.price-range-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.price-range-indicator .price-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #28a745;
+}
+
+.price-range-indicator .price-label {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+/* Currency symbol styling */
+.currency-symbol {
+    font-weight: bold;
+    color: #28a745;
+}
+
+/* Responsive pricing controls */
+@media (max-width: 768px) {
+    .abyss-search-form .price-buttons {
+        flex-direction: column;
+        gap: 6px;
+    }
+    
+    .abyss-search-form .price-buttons .btn {
+        width: 100%;
+        text-align: center;
+    }
+}
+
 /* Responsive card grid */
 @media (max-width: 768px) {
     .card-detail-sidebar {
@@ -353,6 +442,50 @@
 .currency {
     font-size: 0.9em;
     opacity: 0.8;
+}
+
+/* Enhanced price display in cards */
+.card-price {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    margin-top: 4px;
+}
+
+.price-primary {
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #28a745;
+}
+
+.price-secondary {
+    font-size: 0.75rem;
+    color: #6c757d;
+    margin-top: 2px;
+}
+
+/* Abyss cards price styling */
+.abyss-card-meta .card-price {
+    align-items: flex-start;
+}
+
+.abyss-card-meta .price-primary {
+    color: #198754;
+    font-weight: 600;
+}
+
+.abyss-card-meta .price-secondary {
+    color: #6c757d;
+    font-size: 0.7rem;
+}
+
+/* Price range active state */
+.price-buttons .btn.active {
+    background-color: var(--bs-primary);
+    border-color: var(--bs-primary);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(13, 110, 253, 0.3);
 }
 
 /* Navigation improvements */
@@ -527,4 +660,610 @@ main {
     line-height: 1.5;
     margin: 0;
     padding-left: 1rem;
+}
+
+/* ==========================================================================
+   Home Page Styles
+   ========================================================================== */
+
+/* Hero Section */
+.hero-home-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 4rem 3rem;
+    margin: 2rem 0 4rem 0;
+    border-radius: 30px;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-home-section .row {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.hero-home-section .col-lg-6 {
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+.hero-home-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+    opacity: 0.3;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+}
+
+.hero-home-title {
+    font-size: 4rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.brand-icon {
+    display: inline-block;
+    margin-right: 1rem;
+    font-size: 4.5rem;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.brand-name {
+    background: linear-gradient(45deg, #fff, #f0f0f0);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.hero-subtitle {
+    font-size: 1.5rem;
+    font-weight: 300;
+    margin-bottom: 1.5rem;
+    opacity: 0.9;
+}
+
+.hero-description {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    margin-bottom: 2.5rem;
+    opacity: 0.8;
+}
+
+.hero-actions .btn {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    border: none;
+    padding: 1rem 2rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.hero-actions .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.hero-actions .btn-primary {
+    background: linear-gradient(45deg, #28a745, #20c997);
+}
+
+.hero-actions .btn-outline-primary {
+    border: 2px solid rgba(255, 255, 255, 0.8);
+    color: white;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+.hero-actions .btn-outline-primary:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: white;
+}
+
+/* Hero Stats Grid */
+.hero-stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    position: relative;
+    z-index: 2;
+}
+
+.stat-card {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 15px;
+    padding: 1.5rem;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.stat-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    opacity: 0.9;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    color: white;
+}
+
+.hero-stats-grid .stat-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.95);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    letter-spacing: 0.5px;
+}
+
+/* Section Styling */
+.section-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.section-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+}
+
+.section-subtitle {
+    font-size: 1.1rem;
+    color: #6c757d;
+    margin-bottom: 0;
+}
+
+.featured-section, .recent-section, .features-section {
+    margin-bottom: 5rem;
+}
+
+/* Featured Cards */
+.featured-card {
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.featured-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+.card-image-wrapper {
+    position: relative;
+    height: 200px;
+    overflow: hidden;
+}
+
+.featured-card-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.featured-card:hover .featured-card-image {
+    transform: scale(1.05);
+}
+
+.featured-card-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    color: #6c757d;
+}
+
+.featured-card-content {
+    padding: 1.5rem;
+}
+
+.featured-card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #2c3e50;
+}
+
+.featured-card-type {
+    color: #6c757d;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+}
+
+.featured-card-meta {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.rarity-badge-sm {
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.rarity-badge-sm.common { background-color: #6c757d; color: white; }
+.rarity-badge-sm.uncommon { background-color: #28a745; color: white; }
+.rarity-badge-sm.rare { background-color: #ffc107; color: #212529; }
+.rarity-badge-sm.mythic { background-color: #dc3545; color: white; }
+
+.set-badge {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #495057;
+}
+
+.featured-card-link {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.3s ease;
+}
+
+.featured-card-link:hover {
+    color: #0056b3;
+}
+
+/* Recent Cards */
+.recent-card {
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    position: relative;
+    height: 100%;
+}
+
+.recent-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+}
+
+.recent-card-image {
+    height: 180px;
+    overflow: hidden;
+}
+
+.recent-card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.recent-card-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: #6c757d;
+}
+
+.recent-card-info {
+    padding: 1rem;
+}
+
+.recent-card-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    color: #2c3e50;
+    line-height: 1.3;
+}
+
+.recent-card-set {
+    color: #6c757d;
+    font-size: 0.75rem;
+}
+
+.recent-card-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 123, 255, 0.9);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    text-decoration: none;
+}
+
+.recent-card:hover .recent-card-overlay {
+    opacity: 1;
+}
+
+/* Feature Cards */
+.feature-card {
+    background: white;
+    border-radius: 15px;
+    padding: 2rem;
+    text-align: center;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+.feature-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    font-size: 2rem;
+    color: white;
+}
+
+.feature-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: #2c3e50;
+}
+
+.feature-description {
+    color: #6c757d;
+    line-height: 1.6;
+    margin-bottom: 0;
+}
+
+/* CTA Section */
+.cta-section {
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    color: white;
+    padding: 4rem 0;
+    border-radius: 20px;
+    text-align: center;
+    margin: 4rem 0;
+}
+
+.cta-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.cta-description {
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+    opacity: 0.9;
+}
+
+.cta-actions .btn {
+    margin: 0 0.5rem;
+    padding: 1rem 2rem;
+    font-weight: 600;
+}
+
+.cta-actions .btn-link {
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+}
+
+.cta-actions .btn-link:hover {
+    color: white;
+}
+
+/* ==========================================================================
+   The Abyss Page Styles
+   ========================================================================== */
+
+/* Abyss Header */
+.abyss-header {
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    color: white;
+    padding: 3rem 2rem;
+    margin: 2rem 0 3rem 0;
+    border-radius: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+.abyss-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at 30% 50%, rgba(255,255,255,0.1) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+.abyss-title {
+    font-size: 3rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+    position: relative;
+    z-index: 2;
+}
+
+.abyss-icon {
+    font-size: 3.5rem;
+    margin-right: 1rem;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.abyss-name {
+    background: linear-gradient(45deg, #fff, #ecf0f1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.abyss-subtitle {
+    font-size: 1.2rem;
+    opacity: 0.9;
+    margin-bottom: 0;
+    position: relative;
+    z-index: 2;
+}
+
+.abyss-stats {
+    position: relative;
+    z-index: 2;
+}
+
+.abyss-stats .stat-item {
+    text-align: center;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 1.5rem;
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+}
+
+.abyss-stats .stat-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.abyss-stats .stat-label {
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+/* Search Section */
+.abyss-search-section {
+    background: white;
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    margin-bottom: 3rem;
+}
+
+.abyss-search-form .form-floating {
+    height: 60px;
+}
+
+.abyss-search-form .btn {
+    font-weight: 600;
+}
+
+/* Enhanced Pricing Display for MTGjson Data */
+.card-price-advanced {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: flex-start;
+}
+
+.price-main {
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
+}
+
+.price-trend {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.75rem;
+}
+
+.trend-value {
+    font-weight: 600;
+}
+
+/* Trend colors */
+.bi-graph-up-arrow.text-success,
+.bi-graph-up.text-success {
+    color: #28a745 !important;
+}
+
+.bi-graph-down.text-warning {
+    color: #fd7e14 !important;
+}
+
+.bi-graph-down-arrow.text-danger {
+    color: #dc3545 !important;
+}
+
+.bi-dash-circle.text-muted,
+.bi-question-circle.text-muted {
+    color: #6c757d !important;
+}
+
+/* Price trend buttons */
+.price-buttons .btn-outline-info {
+    border-color: #17a2b8;
+    color: #17a2b8;
+    background: rgba(23, 162, 184, 0.1);
+}
+
+.price-buttons .btn-outline-info:hover {
+    background: #17a2b8;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(23, 162, 184, 0.3);
+}
+
+/* Pricing data quality indicators */
+.pricing-quality-excellent {
+    color: #28a745;
+    font-weight: 600;
+}
+
+.pricing-quality-good {
+    color: #17a2b8;
+    font-weight: 500;
+}
+
+.pricing-quality-fair {
+    color: #fd7e14;
+    font-weight: 500;
+}
+
+.pricing-quality-limited {
+    color: #6c757d;
+    font-weight: 400;
 }
