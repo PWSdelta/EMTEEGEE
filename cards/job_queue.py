@@ -328,7 +328,7 @@ class JobQueue:
                     logger.debug(f"⏭️ Skipping already analyzed card {card['uuid'][:8]}...")
                     continue
                 
-                if self.enqueue_card_analysis(card['uuid'], priority=1):
+                if self.enqueue_card_analysis_smart(card['uuid']):
                     jobs_enqueued += 1
             
             logger.info(f"📊 Processed {cards_processed} candidate cards")
@@ -471,9 +471,8 @@ class JobQueue:
             
             jobs_queued = 0
             
-            for card in cursor:
-                # Skip if job already exists (let the enqueue method handle duplicates)
-                job_id = self.enqueue_card_analysis(card['uuid'], priority=1)
+            for card in cursor:                # Skip if job already exists (let the enqueue method handle duplicates)
+                job_id = self.enqueue_card_analysis_smart(card['uuid'])
                 if job_id:
                     jobs_queued += 1
             
@@ -483,6 +482,84 @@ class JobQueue:
         except Exception as e:
             logger.error(f"Error in simple queue: {e}")
             return 0
+    
+    def enqueue_card_analysis_smart(self, card_uuid: str, job_type: str = "full_analysis") -> Optional[str]:
+        """
+        Add a card analysis job with price-based prioritization.
+        
+        Priority system: Card price * 100 (higher price = higher priority)
+        - $100.00 card = priority 10,000
+        - $10.50 card = priority 1,050
+        - $1.25 card = priority 125
+        - $0.50 card = priority 50
+        - $0.00 card = priority 0
+        
+        Args:
+            card_uuid: UUID of the card to analyze
+            job_type: Type of analysis
+            
+        Returns:
+            Job ID if successful, None if failed
+        """
+        from .models import get_cards_collection
+        
+        try:
+            # Get card data to determine priority
+            cards_collection = get_cards_collection()
+            card = cards_collection.find_one(
+                {'uuid': card_uuid},
+                {
+                    'analysis.components': 1, 
+                    'edhrecPriorityScore': 1,
+                    'prices.usd': 1,
+                    'name': 1
+                }
+            )
+            
+            if not card:
+                logger.warning(f"Card not found for smart prioritization: {card_uuid}")
+                return self.enqueue_card_analysis(card_uuid, priority=0, job_type=job_type)
+            
+            # Calculate smart priority
+            priority = self._calculate_smart_priority(card)
+            
+            # Log priority reasoning
+            card_name = card.get('name', 'Unknown')
+            if priority >= 1000:
+                logger.info(f"🎯 HIGH PRIORITY (Finishing): {card_name} - Priority {priority}")
+            elif priority >= 500:
+                logger.info(f"⭐ EDHREC Priority: {card_name} - Priority {priority}")
+            elif priority >= 50:
+                logger.info(f"💰 Price Priority: {card_name} - Priority {priority}")
+            else:
+                logger.info(f"📋 Standard Priority: {card_name} - Priority {priority}")
+            
+            return self.enqueue_card_analysis(card_uuid, priority=priority, job_type=job_type)
+            
+        except Exception as e:
+            logger.error(f"Error in smart prioritization for {card_uuid}: {e}")            # Fallback to standard enqueue
+            return self.enqueue_card_analysis(card_uuid, priority=0, job_type=job_type)
+    
+    def _calculate_smart_priority(self, card: Dict[str, Any]) -> int:
+        """
+        Dead simple priority: Use negative EDHREC rank directly.
+        Lower EDHREC rank = higher priority in processing queue.
+        MongoDB sorts by priority DESC, so we use negative values.
+        """
+        try:
+            # Get EDHREC ranking
+            edhrec_rank = card.get('edhrecRank')
+            if edhrec_rank:
+                edhrec_rank = int(float(edhrec_rank))
+                # Use negative rank so lower ranks get higher priority
+                # Rank 1 = priority -1 (highest when sorted DESC)
+                # Rank 50,000 = priority -50,000 (lower when sorted DESC)
+                return -edhrec_rank
+            else:
+                return -999999  # No EDHREC data = lowest priority
+                
+        except (ValueError, TypeError):
+            return -999999  # Fallback to lowest priority
 
 # Global job queue instance
 job_queue = JobQueue()
