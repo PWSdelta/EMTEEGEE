@@ -1,0 +1,263 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}EMTEEGEE - Magic: The Gathering Analysis Platform{% endblock %}
+
+{% block content %}
+<div class="container-xxl">
+    <!-- Hero Section -->
+    <div class="hero-home-section">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <div class="hero-content">
+                    <h1 class="hero-home-title">
+                        <span class="brand-icon">🎴</span>
+                        <span class="brand-name">EMTEEGEE</span>
+                    </h1>
+                    <p class="hero-subtitle">Advanced Magic: The Gathering Analysis Platform</p>
+                    <p class="hero-description">
+                        Discover deeper insights into your favorite MTG cards with AI-powered analysis,
+                        comprehensive card data, and intelligent deck building recommendations.
+                    </p>
+                    <div class="hero-actions">
+                        <a href="/abyss/" class="btn btn-primary btn-lg me-3">
+                            <i class="bi bi-grid-3x3-gap"></i> The Abyss
+                        </a>
+                        <a href="/gallery/" class="btn btn-outline-primary btn-lg">
+                            <i class="bi bi-images"></i> Art Gallery
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="hero-stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="bi bi-collection"></i></div>
+                        <div class="stat-content">
+                            <div class="stat-number">32,000+</div>
+                            <div class="stat-label">Magic Cards</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="bi bi-cpu"></i></div>
+                        <div class="stat-content">
+                            <div class="stat-number">1,200+</div>
+                            <div class="stat-label">AI Analyzed</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="bi bi-graph-up"></i></div>
+                        <div class="stat-content">
+                            <div class="stat-number">20</div>
+                            <div class="stat-label">Analysis Types</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="bi bi-people"></i></div>
+                        <div class="stat-content">
+                            <div class="stat-number">500+</div>
+                            <div class="stat-label">Active Users</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Features Section -->
+    <section class="quick-features-section py-5">
+        <div class="container">
+            <div class="row text-center mb-5">
+                <div class="col-12">
+                    <h2 class="section-title">Explore MTG Like Never Before</h2>
+                    <p class="section-subtitle">Powerful tools for players, collectors, and enthusiasts</p>
+                </div>
+            </div>
+            <div class="row g-4">
+                <div class="col-lg-4 col-md-6">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="bi bi-search"></i>
+                        </div>
+                        <h3>The Abyss</h3>
+                        <p>Advanced card search with filtering by price, rarity, type, and more. Find exactly what you need.</p>
+                        <a href="/abyss/" class="btn btn-outline-primary">Explore Cards</a>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="bi bi-palette"></i>
+                        </div>
+                        <h3>Art Gallery</h3>
+                        <p>Beautiful showcase of MTG artwork. Browse high-resolution card art from across the multiverse.</p>
+                        <a href="/gallery/" class="btn btn-outline-primary">View Gallery</a>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="bi bi-cpu"></i>
+                        </div>
+                        <h3>AI Analysis</h3>
+                        <p>Deep insights into card power level, synergies, and competitive play strategies powered by AI.</p>
+                        <a href="/analysis/dashboard/" class="btn btn-outline-primary">View Analysis</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Success Message -->
+    {% if message %}
+        <div class="alert alert-success text-center">
+            <i class="bi bi-check-circle me-2"></i>{{ message }}
+        </div>
+    {% endif %}
+</div>
+
+<style>
+.hero-home-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 5rem 0;
+    margin-bottom: 3rem;
+}
+
+.hero-home-title {
+    font-size: 3.5rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+}
+
+.brand-icon {
+    display: inline-block;
+    font-size: 3rem;
+    margin-right: 1rem;
+}
+
+.brand-name {
+    background: linear-gradient(45deg, #ffd700, #ffed4e);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.hero-subtitle {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    opacity: 0.9;
+}
+
+.hero-description {
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+    opacity: 0.8;
+    line-height: 1.6;
+}
+
+.hero-stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+.stat-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 15px;
+    padding: 1.5rem;
+    text-align: center;
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+
+.stat-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    opacity: 0.8;
+}
+
+.stat-number {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    opacity: 0.7;
+}
+
+.quick-features-section {
+    background-color: #f8f9fa;
+}
+
+.section-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+}
+
+.section-subtitle {
+    font-size: 1.2rem;
+    color: #6c757d;
+}
+
+.feature-card {
+    background: white;
+    border-radius: 15px;
+    padding: 2rem;
+    text-align: center;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    height: 100%;
+}
+
+.feature-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+}
+
+.feature-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    color: white;
+    font-size: 2rem;
+}
+
+.feature-card h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: #2c3e50;
+}
+
+.feature-card p {
+    color: #6c757d;
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+    .hero-home-title {
+        font-size: 2.5rem;
+    }
+    
+    .hero-stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}

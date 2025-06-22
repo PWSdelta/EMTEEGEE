@@ -1,0 +1,353 @@
+﻿{% extends "base.html" %}
+{% load i18n %}
+{% load card_filters %}
+
+{% block title %}The Abyss - Card Discovery{% endblock %}
+
+{% block content %}
+<div class="container-xxl">
+    <!-- Abyss Header -->
+    <div class="abyss-header">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="abyss-title">
+                    <span class="abyss-icon">≡ƒò│∩╕Å</span>
+                    <span class="abyss-name">The Abyss</span>
+                </h1>
+                <p class="abyss-subtitle">
+                    {% if is_search %}
+                        {% if search_query %}
+                            Search results for "{{ search_query }}"
+                        {% else %}
+                            Filtered card results
+                        {% endif %}
+                    {% else %}
+                        Dive deep into the vast collection of Magic cards. Search, discover, and explore.
+                    {% endif %}
+                </p>
+            </div>            <div class="col-lg-4 text-lg-end">
+                <div class="abyss-stats">
+                    <div class="stat-item">
+                        <div class="stat-number">{{ total_cards|default:"0" }}</div>
+                        <div class="stat-label">
+                            {% if is_search %}Found{% else %}Total{% endif %} Cards
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>    <!-- Simple, Powerful Search -->
+    <div class="abyss-search-hero">
+        <form method="get" class="abyss-search-form">
+            <div class="search-input-container">
+                <input type="text" class="form-control abyss-search-input" name="q" 
+                       value="{{ search_query }}" 
+                       placeholder="Search for any Magic card... (name, text, type, artist, set)"
+                       autocomplete="off"
+                       id="abyss-search-input"
+                       autofocus>
+                <!-- Autocomplete dropdown will be inserted here -->
+                <div class="autocomplete-dropdown" id="autocomplete-dropdown"></div>
+                <button type="submit" class="btn btn-primary abyss-search-btn">
+                    <i class="bi bi-search"></i>
+                    <span class="btn-text">Search</span>
+                </button>
+            </div>
+            {% if search_query %}
+                <div class="search-meta">
+                    <a href="/abyss/" class="clear-search">
+                        <i class="bi bi-x-circle"></i> Clear search
+                    </a>
+                </div>
+            {% endif %}
+        </form>
+    </div><!-- Cards Grid -->
+    {% if cards %}
+    <div class="abyss-cards-section">
+        <div class="abyss-cards-grid">
+            {% for card in cards %}                <div class="abyss-card">
+                    <div class="abyss-card-image">
+                        {% with card|card_image:'normal' as card_image_url %}
+                            {% if card_image_url %}
+                                <img src="{{ card_image_url }}" alt="{{ card.name }}" loading="lazy">
+                            {% else %}
+                                <div class="abyss-card-placeholder">
+                                    <i class="bi bi-image"></i>
+                                </div>
+                            {% endif %}
+                        {% endwith %}
+                    </div>
+                    <div class="abyss-card-info">
+                        <h3 class="abyss-card-name">{{ card.name }}</h3>
+                        <p class="abyss-card-type">{{ card.type|format_card_types }}</p>
+                        <div class="abyss-card-meta">
+                            {% if card.rarity %}
+                                <span class="rarity-dot {{ card.rarity }}"></span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <a href="{% url 'cards:card_detail' card.uuid %}" class="abyss-card-link">
+                        <span class="abyss-card-overlay">
+                            <i class="bi bi-eye-fill"></i>
+                            <span class="overlay-text">View Card</span>
+                        </span>
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if total_pages > 1 %}
+        <div class="abyss-pagination">
+            <nav aria-label="Card navigation">
+                <ul class="pagination justify-content-center">                    {% if has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?{% if search_query %}q={{ search_query }}&{% endif %}page={{ previous_page }}">
+                                <i class="bi bi-chevron-left"></i> Previous
+                            </a>
+                        </li>
+                    {% endif %}
+                    
+                    {% for page_num in "123456789"|make_list %}
+                        {% if page_num|add:0 <= total_pages %}
+                            <li class="page-item {% if page_num|add:0 == page %}active{% endif %}">
+                                <a class="page-link" href="?{% if search_query %}q={{ search_query }}&{% endif %}page={{ page_num }}">{{ page_num }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?{% if search_query %}q={{ search_query }}&{% endif %}page={{ next_page }}">
+                                Next <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+    {% elif is_search %}
+        <div class="abyss-no-results">
+            <div class="no-results-content">
+                <i class="bi bi-search"></i>
+                <h2>No Cards Found</h2>
+                <p>Try adjusting your search terms or filters.</p>
+                <a href="/abyss/" class="btn btn-primary">
+                    <i class="bi bi-arrow-left"></i> Back to The Abyss
+                </a>
+            </div>
+        </div>    {% endif %}
+</div>
+
+<script>
+// Autocomplete functionality for The Abyss search
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('abyss-search-input');
+    const dropdown = document.getElementById('autocomplete-dropdown');
+    let currentRequest = null;
+    let selectedIndex = -1;
+    let suggestions = [];
+    
+    // Debounce function to limit API calls
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+      // Show autocomplete suggestions
+    function showSuggestions(query) {
+        if (query.length < 2) {
+            hideDropdown();
+            return;
+        }
+        
+        // Position the dropdown relative to the input
+        positionDropdown();
+        
+        // Cancel previous request
+        if (currentRequest) {
+            currentRequest.abort();
+        }
+        
+        // Show loading state
+        dropdown.innerHTML = '<div class="autocomplete-loading"><i class="bi bi-three-dots"></i> Searching...</div>';
+        dropdown.classList.add('show');
+        
+        // Make API request
+        currentRequest = new AbortController();
+        fetch(`/api/autocomplete/?q=${encodeURIComponent(query)}`, {
+            signal: currentRequest.signal
+        })
+        .then(response => response.json())
+        .then(data => {
+            suggestions = data.suggestions || [];
+            renderSuggestions(suggestions);
+        })
+        .catch(error => {
+            if (error.name !== 'AbortError') {
+                console.error('Autocomplete error:', error);
+                hideDropdown();
+            }
+        })
+        .finally(() => {
+            currentRequest = null;
+        });
+    }
+    
+    // Position dropdown relative to input field
+    function positionDropdown() {
+        const rect = searchInput.getBoundingClientRect();
+        dropdown.style.top = (rect.bottom) + 'px';
+        dropdown.style.left = rect.left + 'px';
+        dropdown.style.width = rect.width + 'px';
+    }
+      // Render suggestion dropdown
+    function renderSuggestions(suggestions) {
+        // Position the dropdown
+        positionDropdown();
+        
+        if (!suggestions.length) {
+            dropdown.innerHTML = '<div class="autocomplete-no-results">No suggestions found</div>';
+            dropdown.classList.add('show');
+            return;
+        }
+          let html = '';
+        suggestions.forEach((suggestion, index) => {
+            const uuid = suggestion.uuid ? `data-uuid="${escapeHtml(suggestion.uuid)}"` : '';
+            const suggestionType = suggestion.type || 'other';
+            html += `
+                <div class="autocomplete-item" data-index="${index}" data-text="${escapeHtml(suggestion.text)}" data-type="${suggestionType}" ${uuid}>
+                    <i class="bi ${suggestion.icon} autocomplete-icon"></i>
+                    <span class="autocomplete-text">${escapeHtml(suggestion.text)}</span>
+                    <span class="autocomplete-category">${escapeHtml(suggestion.category)}</span>
+                </div>
+            `;
+        });
+        
+        dropdown.innerHTML = html;
+        dropdown.classList.add('show');
+        selectedIndex = -1;
+        
+        // Add click listeners
+        dropdown.querySelectorAll('.autocomplete-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const suggestionType = this.getAttribute('data-type');
+                const uuid = this.getAttribute('data-uuid');
+                const text = this.getAttribute('data-text');
+                  hideDropdown();
+                
+                // If it's a card suggestion with UUID, go directly to card detail
+                if (suggestionType === 'card' && uuid) {
+                    window.location.href = `/card/${uuid}/`;
+                } else {
+                    // For other suggestions (types, artists, sets), do a search
+                    searchInput.value = text;
+                    searchInput.form.submit();
+                }
+            });
+        });
+    }
+    
+    // Hide dropdown
+    function hideDropdown() {
+        dropdown.classList.remove('show');
+        dropdown.innerHTML = '';
+        selectedIndex = -1;
+    }
+    
+    // Escape HTML to prevent XSS
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    // Handle keyboard navigation
+    function handleKeyboardNavigation(e) {
+        const items = dropdown.querySelectorAll('.autocomplete-item');
+        
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+            updateSelection(items);
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            selectedIndex = Math.max(selectedIndex - 1, -1);
+            updateSelection(items);        } else if (e.key === 'Enter') {
+            if (selectedIndex >= 0 && selectedIndex < items.length) {
+                e.preventDefault();
+                const selectedItem = items[selectedIndex];
+                const suggestionType = selectedItem.getAttribute('data-type');
+                const uuid = selectedItem.getAttribute('data-uuid');
+                const text = selectedItem.getAttribute('data-text');
+                  hideDropdown();
+                
+                // If it's a card suggestion with UUID, go directly to card detail
+                if (suggestionType === 'card' && uuid) {
+                    window.location.href = `/card/${uuid}/`;
+                } else {
+                    // For other suggestions, do a search
+                    searchInput.value = text;
+                    searchInput.form.submit();
+                }
+            }
+        } else if (e.key === 'Escape') {
+            hideDropdown();
+        }
+    }
+    
+    // Update visual selection
+    function updateSelection(items) {
+        items.forEach((item, index) => {
+            item.classList.toggle('active', index === selectedIndex);
+        });
+    }
+    
+    // Debounced search function
+    const debouncedSearch = debounce(showSuggestions, 300);
+    
+    // Event listeners
+    searchInput.addEventListener('input', function() {
+        const query = this.value.trim();
+        debouncedSearch(query);
+    });
+    
+    searchInput.addEventListener('keydown', handleKeyboardNavigation);
+    
+    searchInput.addEventListener('focus', function() {
+        const query = this.value.trim();
+        if (query.length >= 2) {
+            showSuggestions(query);
+        }
+    });
+      // Hide dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
+            hideDropdown();
+        }
+    });
+    
+    // Reposition dropdown on window resize or scroll
+    window.addEventListener('resize', function() {
+        if (dropdown.classList.contains('show')) {
+            positionDropdown();
+        }
+    });
+    
+    window.addEventListener('scroll', function() {
+        if (dropdown.classList.contains('show')) {
+            positionDropdown();
+        }
+    });
+});
+</script>
+
+{% endblock %}

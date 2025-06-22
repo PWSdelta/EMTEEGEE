@@ -1,25 +1,278 @@
 /* EMTEEGEE - MTG Card Analysis Custom Styles */
 
+/* Global Styles */
+:root {
+    --primary-color: #2563eb;
+    --secondary-color: #64748b;
+    --accent-color: #f59e0b;
+    --success-color: #10b981;
+    --danger-color: #ef4444;
+    --dark-color: #1e293b;
+    --light-color: #f8fafc;
+    --border-radius: 0.5rem;
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Body and Layout */
+html, body {
+    height: 100%;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+#root, .wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+main {
+    flex: 1;
+}
+
+/* Hero Section Styles */
+.hero-home-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 4rem 0;
+    margin-bottom: 3rem;
+    border-radius: 0 0 2rem 2rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-home-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.1);
+    z-index: 1;
+}
+
+.hero-home-section .container-xxl {
+    position: relative;
+    z-index: 2;
+}
+
+.hero-content {
+    text-align: center;
+    padding: 2rem 0;
+}
+
+.hero-home-title {
+    font-size: 3.5rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.brand-icon {
+    font-size: 4rem;
+    margin-right: 1rem;
+    display: inline-block;
+    animation: pulse 2s infinite;
+}
+
+.brand-name {
+    background: linear-gradient(45deg, #ffd700, #fff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 0.1em;
+}
+
+.hero-subtitle {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    opacity: 0.9;
+}
+
+.hero-description {
+    font-size: 1.1rem;
+    opacity: 0.8;
+    max-width: 600px;
+    margin: 0 auto 2rem;
+    line-height: 1.6;
+}
+
+.hero-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.hero-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.hero-stat-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: transform 0.3s ease;
+}
+
+.hero-stat-card:hover {
+    transform: translateY(-5px);
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.hero-stat-value {
+    font-size: 2.5rem;
+    font-weight: 800;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.hero-stat-label {
+    font-size: 0.9rem;
+    opacity: 0.8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Featured Cards Section */
+.featured-cards-section {
+    margin: 4rem 0;
+}
+
+.section-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 3rem;
+    color: var(--dark-color);
+}
+
+.featured-card {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.featured-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+}
+
+.featured-card-image-enhanced {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+}
+
+.featured-card-content {
+    padding: 1.5rem;
+}
+
+.featured-card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--dark-color);
+}
+
+.featured-card-subtitle {
+    color: var(--secondary-color);
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.featured-card-description {
+    color: var(--secondary-color);
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+/* Recent Cards Section */
+.recent-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+}
+
+.recent-card {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.recent-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+}
+
+.recent-card img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+}
+
+.recent-card-content {
+    padding: 1rem;
+}
+
+.recent-card-title {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--dark-color);
+}
+
+.recent-card-meta {
+    font-size: 0.85rem;
+    color: var(--secondary-color);
+}
+
 /* Card rarity colors - matching MTG convention */
 .rarity-common { color: #0f0f23; }
 .rarity-uncommon { color: #708090; }
 .rarity-rare { color: #cd7f32; }
 .rarity-mythic { color: #bf4f36; }
 
-/* Mana symbols styling enhancement */
+/* Mana symbols styling */
+.mana-symbol, .mana-symbol-text {
+    height: 1.2em;
+    width: 1.2em;
+    display: inline-block;
+    vertical-align: middle;
+    margin: 0 1px;
+}
+
 .mana-cost {
     font-family: 'Courier New', monospace;
     font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
 }
 
 /* Card text box styling */
 .card-text-box {
-    background-color: #f8f9fa;
-    border-left: 4px solid #007bff;
+    background-color: var(--light-color);
+    border-left: 4px solid var(--primary-color);
     padding: 1rem;
-    border-radius: 0.25rem;
+    border-radius: var(--border-radius);
     font-size: 0.95rem;
     line-height: 1.5;
+    margin: 1rem 0;
 }
 
 /* Power/toughness display */
@@ -27,62 +280,100 @@
     font-family: 'Georgia', serif;
     font-weight: bold;
     font-size: 1.2rem;
+    background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--border-radius);
+    display: inline-block;
 }
 
-/* Set symbol and info styling */
-.set-info {
-    font-size: 0.85rem;
+/* Navigation enhancements */
+.navbar-brand {
+    font-weight: 700;
+    letter-spacing: 1px;
+    font-size: 1.5rem;
 }
 
-/* Admin card list enhancements */
-.admin-card-item {
-    transition: all 0.2s ease;
+.navbar-brand i {
+    color: var(--accent-color);
+    margin-right: 0.5rem;
 }
 
-.admin-card-item:hover {
+/* Button enhancements */
+.btn {
+    border-radius: var(--border-radius);
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary-color), #3b82f6);
+    border: none;
+    box-shadow: var(--shadow);
+}
+
+.btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    box-shadow: var(--shadow-lg);
 }
 
-/* Search form enhancements */
-.search-form {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 10px;
-    padding: 2rem;
+.btn-outline-primary {
+    border: 2px solid var(--primary-color);
+    color: var(--primary-color);
+}
+
+.btn-outline-primary:hover {
+    background: var(--primary-color);
+    transform: translateY(-2px);
+}
+
+/* Footer styling */
+footer {
+    background: linear-gradient(135deg, var(--dark-color), #374151);
+    color: white;
+    margin-top: auto;
+    padding: 3rem 0 1rem;
+}
+
+.footer-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.footer-section h5 {
+    color: var(--accent-color);
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.footer-section a {
+    color: #d1d5db;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.footer-section a:hover {
     color: white;
 }
 
-.search-form .form-control {
-    border-radius: 25px;
-    border: none;
-    padding: 0.75rem 1.5rem;
+.footer-bottom {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 1rem;
+    text-align: center;
+    color: #9ca3af;
 }
 
-.search-form .btn {
-    border-radius: 25px;
-    padding: 0.75rem 2rem;
+/* Animations */
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
 }
 
-/* Tooltip customization */
-.tooltip-inner {
-    max-width: 300px;
-    text-align: left;
-}
-
-/* Popover customization */
-.popover {
-    max-width: 400px;
-}
-
-.popover-body {
-    font-size: 0.875rem;
-}
-
-/* Responsive card grid */
-@media (max-width: 768px) {
-    .card-detail-sidebar {
-        margin-top: 1rem;
-    }
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
 /* Loading states */
@@ -91,48 +382,155 @@
     width: 1rem;
     height: 1rem;
     border: 2px solid #f3f3f3;
-    border-top: 2px solid #007bff;
+    border-top: 2px solid var(--primary-color);
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
 
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+/* Responsive Design */
+@media (max-width: 768px) {
+    .hero-home-title {
+        font-size: 2.5rem;
+    }
+    
+    .hero-subtitle {
+        font-size: 1.25rem;
+    }
+    
+    .hero-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .hero-stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .section-title {
+        font-size: 2rem;
+    }
+    
+    .recent-cards-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
-/* Card image styling */
+@media (max-width: 576px) {
+    .hero-home-section {
+        padding: 2rem 0;
+    }
+    
+    .hero-home-title {
+        font-size: 2rem;
+    }
+    
+    .brand-icon {
+        font-size: 2.5rem;
+    }
+    
+    .hero-subtitle {
+        font-size: 1.1rem;
+    }
+    
+    .featured-cards-section {
+        margin: 2rem 0;
+    }
+}
+
+/* Card Detail Page Styles */
+.card-detail-container {
+    margin: 2rem 0;
+}
+
+.card-detail-sidebar {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    padding: 1.5rem;
+    height: fit-content;
+}
+
 .card-image {
     max-width: 100%;
     height: auto;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    margin-bottom: 1rem;
 }
 
-/* Navigation enhancements */
-.navbar-brand {
-    font-weight: 700;
-    letter-spacing: 1px;
-}
-
-/* Footer styling */
-footer {
-    background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+/* Search form enhancements */
+.search-form {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: var(--border-radius);
+    padding: 2rem;
     color: white;
-    margin-top: auto;
+    margin-bottom: 2rem;
 }
 
-/* Ensure body takes full height */
-html, body {
-    height: 100%;
+.search-form .form-control {
+    border-radius: 25px;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    box-shadow: var(--shadow);
 }
 
-#root {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
+.search-form .btn {
+    border-radius: 25px;
+    padding: 0.75rem 2rem;
 }
 
-main {
-    flex: 1;
+/* Tooltip and Popover customization */
+.tooltip-inner {
+    max-width: 300px;
+    text-align: left;
+    border-radius: var(--border-radius);
+}
+
+.popover {
+    max-width: 400px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-lg);
+}
+
+.popover-body {
+    font-size: 0.875rem;
+}
+
+/* Set info styling */
+.set-info {
+    font-size: 0.85rem;
+    color: var(--secondary-color);
+}
+
+/* Admin enhancements */
+.admin-card-item {
+    transition: all 0.2s ease;
+    border-radius: var(--border-radius);
+}
+
+.admin-card-item:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+}
+
+/* Utility classes */
+.text-gradient {
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.glass-effect {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.hover-lift {
+    transition: transform 0.3s ease;
+}
+
+.hover-lift:hover {
+    transform: translateY(-5px);
 }

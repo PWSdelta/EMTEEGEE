@@ -17,10 +17,9 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
-urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('', include('cards.urls')),  # Root URL goes to cards app
-    path('cards/', include('cards.urls')),
-    # Direct API access for workers (without /cards/ prefix)
-    path('api/swarm/', include('cards.api_urls')),
+urlpatterns = [    path('admin/', admin.site.urls),
+    path('', include('cards.urls_working')),  # Working version - all pages functional
+    # path('', include('cards.urls')),  # Original URLs - has urlpatterns import issue
+    # Direct API access for workers (without /cards/ prefix) - temporarily disabled
+    # path('api/swarm/', include('cards.api_urls')),
 ]
