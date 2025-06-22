@@ -26,4 +26,6 @@ urlpatterns = [
     path('', home_redirect, name='home'),
     path('admin/', admin.site.urls),
     path('cards/', include('cards.urls')),
+    # Direct API access for workers (without /cards/ prefix)
+    path('api/swarm/', include('cards.api_urls')),
 ]
