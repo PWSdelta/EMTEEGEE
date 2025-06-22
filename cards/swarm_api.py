@@ -24,7 +24,7 @@ class MongoJSONEncoder(json.JSONEncoder):
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 try:
-    from swarm_manager_clean import SwarmManager
+    from swarm_manager_simple import SwarmManager
     # Initialize swarm manager
     swarm = SwarmManager()
 except ImportError as e:
@@ -107,6 +107,41 @@ def worker_health(request):
     try:
         # This would be implemented to show worker health
         return JsonResponse({'status': 'not_implemented'})
+        
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def heartbeat(request):
+    """Worker heartbeat endpoint"""
+    try:
+        data = json.loads(request.body)
+        worker_id = data.get('worker_id')
+        
+        if not worker_id:
+            return JsonResponse({'error': 'worker_id required'}, status=400)
+        
+        if swarm is None:
+            return JsonResponse({'error': 'SwarmManager not available'}, status=500)
+        
+        # Update worker heartbeat
+        result = swarm.workers.update_one(
+            {'worker_id': worker_id},
+            {
+                '$set': {
+                    'last_heartbeat': datetime.now(),
+                    'status': data.get('status', 'active'),
+                    'active_tasks': data.get('active_tasks', 0),
+                    'completed_tasks': data.get('completed_tasks', 0)
+                }
+            }
+        )
+        
+        if result.matched_count > 0:
+            return JsonResponse({'status': 'success', 'message': 'Heartbeat received'})
+        else:
+            return JsonResponse({'error': 'Worker not found'}, status=404)
         
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)

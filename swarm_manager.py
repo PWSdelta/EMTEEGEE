@@ -23,8 +23,7 @@ import redis
 class SwarmManager:
     """Manages distributed AI analysis work across multiple machines"""
     
-    # Component assignment by hardware capability
-    GPU_COMPONENTS = [
+    # Component assignment by hardware capability    GPU_COMPONENTS = [
         'play_tips', 'mulligan_considerations', 'rules_clarifications',
         'combo_suggestions', 'format_analysis', 'synergy_analysis',
         'competitive_analysis', 'tactical_analysis'
@@ -41,8 +40,27 @@ class SwarmManager:
     ]
     
     def __init__(self):
-        self.mongo_client = MongoClient(settings.MONGODB_SETTINGS['host'])
-        self.db = self.mongo_client['emteegee_dev']
+        # Use the same MongoDB connection pattern as the models
+        mongodb_settings = settings.MONGODB_SETTINGS
+        
+        # Handle both connection string and legacy settings
+        if 'connection_string' in mongodb_settings:
+            # Use connection string method
+            self.mongo_client = MongoClient(mongodb_settings['connection_string'])
+        else:
+            # Use legacy host-based method
+            if mongodb_settings.get('username') and mongodb_settings.get('password'):
+                self.mongo_client = MongoClient(
+                    host=mongodb_settings['host'],
+                    username=mongodb_settings['username'],
+                    password=mongodb_settings['password'],
+                    authSource=mongodb_settings.get('auth_source', 'admin')
+                )
+            else:
+                self.mongo_client = MongoClient(mongodb_settings['host'])
+        
+        db_name = mongodb_settings.get('db_name', 'emteegee_dev')
+        self.db = self.mongo_client[db_name]
         self.cards = self.db.cards
         self.workers = self.db.swarm_workers
         self.tasks = self.db.swarm_tasks
@@ -207,8 +225,7 @@ class SwarmManager:
                 }
             }
         )
-        
-        # Update worker stats
+          # Update worker stats
         self.workers.update_one(
             {'worker_id': worker_id},
             {'$inc': {'tasks_completed': 1}}
@@ -218,7 +235,8 @@ class SwarmManager:
     
     def get_swarm_status(self) -> Dict[str, Any]:
         """Get overall swarm system status"""
-        total_workers = self.workers.count_documents({'status': 'active'})        active_workers = self.workers.count_documents({
+        total_workers = self.workers.count_documents({'status': 'active'})
+        active_workers = self.workers.count_documents({
             'status': 'active',
             'last_heartbeat': {'$gte': datetime.now(timezone.utc) - timedelta(minutes=5)}
         })
