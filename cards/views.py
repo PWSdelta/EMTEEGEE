@@ -428,267 +428,74 @@ def worker_control_panel(request):
 
 def the_abyss(request):
     """
-    The Abyss - Ultimate card discovery and search experience.
-    Flexible card wall with search, filtering, and discovery features.
+    The Abyss - Simple, powerful card search.
+    Just one search box with amazing full-text search across all card fields.
     """
     try:
         cards_collection = get_cards_collection()
         
-        # Get search parameters
+        # Get search parameters (only search query matters)
         search_query = request.GET.get('q', '').strip()
-        color_filter = request.GET.get('colors', '')
-        rarity_filter = request.GET.get('rarity', '')
-        type_filter = request.GET.get('type', '')
-        set_filter = request.GET.get('set', '').strip()
-          # New pricing filters
-        price_min = request.GET.get('price_min', '').strip()
-        price_max = request.GET.get('price_max', '').strip()
-        price_currency = request.GET.get('price_currency', 'usd')  # usd or eur
-        
-        # New trend filtering
-        trend_filter = request.GET.get('trend', '').strip()  # rising, falling, stable
-        
-        # Special collection handling
-        collection = request.GET.get('collection', '').strip()
-        
         page = int(request.GET.get('page', 1))
         
         # Build MongoDB query
         query = {}
-        sort_criteria = [('name', 1)]  # Default sort
+        sort_criteria = [('name', 1)]  # Default alphabetical sort
         
-        # Handle special collections first
-        if collection == 'commanders':
-            query['$and'] = [
-                {'type': {'$regex': 'legendary', '$options': 'i'}},
-                {'type': {'$regex': 'creature', '$options': 'i'}},
-                {'edhrecRank': {'$exists': True, '$ne': None}}
-            ]
-            sort_criteria = [('edhrecRank', 1)]  # Most popular first (lowest rank number)
-        elif collection == 'expensive':
-            query['$or'] = [
-                {'prices.usd': {'$gte': 20}},
-                {'prices.eur': {'$gte': 18}}
-            ]
-            sort_criteria = [('prices.usd', -1), ('prices.eur', -1)]  # Most expensive first        elif collection == 'budget':
-            query['$and'] = [
-                {'$or': [
-                    {'prices.usd': {'$lte': 1}},
-                    {'prices.eur': {'$lte': 0.9}}
-                ]},
-                {'$or': [
-                    {'prices.usd': {'$exists': True, '$ne': None}},
-                    {'prices.eur': {'$exists': True, '$ne': None}}
-                ]}
-            ]
-            sort_criteria = [('prices.usd', 1), ('prices.eur', 1)]  # Cheapest first
-        elif collection == 'edhrec':
-            query['edhrecRank'] = {'$exists': True, '$ne': None}
-            sort_criteria = [('edhrecRank', 1)]  # Most popular first (lowest rank number)
-        
-        # Text search
+        # Full-text search across ALL fields - comprehensive and powerful
         if search_query:
-            if not query.get('$and'):
-                query['$and'] = []
-            query['$and'].append({
-                '$or': [
-                    {'name': {'$regex': search_query, '$options': 'i'}},
-                    {'text': {'$regex': search_query, '$options': 'i'}},
-                    {'type': {'$regex': search_query, '$options': 'i'}},
-                    {'keywords': {'$in': [search_query]}}
-                ]
-            })
-        
-        # Color filter
-        if color_filter:
-            if not query.get('$and'):
-                query['$and'] = []
-            if color_filter == 'C':  # Colorless
-                query['$and'].append({'$or': [
-                    {'colors': {'$size': 0}},
-                    {'colors': {'$exists': False}}
-                ]})
-            else:
-                query['$and'].append({'colors': {'$in': [color_filter]}})
-        
-        # Rarity filter
-        if rarity_filter:
-            if not query.get('$and'):
-                query['$and'] = []
-            query['$and'].append({'rarity': rarity_filter})
-        
-        # Type filter
-        if type_filter:
-            if not query.get('$and'):
-                query['$and'] = []
-            query['$and'].append({'type': {'$regex': type_filter, '$options': 'i'}})
-        
-        # Set filter
-        if set_filter:
-            if not query.get('$and'):
-                query['$and'] = []
-            query['$and'].append({'setCode': {'$regex': set_filter, '$options': 'i'}})
-        
-        # Pricing filters
-        if price_min or price_max:
-            price_field = f'prices.{price_currency}'
-            price_conditions = []
+            # Split search query into terms for better matching
+            search_terms = search_query.split()
+            search_conditions = []
             
-            if price_min:
-                try:
-                    min_val = float(price_min)
-                    price_conditions.append({price_field: {'$gte': min_val}})
-                except ValueError:
-                    pass
-            
-            if price_max:
-                try:
-                    max_val = float(price_max)
-                    price_conditions.append({price_field: {'$lte': max_val}})
-                except ValueError:
-                    pass
-            
-            if price_conditions:
-                if not query.get('$and'):
-                    query['$and'] = []                # Ensure the price field exists and is not null
-                price_conditions.append({price_field: {'$exists': True, '$ne': None}})
-                query['$and'].extend(price_conditions)
-        
-        # Trend filtering (only works with MTGjson pricing data)
-        if trend_filter:
-            if not query.get('$and'):
-                query['$and'] = []
-            
-            if trend_filter == 'rising':
-                query['$and'].append({'prices.price_trend_30d': {'$gt': 5}})
-            elif trend_filter == 'falling':
-                query['$and'].append({'prices.price_trend_30d': {'$lt': -5}})
-            elif trend_filter == 'stable':
-                query['$and'].append({
-                    'prices.price_trend_30d': {'$gte': -5, '$lte': 5}
+            for term in search_terms:
+                search_conditions.append({
+                    '$or': [
+                        {'name': {'$regex': term, '$options': 'i'}},
+                        {'text': {'$regex': term, '$options': 'i'}},
+                        {'type': {'$regex': term, '$options': 'i'}},
+                        {'artist': {'$regex': term, '$options': 'i'}},
+                        {'setName': {'$regex': term, '$options': 'i'}},
+                        {'setCode': {'$regex': term, '$options': 'i'}},
+                        {'keywords': {'$in': [term]}},
+                        {'flavorText': {'$regex': term, '$options': 'i'}},
+                        {'manaCost': {'$regex': term, '$options': 'i'}},
+                        {'subtypes': {'$in': [term]}},
+                        {'supertypes': {'$in': [term]}}
+                    ]
                 })
-          # Get total count
-        total_cards = cards_collection.count_documents(query)
-          # Get pricing statistics for the current result set
-        price_stats = None
-        if total_cards > 0 and total_cards < 10000:  # Only for manageable result sets
-            try:
-                price_field = f'prices.{price_currency}'
-                pipeline = [
-                    {'$match': query},
-                    {'$match': {price_field: {'$exists': True, '$ne': None, '$gt': 0}}},
-                    {'$group': {
-                        '_id': None,
-                        'avg_price': {'$avg': f'${price_field}'},
-                        'min_price': {'$min': f'${price_field}'},
-                        'max_price': {'$max': f'${price_field}'},
-                        'count_with_price': {'$sum': 1}
-                    }}
+            
+            if search_conditions:
+                query['$and'] = search_conditions
+                # Sort search results by relevance (name matches first, then EDHREC rank)
+                sort_criteria = [
+                    ('name', 1),  # Alphabetical within relevance groups
+                    ('edhrecRank', 1)  # Popular cards higher
                 ]
-                price_result = list(cards_collection.aggregate(pipeline))
-                if price_result and price_result[0].get('count_with_price', 0) > 0:
-                    stats = price_result[0]
-                    price_stats = {
-                        'average': round(stats.get('avg_price', 0), 2),
-                        'minimum': round(stats.get('min_price', 0), 2),
-                        'maximum': round(stats.get('max_price', 0), 2),
-                        'count_with_price': stats.get('count_with_price', 0),
-                        'currency': '€' if price_currency == 'eur' else '$'
-                    }
-            except Exception as e:
-                logger.warning(f"Error calculating price stats: {e}")
-                price_stats = None
+        
+        # Get total count
+        total_cards = cards_collection.count_documents(query)
         
         # Pagination
-        per_page = 24
+        per_page = 36  # More cards per page since we're focused on results
         skip = (page - 1) * per_page
         
         # Execute query with sorting
         cards_cursor = cards_collection.find(query).sort(sort_criteria).skip(skip).limit(per_page)
         cards = list(cards_cursor)
         
+        # Add detail URLs
+        for card in cards:
+            card['detail_url'] = f"/card/{card['uuid']}/"
+        
         # Calculate pagination info
         total_pages = (total_cards + per_page - 1) // per_page
         has_previous = page > 1
-        has_next = page < total_pages        # Enhanced featured collections with more pricing options
-        featured_collections = []
-        if not any([search_query, color_filter, rarity_filter, type_filter, set_filter, price_min, price_max, trend_filter, collection]):
-            featured_collections = [
-                {
-                    'name': 'EDHREC Popular',
-                    'url': '?collection=edhrec',
-                    'description': 'All cards ranked by EDHREC popularity',
-                    'icon': 'bi-trophy',
-                    'special': True
-                },
-                {
-                    'name': 'Top Commanders',
-                    'url': '?collection=commanders',
-                    'description': 'Most popular legendary creatures by EDHREC rank',
-                    'icon': 'bi-crown',
-                    'special': True
-                },
-                {
-                    'name': 'Budget Gems',
-                    'url': '?collection=budget',
-                    'description': 'Powerful cards under $1',
-                    'icon': 'bi-piggy-bank',
-                    'special': True
-                },
-                {
-                    'name': 'High Value Cards',
-                    'url': '?collection=expensive',
-                    'description': 'Premium cards worth $20+',
-                    'icon': 'bi-gem',
-                    'special': True
-                },
-                {
-                    'name': 'Mid-Range Cards',
-                    'url': '?price_min=1&price_max=10&price_currency=usd',
-                    'description': 'Quality cards in the $1-10 range',
-                    'icon': 'bi-cash-stack',
-                    'special': True
-                },
-                {
-                    'name': 'Planeswalkers',
-                    'url': '?type=planeswalker',
-                    'description': 'Powerful allies across the multiverse',
-                    'icon': 'bi-star'
-                },
-                {
-                    'name': 'Artifacts',
-                    'url': '?type=artifact',
-                    'description': 'Powerful magical items and utilities',
-                    'icon': 'bi-gear'
-                },
-                {
-                    'name': 'Dragons',
-                    'url': '?q=dragon',
-                    'description': 'Ancient and powerful winged beasts',
-                    'icon': 'bi-fire'
-                },
-                {
-                    'name': 'Lightning Effects',
-                    'url': '?q=lightning',
-                    'description': 'Burn spells and direct damage',
-                    'icon': 'bi-lightning'
-                }
-            ]
-          # Determine filter state
-        is_search = bool(search_query or color_filter or rarity_filter or type_filter or set_filter or price_min or price_max or collection or trend_filter)
+        has_next = page < total_pages
         
         context = {
             'cards': cards,
             'search_query': search_query,
-            'color_filter': color_filter,
-            'rarity_filter': rarity_filter,
-            'type_filter': type_filter,
-            'set_filter': set_filter,
-            'price_min': price_min,
-            'price_max': price_max,            'price_currency': price_currency,
-            'trend_filter': trend_filter,
-            'price_stats': price_stats,
-            'collection': collection,
             'total_cards': total_cards,
             'page': page,
             'total_pages': total_pages,
@@ -696,18 +503,19 @@ def the_abyss(request):
             'has_next': has_next,
             'previous_page': page - 1 if has_previous else None,
             'next_page': page + 1 if has_next else None,
-            'featured_collections': featured_collections,
-            'is_search': is_search
+            'is_search': bool(search_query)
         }
         
         return render(request, 'cards/the_abyss.html', context)
         
     except Exception as e:
         logger.error(f"Error in the_abyss view: {e}")
-        messages.error(request, "An error occurred while loading The Abyss. Please try again.")
+        import traceback
+        traceback.print_exc()
         return render(request, 'cards/the_abyss.html', {
             'cards': [],
-            'error_message': 'Unable to load cards at this time.'
+            'total_cards': 0,
+            'error_message': f'Error loading cards: {str(e)}'
         })
 
 def art_gallery(request):
