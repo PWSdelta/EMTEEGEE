@@ -31,10 +31,12 @@ class UniversalWorker:
     """Universal worker that adapts to hardware capabilities"""
     
     def __init__(self, server_url: str = None):
-        # Auto-detect server URL with fallback        if server_url is None:
+        # Auto-detect server URL with fallback
+        if server_url is None:
             server_url = os.getenv('DJANGO_API_BASE_URL', 'https://mtgabyss.com')
         
         self.server_url = server_url
+        self.server_ip_url = 'http://64.23.130.187:8000'  # DigitalOcean server IP
         self.fallback_url = 'http://localhost:8000'
         self.hostname = socket.gethostname()
         self.capabilities = self._detect_capabilities()
@@ -124,7 +126,7 @@ class UniversalWorker:
     def register(self) -> bool:
         """Register with the central server"""
         # Try primary server first, then fallback
-        for server_url in [self.server_url, self.fallback_url]:
+        for server_url in [self.server_url, self.server_ip_url, self.fallback_url]:
             try:
                 response = requests.post(
                     f"{server_url}/api/swarm/register",
