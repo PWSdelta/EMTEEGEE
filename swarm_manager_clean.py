@@ -157,13 +157,13 @@ class SwarmManager:
             
             if 'analysis' in card and 'components' in card['analysis']:
                 existing_components = set(card['analysis']['components'].keys())
-            
-            # Find missing components this worker can handle
+              # Find missing components this worker can handle
             missing_components = []
             for component in assigned_components:
                 if component not in existing_components:
                     missing_components.append(component)
-              if missing_components:
+            
+            if missing_components:
                 task_id = str(uuid.uuid4())
                 task = {
                     'task_id': task_id,
