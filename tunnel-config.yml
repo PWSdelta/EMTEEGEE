@@ -1,28 +1,9 @@
-tunnel: emteegee-tunnel
-credentials-file: emteegee-tunnel.json
+tunnel: 98614298-580f-4c01-a400-876bab87a633
+credentials-file: C:\Users\Owner\.cloudflared\98614298-580f-4c01-a400-876bab87a633.json
 
 ingress:
-  # Primary domain - direct to Django app
-  - hostname: tcgplex.com
-    service: http://localhost:8001
-  
-  # WWW redirect to primary domain
-  - hostname: www.tcgplex.com
-    service: http://localhost:8001
-  
-  # API specific routes
-  - hostname: tcgplex.com
-    path: /api/*
-    service: http://localhost:8001
-  
-  # Admin routes
-  - hostname: tcgplex.com
-    path: /admin/*
-    service: http://localhost:8001
-  
-  # Static files
-  - hostname: tcgplex.com
-    path: /static/*
+  # EMTeeGee subdomain - direct to Django app
+  - hostname: emteegee.tcgplex.com
     service: http://localhost:8001
   
   # Catch all

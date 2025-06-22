@@ -45,8 +45,8 @@ timeout /t 5 /nobreak >nul
 
 echo 🌩️  Step 3/5: Starting Cloudflare Tunnel...
 echo ----------------------------------------
-echo Starting Cloudflare tunnel with dual-domain config...
-start "Cloudflare Tunnel - DO NOT CLOSE" cmd /c "title Cloudflare Tunnel - DO NOT CLOSE && echo Cloudflare Tunnel Starting... && echo Handles both tcgplex.com and www.tcgplex.com && echo This provides external access to your app && echo Keep this window open! && cloudflared tunnel --config tunnel-config.yml run"
+echo Starting Cloudflare tunnel with emteegee subdomain...
+start "Cloudflare Tunnel - DO NOT CLOSE" cmd /c "title Cloudflare Tunnel - DO NOT CLOSE && echo Cloudflare Tunnel Starting... && echo Routes emteegee.tcgplex.com to local Django && echo This provides external access to your app && echo Keep this window open! && cloudflared tunnel --config tunnel-config.yml run"
 echo ✅ Cloudflare tunnel window opened with new config
 echo ⏳ Waiting 5 seconds for tunnel to connect both domains...
 timeout /t 5 /nobreak >nul
@@ -79,9 +79,8 @@ echo   ✅ Swarm Dashboard (Monitoring)
 echo.
 echo 🌐 Access Points:
 echo   • Local Django: http://localhost:8001
-echo   • External: https://tcgplex.com (test domain)
-echo   • External: https://www.tcgplex.com (redirects to main)
-echo   • API: https://tcgplex.com/api/swarm/
+echo   • External: https://emteegee.tcgplex.com (subdomain)
+echo   • API: https://emteegee.tcgplex.com/api/swarm/
 echo.
 echo 📊 Database:
 echo   • MongoDB Atlas (Remote) - Check .env file
@@ -91,7 +90,7 @@ echo.
 echo 💡 Next Steps:
 echo   1. Check the Dashboard window for system status
 echo   2. Monitor worker progress and task completion
-echo   3. Test external access via https://tcgplex.com
+echo   3. Test external access via https://emteegee.tcgplex.com
 echo   4. Start laptop worker on second machine
 echo   5. Scale up with additional workers as needed
 echo.

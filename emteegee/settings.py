@@ -30,7 +30,12 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-d2hi@3x*dquyd&r$egq
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DJANGO_DEBUG', 'True').lower() == 'true'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    'emteegee.tcgplex.com',
+    'tcgplex.com',
+]
 
 
 # Application definition
