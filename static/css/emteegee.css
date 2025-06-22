@@ -1,5 +1,186 @@
 /* EMTEEGEE - Django + MongoDB MTG Card Analysis Platform Custom Styles */
 
+/* ==========================================================================
+   Hero Section Styles
+   ========================================================================== */
+
+.hero-section {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 15px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.hero-card-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 15px;
+    transition: transform 0.3s ease;
+}
+
+.hero-card-image:hover {
+    transform: scale(1.02);
+}
+
+.card-image-placeholder {
+    min-height: 400px;
+    background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+}
+
+.hero-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+}
+
+.rarity-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 25px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.rarity-badge.common {
+    background-color: #6c757d;
+    color: white;
+}
+
+.rarity-badge.uncommon {
+    background-color: #28a745;
+    color: white;
+}
+
+.rarity-badge.rare {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.rarity-badge.mythic {
+    background-color: #dc3545;
+    color: white;
+}
+
+.rarity-badge.special {
+    background: linear-gradient(45deg, #6f42c1, #e83e8c);
+    color: white;
+}
+
+.analysis-progress .progress {
+    background-color: rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+}
+
+.type-text {
+    color: #495057;
+    font-weight: 500;
+}
+
+.stat-badge {
+    background: white;
+    border: 2px solid #dee2e6;
+    border-radius: 12px;
+    padding: 0.75rem;
+    text-align: center;
+    min-width: 80px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.stat-badge:hover {
+    border-color: #007bff;
+    transform: translateY(-2px);
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2c3e50;
+    line-height: 1;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 0.25rem;
+}
+
+.colors-display {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.mana-symbol {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: white;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s ease;
+}
+
+.mana-symbol:hover {
+    transform: scale(1.1);
+}
+
+.mana-symbol.white {
+    background: linear-gradient(135deg, #fffbd5 0%, #f7f5e6 100%);
+    border: 2px solid #d4b106;
+    color: #8b7355;
+}
+
+.mana-symbol.blue {
+    background: linear-gradient(135deg, #0e68ab 0%, #003d6b 100%);
+}
+
+.mana-symbol.black {
+    background: linear-gradient(135deg, #150b00 0%, #3c3c3c 100%);
+}
+
+.mana-symbol.red {
+    background: linear-gradient(135deg, #d3202a 0%, #8b0000 100%);
+}
+
+.mana-symbol.green {
+    background: linear-gradient(135deg, #00733e 0%, #004d29 100%);
+}
+
+.mana-symbol.colorless {
+    background: linear-gradient(135deg, #ccc2c0 0%, #999999 100%);
+    color: #333;
+}
+
+.flavor-quote {
+    background: rgba(255, 255, 255, 0.7);
+    border-left: 4px solid #6c757d;
+    padding: 1.5rem;
+    border-radius: 0 12px 12px 0;
+    margin-top: 1rem;
+}
+
+.flavor-quote .blockquote p {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: #495057;
+    margin: 0;
+}
+
+/* ==========================================================================
+   Legacy Styles (Keep for backward compatibility)
+   ========================================================================== */
+
 /* Card rarity colors - matching MTG convention */
 .rarity-common { color: #0f0f23; }
 .rarity-uncommon { color: #708090; }
@@ -12,20 +193,28 @@
     font-weight: bold;
 }
 
-/* Mana symbol styling */
-.mana-symbol {
-    height: 1.2em;
-    width: 1.2em;
+/* Enhanced mana symbol styling */
+.mana-symbol-old {
+    height: 1.4em;
+    width: 1.4em;
     display: inline-block;
-    vertical-align: text-top;
+    vertical-align: middle;
     margin: 0 2px;
+    border-radius: 50%;
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.2));
+}
+
+.mana-cost-display .mana-symbol-old {
+    height: 1.8em;
+    width: 1.8em;
+    margin: 0 3px;
 }
 
 .mana-symbol-text {
-    height: 1em;
-    width: 1em;
+    height: 1.2em;
+    width: 1.2em;
     display: inline-block;
-    vertical-align: baseline;
+    vertical-align: middle;
     margin: 0 1px;
 }
 
@@ -100,6 +289,89 @@
     .card-detail-sidebar {
         margin-top: 1rem;
     }
+    
+    .sticky-top {
+        position: relative !important;
+        top: 0 !important;
+    }
+}
+
+/* Enhanced analysis section styling */
+.analysis-section {
+    border-bottom: 1px solid #e9ecef;
+}
+
+.analysis-section:last-child {
+    border-bottom: none;
+}
+
+.analysis-title {
+    color: #495057;
+    font-weight: 600;
+}
+
+/* New Card Information Styling */
+.info-item {
+    margin-bottom: 1rem;
+}
+
+.info-item:last-child {
+    margin-bottom: 0;
+}
+
+.color-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    font-size: 0.75rem;
+    font-weight: bold;
+    color: white;
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.5);
+}
+
+.color-badge.white { background: linear-gradient(135deg, #fffbd5 0%, #f9f9f9 100%); color: #333; text-shadow: none; }
+.color-badge.blue { background: linear-gradient(135deg, #0e4b9d 0%, #2980b9 100%); }
+.color-badge.black { background: linear-gradient(135deg, #2c3e50 0%, #000000 100%); }
+.color-badge.red { background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); }
+.color-badge.green { background: linear-gradient(135deg, #27ae60 0%, #229954 100%); }
+.color-badge.colorless { background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%); }
+
+.price-display {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.price-item {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.currency {
+    font-size: 0.9em;
+    opacity: 0.8;
+}
+
+/* Navigation improvements */
+.nav-section .nav-link {
+    color: #6c757d;
+    border-bottom: 1px solid #e9ecef;
+    transition: all 0.2s ease;
+}
+
+.nav-section .nav-link:hover,
+.nav-section .nav-link.active {
+    color: #007bff;
+    background-color: #f8f9fa;
+    border-left: 3px solid #007bff;
+    padding-left: 1rem;
+}
+
+.nav-section .nav-link:last-child {
+    border-bottom: none;
 }
 
 /* Loading states */
@@ -122,8 +394,14 @@
 .card-image {
     max-width: 100%;
     height: auto;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    border-radius: 12px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-image:hover {
+    transform: scale(1.02);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
 }
 
 /* Navigation enhancements */
@@ -152,4 +430,101 @@ html, body {
 
 main {
     flex: 1;
+}
+
+/* Hero Properties Styles */
+.hero-properties {
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.hero-property {
+    margin-bottom: 1rem;
+}
+
+.hero-property:last-child {
+    margin-bottom: 0;
+}
+
+.property-label {
+    color: #6c757d;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.property-value {
+    color: #2c3e50;
+    font-weight: 600;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.price-badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-right: 0.5rem;
+}
+
+.price-badge.usd {
+    background-color: #28a745;
+    color: white;
+}
+
+.price-badge.eur {
+    background-color: #007bff;
+    color: white;
+}
+
+.keyword-tag {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    color: #495057;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: capitalize;
+}
+
+/* Enhanced Hero Flavor Quote */
+.hero-flavor {
+    margin-top: 1.5rem;
+}
+
+.hero-flavor-quote {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 249, 250, 0.9) 100%);
+    border-left: 4px solid #6c757d;
+    border-radius: 0 8px 8px 0;
+    padding: 1.25rem;
+    position: relative;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.hero-flavor-quote::before {
+    content: '"';
+    position: absolute;
+    top: -5px;
+    left: 15px;
+    font-size: 2.5rem;
+    color: #6c757d;
+    opacity: 0.3;
+    font-family: Georgia, serif;
+}
+
+.hero-flavor-quote .blockquote p {
+    color: #495057;
+    font-size: 1rem;
+    line-height: 1.5;
+    margin: 0;
+    padding-left: 1rem;
 }

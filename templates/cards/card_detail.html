@@ -5,7 +5,7 @@
 {% block title %}{{ card.name }} - EMTEEGEE{% endblock %}
 
 {% block content %}
-<div class="container-fluid mt-4">
+<div class="container-xxl mt-4">
     <!-- Breadcrumb -->
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
@@ -13,131 +13,218 @@
             <li class="breadcrumb-item"><a href="{% url 'cards:browse' %}">Browse Cards</a></li>
             <li class="breadcrumb-item active">{{ card.name }}</li>
         </ol>
-    </nav>    <div class="row">
-        <!-- Main Content - Made narrower for better readability -->
-        <div class="col-lg-8">
-            <!-- Card Basic Information -->
-            <div class="card mb-4 shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h1 class="h3 mb-0">
-                                <i class="bi bi-gem"></i> {{ card.name }}
-                                {% if card.rarity %}
-                                    <span class="badge 
-                                        {% if card.rarity == 'common' %}bg-secondary
-                                        {% elif card.rarity == 'uncommon' %}bg-success
-                                        {% elif card.rarity == 'rare' %}bg-warning text-dark
-                                        {% elif card.rarity == 'mythic' %}bg-danger
-                                        {% else %}bg-light text-dark{% endif %} ms-2">
-                                        {{ card.rarity|title }}
-                                    </span>
-                                {% endif %}
-                            </h1>                            {% if card.manaCost %}
-                                <div class="mt-2">
-                                    <div class="mana-cost-display">
-                                        {{ card.manaCost|scryfall_mana_symbols }}
-                                    </div>
-                                    {% if card.manaValue %}
-                                        <span class="badge bg-light text-dark ms-2">CMC: {{ card.manaValue }}</span>
-                                    {% endif %}
+    </nav>
+    
+    <div class="row g-4">        <!-- Main Content - Improved Grid Layout -->
+        <div class="col-xl-9 col-lg-8">            <!-- Hero Section -->
+            <div class="hero-section mb-4">
+                <div class="row g-4">
+                    <!-- Card Image - Left Side -->
+                    <div class="col-lg-5 col-md-6">
+                        {% with card|card_image:'normal' as card_image_url %}
+                            {% if card_image_url %}
+                                <div class="card-image-container">
+                                    <img src="{{ card_image_url }}" 
+                                         alt="{{ card.name }}" 
+                                         class="hero-card-image img-fluid rounded shadow-lg" 
+                                         loading="lazy">
                                 </div>
-                            {% endif %}
-                        </div>
-                        <div class="text-end">
-                            {% if analysis.component_count %}
-                                <div class="progress" style="width: 150px; height: 20px;">
-                                    <div class="progress-bar bg-success" role="progressbar" 
-                                         style="width: {{ completion_percentage }}%">
-                                        {{ analysis.component_count }}/20
+                            {% else %}
+                                <div class="card-image-placeholder bg-light rounded shadow-lg d-flex align-items-center justify-content-center">
+                                    <div class="text-center py-5">
+                                        <i class="bi bi-image text-muted" style="font-size: 4rem;"></i>
+                                        <p class="text-muted mt-3 mb-0 fs-5">No Image Available</p>
                                     </div>
                                 </div>
-                                <small class="text-white-50 mt-1 d-block">Analysis Complete</small>
                             {% endif %}
-                        </div>
+                        {% endwith %}
                     </div>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-8">                            <!-- Type and Text -->
-                            {% if card.type %}
-                                <h5><i class="bi bi-tag"></i> {{ card.type|format_card_types }}</h5>
-                            {% endif %}                            {% if card.text %}
-                                <div class="card-text-box mb-3">
-                                    {{ card.text|scryfall_parse_text_with_breaks }}
-                                </div>
-                            {% endif %}
-                            {% if card.flavorText %}
-                                <blockquote class="blockquote border-start border-info ps-3">
-                                    <p class="mb-0 fst-italic text-muted">{{ card.flavorText }}</p>
-                                </blockquote>
-                            {% endif %}
-                        </div>
-                        <div class="col-md-4">
-                            <!-- Quick Stats -->
-                            <div class="card bg-light">
-                                <div class="card-body p-3">
-                                    <h6 class="card-title">Card Properties</h6>
+                    
+                    <!-- Card Information - Right Side -->
+                    <div class="col-lg-7 col-md-6">
+                        <div class="hero-info h-100 d-flex flex-column">
+                            <!-- Card Title and Rarity -->
+                            <div class="hero-header mb-3">
+                                <h1 class="hero-title mb-2">
+                                    <i class="bi bi-gem text-primary"></i> {{ card.name }}
+                                </h1>
+                                <div class="d-flex align-items-center gap-3 mb-3">
+                                    {% if card.rarity %}
+                                        <span class="rarity-badge 
+                                            {% if card.rarity == 'common' %}common
+                                            {% elif card.rarity == 'uncommon' %}uncommon
+                                            {% elif card.rarity == 'rare' %}rare
+                                            {% elif card.rarity == 'mythic' %}mythic
+                                            {% else %}special{% endif %}">
+                                            {{ card.rarity|title }}
+                                        </span>
+                                    {% endif %}
                                     
-                                    {% if card.colors %}
-                                        <div class="mb-2">
-                                            <strong>Colors:</strong><br>
-                                            {% for color in card.colors %}
-                                                <span class="badge 
-                                                    {% if color == 'W' %}bg-light text-dark border
-                                                    {% elif color == 'U' %}bg-primary
-                                                    {% elif color == 'B' %}bg-dark
-                                                    {% elif color == 'R' %}bg-danger
-                                                    {% elif color == 'G' %}bg-success
-                                                    {% else %}bg-secondary{% endif %} me-1">
-                                                    {{ color }}
-                                                </span>
-                                            {% endfor %}
-                                        </div>
-                                    {% endif %}
-
-                                    {% if card.power or card.toughness %}
-                                        <div class="mb-2">
-                                            <strong>P/T:</strong> {{ card.power|default:"*" }}/{{ card.toughness|default:"*" }}
-                                        </div>
-                                    {% endif %}
-
-                                    {% if card.loyalty %}
-                                        <div class="mb-2">
-                                            <strong>Loyalty:</strong> {{ card.loyalty }}
-                                        </div>
-                                    {% endif %}
-
-                                    {% if card.keywords %}
-                                        <div class="mb-2">
-                                            <strong>Keywords:</strong><br>
-                                            {% for keyword in card.keywords %}
-                                                <span class="badge bg-info me-1 mb-1">{{ keyword }}</span>
-                                            {% endfor %}
+                                    {% if analysis.component_count %}
+                                        <div class="analysis-progress">
+                                            <div class="progress mb-1" style="height: 8px;">
+                                                <div class="progress-bar bg-success" role="progressbar" 
+                                                     style="width: {{ completion_percentage }}%"></div>
+                                            </div>
+                                            <small class="text-muted">Analysis: {{ analysis.component_count }}/20 complete</small>
                                         </div>
                                     {% endif %}
                                 </div>
                             </div>
+                            
+                            <!-- Card Type -->
+                            {% if card.type %}
+                                <div class="hero-type mb-3">
+                                    <h5 class="type-text">
+                                        <i class="bi bi-tag text-secondary"></i> 
+                                        {{ card.type|format_card_types }}
+                                    </h5>
+                                </div>
+                            {% endif %}
+                            
+                            <!-- Key Stats Row -->
+                            <div class="hero-stats mb-4">
+                                <div class="row g-3">
+                                    {% if card.manaValue %}
+                                        <div class="col-auto">
+                                            <div class="stat-badge">
+                                                <div class="stat-value">{{ card.manaValue }}</div>
+                                                <div class="stat-label">CMC</div>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                    
+                                    {% if card.colors %}
+                                        <div class="col-auto">
+                                            <div class="colors-display">
+                                                {% for color in card.colors %}
+                                                    <span class="mana-symbol 
+                                                        {% if color == 'W' %}white
+                                                        {% elif color == 'U' %}blue
+                                                        {% elif color == 'B' %}black
+                                                        {% elif color == 'R' %}red
+                                                        {% elif color == 'G' %}green
+                                                        {% else %}colorless{% endif %}">
+                                                        {{ color }}
+                                                    </span>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                    
+                                    {% if card.power or card.toughness %}
+                                        <div class="col-auto">
+                                            <div class="stat-badge">
+                                                <div class="stat-value">{{ card.power|default:"*" }}/{{ card.toughness|default:"*" }}</div>
+                                                <div class="stat-label">P/T</div>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                    
+                                    {% if card.loyalty %}
+                                        <div class="col-auto">
+                                            <div class="stat-badge">
+                                                <div class="stat-value">{{ card.loyalty }}</div>
+                                                <div class="stat-label">Loyalty</div>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                </div>                            </div>
+                            
+                            <!-- Card Properties in Hero -->
+                            <div class="hero-properties mb-4">
+                                <div class="row g-3">
+                                    <!-- Left Properties Column -->
+                                    <div class="col-sm-6">
+                                        {% if card.setName %}
+                                            <div class="hero-property">
+                                                <small class="property-label">Set</small>
+                                                <div class="property-value">{{ card.setName }}</div>
+                                                {% if card.setCode %}<small class="text-muted">({{ card.setCode|upper }})</small>{% endif %}
+                                            </div>
+                                        {% endif %}
+                                        
+                                        {% if card.artist %}
+                                            <div class="hero-property">
+                                                <small class="property-label">Artist</small>
+                                                <div class="property-value">{{ card.artist }}</div>
+                                            </div>
+                                        {% endif %}
+                                        
+                                        {% if card.collectorNumber %}
+                                            <div class="hero-property">
+                                                <small class="property-label">Collector Number</small>
+                                                <div class="property-value">{{ card.collectorNumber }}</div>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <!-- Right Properties Column -->
+                                    <div class="col-sm-6">
+                                        {% if card.prices.usd or card.prices.eur %}
+                                            <div class="hero-property">
+                                                <small class="property-label">Market Price</small>
+                                                <div class="property-value">
+                                                    {% if card.prices.usd %}
+                                                        <span class="price-badge usd">${{ card.prices.usd }}</span>
+                                                    {% endif %}
+                                                    {% if card.prices.eur %}
+                                                        <span class="price-badge eur">€{{ card.prices.eur }}</span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                        
+                                        {% if card.edhrecRank %}
+                                            <div class="hero-property">
+                                                <small class="property-label">EDHREC Rank</small>
+                                                <div class="property-value text-success fw-bold">#{{ card.edhrecRank|floatformat:0 }}</div>
+                                            </div>
+                                        {% endif %}
+                                        
+                                        {% if card.keywords %}
+                                            <div class="hero-property">
+                                                <small class="property-label">Keywords</small>
+                                                <div class="property-value">
+                                                    <div class="d-flex flex-wrap gap-1">
+                                                        {% for keyword in card.keywords %}
+                                                            <span class="keyword-tag">{{ keyword }}</span>
+                                                        {% endfor %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Flavor Text -->
+                            {% if card.flavorText %}
+                                <div class="hero-flavor">
+                                    <div class="hero-flavor-quote">
+                                        <blockquote class="blockquote mb-0">
+                                            <p class="fst-italic mb-0">"{{ card.flavorText }}"</p>
+                                        </blockquote>
+                                    </div>
+                                </div>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <!-- AI Analysis Components -->
+            </div>            <!-- AI Analysis Components -->
             {% if components %}
-                <div class="card shadow-sm" data-bs-spy="scroll" data-bs-target="#analysis-nav" data-bs-smooth-scroll="true">
-                    <div class="card-header bg-dark text-white">
+                <div class="card shadow-sm">                    <div class="card-header bg-dark text-white">
                         <h2 class="h4 mb-0">
                             <i class="bi bi-brain"></i> AI Analysis
-                            <span class="badge bg-success ms-2">{{ analysis.component_count }}/20 Components</span>
                         </h2>
                     </div>
-                    <div class="card-body p-0">                        <!-- Analysis Components with Enhanced Spacing -->
+                    <div class="card-body p-0">
+                        <!-- Analysis Components with Improved Spacing -->
                         {% for component_type, component_data in components.items %}
                             {% if component_data.content %}
-                                <section id="{{ component_type }}" class="analysis-section p-4 mb-4">
-                                    <div class="d-flex align-items-center mb-4">
-                                        <h3 class="h4 mb-0 analysis-title">
+                                <section id="{{ component_type }}" class="analysis-section p-3 mb-3">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <h3 class="h5 mb-0 analysis-title">
                                             {% if component_type == 'tactical_analysis' %}🎯 Tactical Analysis
                                             {% elif component_type == 'thematic_analysis' %}🎨 Thematic Analysis
                                             {% elif component_type == 'play_tips' %}💡 Play Tips
@@ -160,7 +247,7 @@
                                             {% elif component_type == 'design_philosophy' %}💭 Design Philosophy
                                             {% else %}{{ component_type|title }}
                                             {% endif %}
-                                        </h3>
+                                        </h3>                                        
                                         {% if component_data.generated_at %}
                                             <small class="text-muted ms-auto">
                                                 <i class="bi bi-clock"></i> {{ component_data.generated_at|date:"M j, Y" }}
@@ -174,7 +261,7 @@
                                         </div>
                                         
                                         {% if component_data.model %}
-                                            <div class="mt-4 pt-3 border-top">
+                                            <div class="mt-3 pt-2 border-top">
                                                 <small class="text-muted">
                                                     <i class="bi bi-cpu"></i> Generated by {{ component_data.model }}
                                                 </small>
@@ -184,7 +271,7 @@
                                     
                                     <!-- Ad Placeholder - Every 3rd section -->
                                     {% if forloop.counter0|divisibleby:3 and not forloop.last %}
-                                        <div class="ad-placeholder text-center py-4 my-4 bg-light border rounded">
+                                        <div class="ad-placeholder text-center py-3 my-3 bg-light border rounded">
                                             <small class="text-muted">
                                                 <i class="bi bi-rectangle"></i> Advertisement Space
                                             </small>
@@ -211,23 +298,24 @@
                         </div>
                     </div>
                 </div>
-            {% endif %}
-        </div>        <!-- Wider Sticky Navigation Sidebar -->
-        <div class="col-lg-4">
-            <div class="sticky-top" style="top: 100px;">
+            {% endif %}        </div>
+        
+        <!-- Improved Sticky Navigation Sidebar -->
+        <div class="col-xl-3 col-lg-4">
+            <div class="sticky-top" style="top: 20px;">
                 <!-- Analysis Navigation -->
                 {% if components %}
-                    <nav id="analysis-nav" class="card shadow-sm mb-4">
+                    <nav id="analysis-nav" class="nav-section card shadow-sm mb-4" aria-label="Analysis sections navigation">
                         <div class="card-header">
                             <h5 class="mb-0">
                                 <i class="bi bi-list"></i> Analysis Sections
                             </h5>
                         </div>
                         <div class="card-body p-0">
-                            <nav class="nav nav-pills flex-column">
+                            <nav class="nav nav-pills flex-column" aria-label="Analysis navigation">
                                 {% for component_type, component_data in components.items %}
                                     {% if component_data.content %}
-                                        <a class="nav-link border-0 rounded-0 text-start" href="#{{ component_type }}">
+                                        <a class="nav-link border-0 rounded-0 text-start py-2 px-3" href="#{{ component_type }}">
                                             <small>
                                                 {% if component_type == 'tactical_analysis' %}🎯 Tactical Analysis
                                                 {% elif component_type == 'thematic_analysis' %}🎨 Thematic Analysis
@@ -257,16 +345,17 @@
                                 {% endfor %}
                             </nav>
                         </div>
-                    </nav>
-                {% endif %}
+                    </nav>                {% endif %}
 
-                <!-- Card Actions -->
+                <!-- Card Actions - COMMENTED OUT FOR NOW -->
+                <!--
                 <div class="card shadow-sm mb-4">
                     <div class="card-header">
                         <h5 class="mb-0">
                             <i class="bi bi-tools"></i> Actions
                         </h5>
-                    </div>                    <div class="card-body">
+                    </div>
+                    <div class="card-body">
                         {% if not analysis.fully_analyzed %}
                             <button id="request-analysis-btn" class="btn btn-primary btn-sm w-100 mb-2" onclick="requestAnalysis('{{ card.uuid }}')">
                                 <i class="bi bi-heart"></i> <span id="btn-text">Request Analysis</span>
@@ -289,6 +378,7 @@
                         </a>
                     </div>
                 </div>
+                -->
 
                 <!-- Format Legality -->
                 {% if card.legalities %}
@@ -328,28 +418,6 @@
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     line-height: 1.8;
     margin-bottom: 1.5rem;
-}
-
-/* Mana symbol styling */
-.mana-symbol {
-    height: 20px;
-    width: 20px;
-    display: inline-block;
-    margin: 0 2px;
-    vertical-align: middle;
-}
-
-.mana-symbol-text {
-    height: 16px;
-    width: 16px;
-    display: inline-block;
-    margin: 0 1px;
-    vertical-align: baseline;
-}
-
-.mana-cost-display {
-    display: inline-block;
-    margin-right: 10px;
 }
 
 /* Enhanced analysis section styling */
@@ -612,9 +680,54 @@ function copyCardUrl() {
             btn.classList.add('btn-outline-info');
         }, 2000);
     }).catch(function() {
-        alert('Could not copy URL to clipboard');
-    });
+        alert('Could not copy URL to clipboard');    });
 }
 </script>
+
+<!-- Enhanced Scrollspy and Navigation -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize scrollspy for analysis navigation
+    const analysisNav = document.getElementById('analysis-nav');
+    const analysisLinks = document.querySelectorAll('#analysis-nav .nav-link');
+    const sections = document.querySelectorAll('.analysis-section');
+    
+    if (analysisNav && sections.length > 0) {
+        // Smooth scrolling for navigation links
+        analysisLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href').substring(1);
+                const targetSection = document.getElementById(targetId);
+                
+                if (targetSection) {
+                    targetSection.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+          // Update active nav item on scroll
+        window.addEventListener('scroll', function() {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (scrollY >= (sectionTop - 200)) {
+                    current = section.getAttribute('id');
+                }
+            });
+            
+            analysisLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === '#' + current) {
+                    link.classList.add('active');                }
+            });
+        });
+    }
+});
+</script>
+
+</div> <!-- Close container-xxl -->
 
 {% endblock %}

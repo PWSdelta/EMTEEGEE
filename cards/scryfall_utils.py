@@ -60,8 +60,7 @@ class ScryfallDataHelper:
         for preferred_size in preferences:
             if preferred_size in images:
                 return images[preferred_size]
-        
-        # Fallback to any available image
+          # Fallback to any available image
         if images:
             return next(iter(images.values()))
         
@@ -78,7 +77,8 @@ class ScryfallDataHelper:
             return f"${price:.2f}"
         except (ValueError, TypeError):
             return "N/A"
-      @staticmethod
+    
+    @staticmethod
     def get_color_identity_symbols(card: Dict[str, Any]) -> List[str]:
         """Get color identity as mana symbols."""
         color_identity = card.get('colorIdentity', [])
