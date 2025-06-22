@@ -1,0 +1,27 @@
+# EMTeeGee Production Requirements
+# Additional packages needed for VPS deployment
+
+# Production WSGI server
+gunicorn==21.2.0
+
+# Environment variable management
+python-decouple==3.8
+
+# Additional security and performance
+django-cors-headers==4.3.1
+whitenoise==6.6.0
+
+# Monitoring and logging
+sentry-sdk[django]==1.38.0
+
+# Health checks
+django-health-check==3.17.0
+
+# Rate limiting (optional)
+django-ratelimit==4.1.0
+
+# Admin interface improvements
+django-admin-interface==0.28.6
+
+# Static file compression
+django-compressor==4.4

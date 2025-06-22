@@ -31,11 +31,11 @@ class UniversalWorker:
     """Universal worker that adapts to hardware capabilities"""
     
     def __init__(self, server_url: str = None):
-        # Auto-detect server URL
-        if server_url is None:
-            server_url = os.getenv('DJANGO_API_BASE_URL', 'https://emteegee.tcgplex.com')
+        # Auto-detect server URL with fallback        if server_url is None:
+            server_url = os.getenv('DJANGO_API_BASE_URL', 'https://mtgabyss.com')
         
         self.server_url = server_url
+        self.fallback_url = 'http://localhost:8000'
         self.hostname = socket.gethostname()
         self.capabilities = self._detect_capabilities()
         self.worker_type = self.capabilities['worker_type']
@@ -123,27 +123,32 @@ class UniversalWorker:
     
     def register(self) -> bool:
         """Register with the central server"""
-        try:
-            response = requests.post(
-                f"{self.server_url}/api/swarm/register",
-                json={
-                    'worker_id': self.worker_id,
-                    'capabilities': self.capabilities
-                },
-                timeout=30
-            )
-            
-            if response.status_code == 200:
-                result = response.json()
-                logger.info(f"✅ Registered successfully: {result}")
-                return True
-            else:
-                logger.error(f"❌ Registration failed: {response.text}")
-                return False
+        # Try primary server first, then fallback
+        for server_url in [self.server_url, self.fallback_url]:
+            try:
+                response = requests.post(
+                    f"{server_url}/api/swarm/register",
+                    json={
+                        'worker_id': self.worker_id,
+                        'capabilities': self.capabilities
+                    },
+                    timeout=30
+                )
                 
-        except Exception as e:
-            logger.error(f"❌ Registration error: {e}")
-            return False
+                if response.status_code == 200:
+                    result = response.json()
+                    logger.info(f"✅ Registered successfully via {server_url}: {result}")
+                    # Update server URL to the working one
+                    self.server_url = server_url
+                    return True
+                else:
+                    logger.warning(f"⚠️  Registration failed via {server_url}: {response.text}")
+                    
+            except Exception as e:
+                logger.warning(f"⚠️  Registration error via {server_url}: {e}")
+        
+        logger.error("❌ Registration failed on all servers")
+        return False
     
     def get_work(self) -> List[Dict[str, Any]]:
         """Request work from the server"""
@@ -168,6 +173,99 @@ class UniversalWorker:
             logger.error(f"❌ Work request error: {e}")
             return []
     
+    def submit_results(self, task_id: str, card_id: str, results: Dict[str, str]) -> bool:
+        """Submit analysis results to the server"""
+        try:
+            response = requests.post(
+                f"{self.server_url}/api/swarm/submit_results",
+                json={
+                    'worker_id': self.worker_id,
+                    'task_id': task_id,
+                    'card_id': card_id,
+                    'results': results,
+                    'worker_type': self.worker_type,
+                    'model_used': self.current_model
+                },
+                timeout=60
+            )
+            
+            if response.status_code == 200:
+                logger.info(f"✅ Submitted results for task {task_id}")
+                return True
+            else:
+                logger.error(f"❌ Result submission failed: {response.text[:200]}...")
+                return False
+                
+        except Exception as e:
+            logger.error(f"❌ Result submission error: {e}")
+            return False
+    
+    def process_task(self, task: Dict[str, Any]) -> bool:
+        """Process a single analysis task"""
+        try:
+            task_id = task.get('task_id', 'unknown')
+            card_data = task.get('card_data', {})
+            components = task.get('components', [])
+            
+            card_name = card_data.get('name', 'Unknown')
+            logger.info(f"🔄 Processing {self.worker_type} analysis: {card_name}")
+            
+            # Generate analysis
+            results = self.generate_analysis(card_data, components)
+            
+            # Submit results
+            return self.submit_results(task_id, card_data.get('_id'), results)
+            
+        except Exception as e:
+            logger.error(f"❌ Task processing error: {e}")
+            return False
+    
+    def run(self):
+        """Main worker loop"""
+        logger.info(f"🚀 Starting {self.worker_type} worker with {self.current_model}")
+        
+        # Test Ollama connection
+        if not self._test_ollama_connection():
+            logger.error("❌ Cannot connect to Ollama, exiting")
+            return
+        
+        # Register with server
+        if not self.register():
+            logger.error("❌ Failed to register, exiting")
+            return
+        
+        self.running = True
+        consecutive_empty_polls = 0
+        
+        while self.running:
+            try:
+                # Get work
+                tasks = self.get_work()
+                
+                if tasks:
+                    consecutive_empty_polls = 0
+                    logger.info(f"📋 Received {len(tasks)} task(s)")
+                    
+                    # Process tasks
+                    for task in tasks:
+                        if not self.running:
+                            break
+                        self.process_task(task)
+                else:
+                    consecutive_empty_polls += 1
+                    if consecutive_empty_polls % 10 == 1:  # Log every 10th empty poll
+                        logger.info("⏳ No work available, waiting...")
+                    time.sleep(5)  # Wait before next poll
+                
+            except KeyboardInterrupt:
+                logger.info("🛑 Received interrupt signal")
+                self.running = False
+            except Exception as e:
+                logger.error(f"❌ Worker loop error: {e}")
+                time.sleep(10)  # Wait before retrying
+        
+        logger.info("👋 Worker stopped")
+
     def generate_analysis(self, card_data: Dict, components: List[str]) -> Dict[str, str]:
         """Generate analysis using appropriate model for hardware"""
         results = {}
@@ -270,99 +368,6 @@ Provide in-depth analysis with multiple examples."""
 
 Analyze this Magic card for {component}. Provide practical insights and recommendations."""
     
-    def submit_results(self, task_id: str, card_id: str, results: Dict[str, str]) -> bool:
-        """Submit analysis results to the server"""
-        try:
-            response = requests.post(
-                f"{self.server_url}/api/swarm/submit_results",
-                json={
-                    'worker_id': self.worker_id,
-                    'task_id': task_id,
-                    'card_id': card_id,
-                    'results': results,
-                    'worker_type': self.worker_type,
-                    'model_used': self.current_model
-                },
-                timeout=60
-            )
-            
-            if response.status_code == 200:
-                logger.info(f"✅ Submitted results for task {task_id}")
-                return True
-            else:
-                logger.error(f"❌ Result submission failed: {response.text}")
-                return False
-                
-        except Exception as e:
-            logger.error(f"❌ Result submission error: {e}")
-            return False
-    
-    def process_task(self, task: Dict[str, Any]) -> bool:
-        """Process a single analysis task"""
-        try:
-            task_id = task.get('task_id', 'unknown')
-            card_data = task.get('card_data', {})
-            components = task.get('components', [])
-            
-            card_name = card_data.get('name', 'Unknown')
-            logger.info(f"🔄 Processing {self.worker_type} analysis: {card_name}")
-            
-            # Generate analysis
-            results = self.generate_analysis(card_data, components)
-            
-            # Submit results
-            return self.submit_results(task_id, card_data.get('_id'), results)
-            
-        except Exception as e:
-            logger.error(f"❌ Task processing error: {e}")
-            return False
-    
-    def run(self):
-        """Main worker loop"""
-        logger.info(f"🚀 Starting {self.worker_type} worker with {self.current_model}")
-        
-        # Test Ollama connection
-        if not self._test_ollama_connection():
-            logger.error("❌ Cannot connect to Ollama, exiting")
-            return
-        
-        # Register with server
-        if not self.register():
-            logger.error("❌ Failed to register, exiting")
-            return
-        
-        self.running = True
-        consecutive_empty_polls = 0
-        
-        while self.running:
-            try:
-                # Get work
-                tasks = self.get_work()
-                
-                if tasks:
-                    consecutive_empty_polls = 0
-                    logger.info(f"📋 Received {len(tasks)} task(s)")
-                    
-                    # Process tasks
-                    for task in tasks:
-                        if not self.running:
-                            break
-                        self.process_task(task)
-                else:
-                    consecutive_empty_polls += 1
-                    if consecutive_empty_polls % 10 == 1:  # Log every 10th empty poll
-                        logger.info("⏳ No work available, waiting...")
-                    time.sleep(5)  # Wait before next poll
-                
-            except KeyboardInterrupt:
-                logger.info("🛑 Received interrupt signal")
-                self.running = False
-            except Exception as e:
-                logger.error(f"❌ Worker loop error: {e}")
-                time.sleep(10)  # Wait before retrying
-        
-        logger.info("👋 Worker stopped")
-
 def main():
     """Main entry point"""
     # Check for server URL argument
