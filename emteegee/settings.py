@@ -33,8 +33,11 @@ DEBUG = os.getenv('DJANGO_DEBUG', 'True').lower() == 'true'
 ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
+    '64.23.130.187',  # DigitalOcean server IP
     'emteegee.tcgplex.com',
     'tcgplex.com',
+    'mtgabyss.com',  # New domain
+    'www.mtgabyss.com',
 ]
 
 
