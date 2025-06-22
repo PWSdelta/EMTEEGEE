@@ -22,8 +22,7 @@ logger = logging.getLogger(__name__)
 
 class DesktopWorkerReal:
     """Worker optimized for GPU-based fast analysis components with real Ollama models"""
-    
-    def __init__(self, server_url: str = "http://localhost:8001"):
+      def __init__(self, server_url: str = "https://emteegee.tcgplex.com"):
         self.server_url = server_url
         self.worker_id = f"desktop-{socket.gethostname()}"
         self.capabilities = self._detect_capabilities()
@@ -360,7 +359,7 @@ Focus on high-level strategic thinking."""
 if __name__ == "__main__":
     import sys
     
-    server_url = sys.argv[1] if len(sys.argv) > 1 else "http://localhost:8000"
+    server_url = sys.argv[1] if len(sys.argv) > 1 else "https://emteegee.tcgplex.com"
     
     worker = DesktopWorkerReal(server_url)
     worker.run()

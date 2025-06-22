@@ -22,8 +22,7 @@ logger = logging.getLogger(__name__)
 
 class LaptopWorkerReal:
     """Laptop worker using large CPU models via Ollama for deep analysis"""
-    
-    def __init__(self, server_url: str = "http://localhost:8000"):
+      def __init__(self, server_url: str = "https://emteegee.tcgplex.com"):
         self.server_url = server_url
         self.worker_id = f"laptop-{socket.gethostname()}"
         self.capabilities = self._detect_capabilities()
@@ -365,7 +364,7 @@ Focus on strategic depth and competitive insights."""
 if __name__ == "__main__":
     import sys
     
-    server_url = sys.argv[1] if len(sys.argv) > 1 else "http://localhost:8000"
+    server_url = sys.argv[1] if len(sys.argv) > 1 else "https://emteegee.tcgplex.com"
     
     worker = LaptopWorkerReal(server_url)
     worker.run()

@@ -16,7 +16,9 @@ def populate_queue():
     print("🚀 Populating work queue for distributed analysis...")
     
     # Load environment variables
-    load_dotenv()    # Connect to MongoDB
+    load_dotenv()
+    
+    # Connect to MongoDB
     mongo_uri = os.getenv('MONGODB_CONNECTION_STRING', 'mongodb://localhost:27017')
     client = MongoClient(mongo_uri)
     db = client['emteegee_dev']  # Always use this database name
@@ -27,38 +29,81 @@ def populate_queue():
     total_cards = cards.count_documents({})
     print(f"📊 Total cards in database: {total_cards:,}")
     
-    # Find cards that need analysis (no swarm analysis yet)
+    # Find cards that need analysis (using swarm manager's criteria)
     unanalyzed = cards.count_documents({
-        'swarm_analysis': {'$exists': False}
+        '$or': [
+            {'analysis.fully_analyzed': {'$ne': True}},
+            {'analysis.components': {'$exists': False}}
+        ]
     })
     print(f"🎯 Cards needing analysis: {unanalyzed:,}")
     
     if unanalyzed == 0:
-        print("✅ All cards already have analysis! Clearing some for testing...")
-        # Clear analysis from 50 random cards for testing
+        print("✅ All cards already have analysis! Resetting some for testing...")
+        # Reset analysis structure for 50 cards to create work
         cards.update_many(
             {},
-            {'$unset': {'swarm_analysis': 1}},
-            limit=50
+            {
+                '$set': {
+                    'analysis': {
+                        'fully_analyzed': False,
+                        'components': {}
+                    }
+                }
+            }
         )
-        print("🔄 Cleared analysis from 50 cards for re-processing")
+        print("🔄 Reset analysis structure for testing - work now available!")
+        
+        # Recount after reset
+        unanalyzed = cards.count_documents({
+            '$or': [
+                {'analysis.fully_analyzed': {'$ne': True}},
+                {'analysis.components': {'$exists': False}}
+            ]
+        })
     
-    # Get sample of cards for processing
+    # Initialize analysis structure for cards that don't have it
+    cards_without_analysis = cards.count_documents({
+        'analysis': {'$exists': False}
+    })
+    
+    if cards_without_analysis > 0:
+        print(f"� Initializing analysis structure for {cards_without_analysis:,} cards...")
+        cards.update_many(
+            {'analysis': {'$exists': False}},
+            {
+                '$set': {
+                    'analysis': {
+                        'fully_analyzed': False,
+                        'components': {}
+                    }
+                }
+            }
+        )
+        print(f"✅ Initialized analysis structure")
+    
+    # Get sample of cards that now need work
     sample_cards = list(cards.find(
-        {'swarm_analysis': {'$exists': False}},
-        {'name': 1, 'mana_cost': 1, 'type_line': 1, 'oracle_text': 1}
+        {
+            '$or': [
+                {'analysis.fully_analyzed': {'$ne': True}},
+                {'analysis.components': {'$exists': False}}
+            ]
+        },
+        {'name': 1, 'mana_cost': 1, 'type_line': 1, 'oracle_text': 1, 'analysis': 1}
     ).limit(20))
     
-    print(f"📝 Queued {len(sample_cards)} cards for analysis:")
+    print(f"📝 Cards ready for analysis:")
     for i, card in enumerate(sample_cards[:5], 1):
-        print(f"   {i}. {card.get('name', 'Unknown')}")
+        analysis_status = "No analysis" if 'analysis' not in card else f"{len(card['analysis'].get('components', {}))} components"
+        print(f"   {i}. {card.get('name', 'Unknown')} - {analysis_status}")
     if len(sample_cards) > 5:
         print(f"   ... and {len(sample_cards) - 5} more")
     
     print(f"\n🎉 Work queue populated!")
-    print(f"   Workers will now pick up these cards for analysis")
-    print(f"   Desktop worker: Quick analysis with qwen2.5:7b")
-    print(f"   Laptop worker: Deep analysis with mixtral:8x7b")
+    print(f"   {unanalyzed:,} cards ready for distributed analysis")
+    print(f"   Desktop worker: GPU components (play_tips, combo_suggestions, etc.)")
+    print(f"   Laptop worker: CPU components (thematic_analysis, historical_context, etc.)")
     
     return len(sample_cards)
 
