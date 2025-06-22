@@ -255,7 +255,7 @@
                                     </div>
                                       <div class="analysis-content-wrapper">
                                         <div class="analysis-content">
-                                            {{ component_data.content|analyze_markdown }}
+                                            {{ component_data.content|analyze_markdown:card }}
                                         </div>
                                         
                                         {% if component_data.model %}

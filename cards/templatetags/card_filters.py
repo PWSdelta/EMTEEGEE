@@ -40,20 +40,30 @@ def find_card_by_name(card_name):
     return None
 
 @register.filter
-def analyze_markdown(value):
-    """Convert markdown to HTML with enhanced card linking."""
+def analyze_markdown(value, current_card=None):
+    """Convert markdown to HTML with enhanced card linking, excluding current card."""
     if not value:
         return ""
     
     # Configure markdown with extensions
     md = markdown.Markdown(extensions=['extra', 'codehilite'])
     html_content = md.convert(value)
-    
-    # Convert [[card name]] to beautiful direct links
+      # Convert [[card name]] to beautiful direct links
     card_link_pattern = r'\[\[([^\]]+)\]\]'
     
     def replace_card_link(match):
         card_name = match.group(1).strip()
+          # Skip linking if this is the current card being viewed
+        if current_card:
+            # Handle both dict and object types
+            current_name = current_card.get('name') if isinstance(current_card, dict) else getattr(current_card, 'name', '')
+            current_display_name = current_card.get('display_name') if isinstance(current_card, dict) else getattr(current_card, 'display_name', current_name)
+            
+            # Ensure we have valid strings for comparison
+            if current_name and card_name.lower() == current_name.lower():
+                return f'<strong>{card_name}</strong>'
+            if current_display_name and card_name.lower() == current_display_name.lower():
+                return f'<strong>{card_name}</strong>'
         
         # Try to find the card and get its UUID
         card_uuid = find_card_by_name(card_name)
