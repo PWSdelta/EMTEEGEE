@@ -22,6 +22,7 @@ django.setup()
 
 from django.conf import settings
 from pymongo import MongoClient
+from bson import ObjectId
 
 class SwarmManager:
     """Manages distributed AI analysis work across multiple machines"""
@@ -129,13 +130,22 @@ class SwarmManager:
         )
         
         assigned_components = self._get_worker_components(worker['capabilities'])
-        
-        # Find cards that need analysis for this worker's components
+          # Find cards that need analysis for this worker's components
         tasks = []
+        
+        # Get cards that already have pending tasks to avoid duplicates
+        pending_card_ids = set()
+        pending_tasks = self.tasks.find({'status': 'assigned'})
+        for pending_task in pending_tasks:
+            pending_card_ids.add(pending_task['card_id'])
+        
         cards_needing_work = self.cards.find({
-            '$or': [
-                {'analysis.fully_analyzed': {'$ne': True}},
-                {'analysis.components': {'$exists': False}}
+            '$and': [
+                {'$or': [
+                    {'analysis.fully_analyzed': {'$ne': True}},
+                    {'analysis.components': {'$exists': False}}
+                ]},
+                {'_id': {'$nin': [ObjectId(card_id) for card_id in pending_card_ids]}}
             ]
         }).limit(max_tasks * 10)  # Get more to filter from
         
@@ -153,14 +163,13 @@ class SwarmManager:
             for component in assigned_components:
                 if component not in existing_components:
                     missing_components.append(component)
-            
-            if missing_components:
+              if missing_components:
                 task_id = str(uuid.uuid4())
                 task = {
                     'task_id': task_id,
                     'card_id': str(card['_id']),
                     'card_name': card.get('name', 'Unknown'),
-                    'components': missing_components[:3],  # Limit per task
+                    'components': missing_components,  # Use ALL missing components, not just 3
                     'assigned_to': worker_id,
                     'created_at': datetime.now(timezone.utc),
                     'status': 'assigned',
@@ -188,9 +197,7 @@ class SwarmManager:
         
         if task['assigned_to'] != worker_id:
             return {'status': 'error', 'message': 'Task not assigned to this worker'}
-        
-        # Update the card with new analysis components
-        from bson import ObjectId
+          # Update the card with new analysis components
         card_object_id = ObjectId(task['card_id'])
         
         # Prepare component updates
@@ -201,9 +208,7 @@ class SwarmManager:
                 'generated_at': datetime.now(timezone.utc),
                 'generated_by': worker_id,
                 'model_info': results.get('model_info', {})
-            }
-        
-        # Update card
+            }        # Update card
         self.cards.update_one(
             {'_id': card_object_id},
             {
@@ -212,6 +217,18 @@ class SwarmManager:
                 '$currentDate': {'analysis.last_updated': True}
             }
         )
+        
+        # Check if card is now fully analyzed
+        updated_card = self.cards.find_one({'_id': card_object_id})
+        if updated_card and 'analysis' in updated_card and 'components' in updated_card['analysis']:
+            all_components = set(self.GPU_COMPONENTS + self.CPU_HEAVY_COMPONENTS + self.BALANCED_COMPONENTS)
+            existing_components = set(updated_card['analysis']['components'].keys())
+            
+            if existing_components >= all_components:
+                self.cards.update_one(
+                    {'_id': card_object_id},
+                    {'$set': {'analysis.fully_analyzed': True}}
+                )
         
         # Mark task as completed
         self.tasks.update_one(
