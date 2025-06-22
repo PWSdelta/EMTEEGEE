@@ -1,14 +1,47 @@
 from django import template
 from django.utils.safestring import mark_safe
+from django.urls import reverse
 import re
 import markdown
 from ..scryfall_utils import ScryfallDataHelper
+from ..models import get_cards_collection
+import logging
 
+logger = logging.getLogger(__name__)
 register = template.Library()
+
+def find_card_by_name(card_name):
+    """
+    Find a card by name and return its UUID.
+    Uses case-insensitive search and handles partial matches.
+    """
+    try:
+        cards_collection = get_cards_collection()
+        
+        # First try exact match (case-insensitive)
+        card = cards_collection.find_one({
+            "name": {"$regex": f"^{re.escape(card_name)}$", "$options": "i"}
+        })
+        
+        if card:
+            return card.get('uuid')
+        
+        # If no exact match, try partial match
+        card = cards_collection.find_one({
+            "name": {"$regex": re.escape(card_name), "$options": "i"}
+        })
+        
+        if card:
+            return card.get('uuid')
+            
+    except Exception as e:
+        logger.warning(f"Error looking up card '{card_name}': {e}")
+    
+    return None
 
 @register.filter
 def analyze_markdown(value):
-    """Convert markdown to HTML with card linking."""
+    """Convert markdown to HTML with enhanced card linking."""
     if not value:
         return ""
     
@@ -16,16 +49,35 @@ def analyze_markdown(value):
     md = markdown.Markdown(extensions=['extra', 'codehilite'])
     html_content = md.convert(value)
     
-    # Convert [[card name]] to links
-    # Pattern matches [[anything]] and creates a search link
+    # Convert [[card name]] to beautiful direct links
     card_link_pattern = r'\[\[([^\]]+)\]\]'
     
     def replace_card_link(match):
         card_name = match.group(1).strip()
-        # Create a link to search for this card
-        return f'<a href="/browse/?q={card_name}" class="card-link" title="Search for {card_name}"><strong>{card_name}</strong></a>'
+        
+        # Try to find the card and get its UUID
+        card_uuid = find_card_by_name(card_name)
+        
+        if card_uuid:
+            # Create direct link to card detail page
+            try:
+                card_url = reverse('cards:card_detail', kwargs={'card_uuid': card_uuid})
+                return f'''<a href="{card_url}" class="card-link card-link-direct" 
+                          title="View {card_name} details" data-card-name="{card_name}">
+                          <span class="card-link-icon">🃏</span>
+                          <strong>{card_name}</strong>
+                          </a>'''
+            except Exception as e:
+                logger.warning(f"Error creating card URL for {card_name}: {e}")
+        
+        # Fallback to search link if card not found or URL error
+        return f'''<a href="/browse/?q={card_name}" class="card-link card-link-search" 
+                  title="Search for {card_name}" data-card-name="{card_name}">
+                  <span class="card-link-icon">🔍</span>
+                  <strong>{card_name}</strong>
+                  </a>'''
     
-    # Replace all [[card name]] patterns with links
+    # Replace all [[card name]] patterns with enhanced links
     html_content = re.sub(card_link_pattern, replace_card_link, html_content)
     
     return mark_safe(html_content)

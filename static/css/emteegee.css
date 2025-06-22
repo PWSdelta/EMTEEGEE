@@ -1094,6 +1094,94 @@ main {
 }
 
 /* ==========================================================================
+   Enhanced Card Link Styles
+   ========================================================================== */
+
+/* Base card link styles */
+.card-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+    white-space: nowrap;
+    line-height: 1.2;
+}
+
+/* Direct card link (when UUID found) */
+.card-link-direct {
+    background: linear-gradient(135deg, #e3f2fd 0%, #f1f8e9 100%);
+    color: #1976d2;
+    border-color: #bbdefb;
+}
+
+.card-link-direct:hover {
+    background: linear-gradient(135deg, #bbdefb 0%, #c8e6c9 100%);
+    color: #0d47a1;
+    border-color: #90caf9;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(25, 118, 210, 0.2);
+    text-decoration: none;
+}
+
+/* Search link (fallback when UUID not found) */
+.card-link-search {
+    background: linear-gradient(135deg, #fff3e0 0%, #fce4ec 100%);
+    color: #f57c00;
+    border-color: #ffcc02;
+}
+
+.card-link-search:hover {
+    background: linear-gradient(135deg, #ffe0b2 0%, #f8bbd9 100%);
+    color: #e65100;
+    border-color: #ffa000;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(245, 124, 0, 0.2);
+    text-decoration: none;
+}
+
+/* Card link icon styles */
+.card-link-icon {
+    font-size: 0.8rem;
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
+}
+
+.card-link:hover .card-link-icon {
+    opacity: 1;
+}
+
+/* Card link in analysis components */
+.analysis-component .card-link {
+    margin: 0 0.125rem;
+}
+
+/* Card link in lists */
+ul li .card-link,
+ol li .card-link {
+    margin-left: 0.25rem;
+    margin-right: 0.25rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .card-link {
+        font-size: 0.85rem;
+        padding: 0.2rem 0.4rem;
+        gap: 0.2rem;
+    }
+    
+    .card-link-icon {
+        font-size: 0.75rem;
+    }
+}
+
+/* ==========================================================================
    The Abyss Page Styles
    ========================================================================== */
 

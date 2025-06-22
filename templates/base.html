@@ -32,40 +32,42 @@
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
                     aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
-            </button>
-              <div class="collapse navbar-collapse" id="navbarNav">
+            </button>            <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'cards:home' %}">Home</a>
+                        <a class="nav-link" href="{% url 'cards:home' %}">
+                            <i class="bi bi-house"></i> Home
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/admin-cards/">Browse Cards (Admin)</a>
-                    </li>
-                    <!-- Future navigation items will be added as we implement them -->
-                    <!--
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'cards:browse' %}">Browse Cards</a>
+                        <a class="nav-link" href="{% url 'cards:the_abyss' %}">
+                            <i class="bi bi-search"></i> The Abyss
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#" onclick="alert('Deck browsing coming soon!')">Browse Decks</a>
+                        <a class="nav-link" href="{% url 'cards:the_abyss' %}?collection=edhrec">
+                            <i class="bi bi-trophy"></i> EDHREC Top
+                        </a>
+                    </li>                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'cards:art_gallery' %}">
+                            <i class="bi bi-palette"></i> Gallery
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'cards:browse' %}">Search</a>
+                        <a class="nav-link" href="/admin-cards/">
+                            <i class="bi bi-gear"></i> Admin
+                        </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#" onclick="alert('Random card feature coming soon!')">Random Card</a>
-                    </li>
-                    -->
                 </ul>
                 
-                <!-- Search form - disabled until search view is implemented -->
-                <!--
-                <form class="d-flex me-3" method="get" action="{% url 'cards:browse' %}">
+                <!-- Quick Search form -->
+                <form class="d-flex me-3" method="get" action="{% url 'cards:the_abyss' %}">
                     <input class="form-control me-2" type="search" name="q" placeholder="Search cards..." 
-                           value="{{ request.GET.q }}">
-                    <button class="btn btn-outline-light" type="submit">Search</button>
+                           value="{{ request.GET.q }}" style="width: 200px;">
+                    <button class="btn btn-outline-light" type="submit">
+                        <i class="bi bi-search"></i>
+                    </button>
                 </form>
-                -->
                   <!-- User authentication features not yet implemented
                 <ul class="navbar-nav">
                     {% if user.is_authenticated %}
@@ -125,9 +127,8 @@
                     <div class="row">
                         <div class="col-md-6">
                             <h6>Cards</h6>
-                            <ul class="list-unstyled">
-                                <li><a href="{% url 'cards:browse' %}" class="text-muted">Browse Cards</a></li>
-                                <li><a href="{% url 'cards:browse' %}" class="text-muted">Search</a></li>
+                            <ul class="list-unstyled">                                <li><a href="{% url 'cards:the_abyss' %}" class="text-muted">Browse Cards</a></li>
+                                <li><a href="{% url 'cards:the_abyss' %}" class="text-muted">Search</a></li>
                                 <li><a href="#" onclick="alert('Random card feature coming soon!')" class="text-muted">Random Card</a></li>
                             </ul>
                         </div>

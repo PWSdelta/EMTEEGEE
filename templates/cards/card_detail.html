@@ -5,12 +5,11 @@
 {% block title %}{{ card.name }} - EMTEEGEE{% endblock %}
 
 {% block content %}
-<div class="container-xxl mt-4">
-    <!-- Breadcrumb -->
+<div class="container-xxl mt-4">    <!-- Breadcrumb -->
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{% url 'cards:home' %}">Home</a></li>
-            <li class="breadcrumb-item"><a href="{% url 'cards:browse' %}">Browse Cards</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'cards:the_abyss' %}">The Abyss</a></li>
             <li class="breadcrumb-item active">{{ card.name }}</li>
         </ol>
     </nav>
@@ -254,10 +253,9 @@
                                             </small>
                                         {% endif %}
                                     </div>
-                                    
-                                    <div class="analysis-content-wrapper">
+                                      <div class="analysis-content-wrapper">
                                         <div class="analysis-content">
-                                            {{ component_data.content|markdown_to_html }}
+                                            {{ component_data.content|analyze_markdown }}
                                         </div>
                                         
                                         {% if component_data.model %}
@@ -373,7 +371,7 @@
                         <button class="btn btn-outline-info btn-sm w-100 mb-2" onclick="copyCardUrl()">
                             <i class="bi bi-share"></i> Share Card
                         </button>
-                        <a href="{% url 'cards:browse' %}?q={{ card.name|urlencode }}" class="btn btn-outline-secondary btn-sm w-100">
+                        <a href="{% url 'cards:the_abyss' %}?q={{ card.name|urlencode }}" class="btn btn-outline-secondary btn-sm w-100">
                             <i class="bi bi-search"></i> Similar Cards
                         </a>
                     </div>

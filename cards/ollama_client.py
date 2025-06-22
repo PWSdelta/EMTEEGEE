@@ -27,13 +27,12 @@ OLLAMA_MODELS = {
         'name': 'Efficient Model',
         'use_case': 'Quick analysis, play tips, rules clarifications',
         'components': ['play_tips', 'mulligan_considerations', 'rules_clarifications']
-    },
-    'llama3.1:latest': {
+    },    'llama3.1:latest': {
         'name': 'Balanced Model', 
         'use_case': 'Balanced analysis, synergies, competitive play',
         'components': ['thematic_analysis', 'synergy_analysis', 'competitive_analysis', 
-                      'format_analysis', 'deck_archetypes', 'sideboard_guide']
-    },    'qwen2.5:7b-instruct-q4_0': {
+                      'format_analysis', 'deck_archetypes', 'sideboard_guide', 'combo_suggestions']
+    },'qwen2.5:7b-instruct-q4_0': {
         'name': 'Premium Model',
         'use_case': 'Deep analysis, complex interactions, investment',
         'components': ['tactical_analysis', 'power_level_assessment', 'meta_positioning',

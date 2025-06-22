@@ -1,0 +1,409 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load card_filters %}
+
+{% block title %}MTG Art Gallery - EMTEEGEE{% endblock %}
+
+{% block extra_head %}
+<style>
+/* Art Gallery Specific Styles */
+.art-gallery {
+    background: #000;
+    min-height: 100vh;
+    color: white;
+    overflow: hidden;
+}
+
+.gallery-header {
+    background: linear-gradient(135deg, rgba(0,0,0,0.8) 0%, rgba(30,30,30,0.9) 100%);
+    padding: 2rem 0;
+    text-align: center;
+    position: relative;
+    z-index: 10;
+}
+
+.gallery-title {
+    font-size: 3rem;
+    font-weight: 300;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(45deg, #ffd700, #ffea00, #ffd700);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.gallery-subtitle {
+    font-size: 1.2rem;
+    color: #ccc;
+    margin-bottom: 1rem;
+}
+
+/* Carousel Styles */
+.art-carousel {
+    position: relative;
+    height: calc(100vh - 150px);
+    overflow: hidden;
+}
+
+.carousel-inner {
+    height: 100%;
+}
+
+.carousel-item {
+    height: 100%;
+    position: relative;
+}
+
+.art-image-container {
+    position: relative;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(ellipse at center, rgba(50,50,50,0.3) 0%, rgba(0,0,0,0.8) 100%);
+}
+
+.art-image {
+    max-height: 95%;
+    max-width: 95%;
+    object-fit: contain;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    transition: transform 0.3s ease;
+}
+
+.art-image:hover {
+    transform: scale(1.02);
+}
+
+/* Card Info Overlay - positioned to not overlap */
+.card-info-overlay {
+    position: absolute;
+    top: 30px;
+    left: 30px;
+    background: rgba(0,0,0,0.8);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    padding: 1rem 1.5rem;
+    text-align: left;
+    max-width: 350px;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.card-name {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #fff;
+}
+
+.card-meta {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.meta-item {
+    font-size: 0.9rem;
+    color: #ccc;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.artist-info {
+    font-size: 0.95rem;
+    color: #ffd700;
+    margin-bottom: 1rem;
+}
+
+.card-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+}
+
+.btn-art {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.btn-art:hover {
+    background: rgba(255,255,255,0.2);
+    color: white;
+    text-decoration: none;
+    transform: translateY(-2px);
+}
+
+/* Carousel Controls */
+.carousel-control-prev,
+.carousel-control-next {
+    width: 80px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 50%;
+    height: 80px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.7;
+    transition: all 0.3s ease;
+}
+
+.carousel-control-prev {
+    left: 30px;
+}
+
+.carousel-control-next {
+    right: 30px;
+}
+
+.carousel-control-prev:hover,
+.carousel-control-next:hover {
+    opacity: 1;
+    background: rgba(0,0,0,0.6);
+}
+
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+    width: 30px;
+    height: 30px;
+}
+
+/* Gallery Navigation */
+.gallery-nav {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 1000;
+}
+
+.gallery-nav .btn {
+    background: rgba(0,0,0,0.7);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: white;
+    backdrop-filter: blur(10px);
+}
+
+.gallery-nav .btn:hover {
+    background: rgba(0,0,0,0.9);
+    color: white;
+}
+
+/* Gallery Counter */
+.gallery-counter {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(10px);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    color: white;
+    font-size: 0.9rem;
+    border: 1px solid rgba(255,255,255,0.2);
+    z-index: 1000;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .gallery-title {
+        font-size: 2rem;
+    }
+    
+    .art-carousel {
+        height: calc(100vh - 150px);
+    }
+    
+    .card-info-overlay {
+        bottom: 10px;
+        left: 10px;
+        right: 10px;
+        transform: none;
+        min-width: auto;
+        padding: 1rem;
+    }
+    
+    .carousel-control-prev,
+    .carousel-control-next {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .carousel-control-prev {
+        left: 10px;
+    }
+    
+    .carousel-control-next {
+        right: 10px;
+    }
+    
+    .card-meta {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+}
+
+/* Loading Animation */
+.loading-spinner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #ffd700;
+    font-size: 2rem;
+}
+
+/* Preload Images */
+.preload-images {
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+    opacity: 0;
+    pointer-events: none;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="art-gallery">
+    <!-- Gallery Navigation -->
+    <div class="gallery-nav">
+        <a href="{% url 'cards:home' %}" class="btn">
+            <i class="bi bi-arrow-left"></i> Back to Home
+        </a>
+    </div>
+    
+    <!-- Gallery Counter -->
+    <div class="gallery-counter">
+        <span id="current-slide">1</span> / {{ total_cards }}
+    </div>
+    
+    <!-- Gallery Header -->
+    <div class="gallery-header">
+        <h1 class="gallery-title">
+            <i class="bi bi-palette"></i> MTG Art Gallery
+        </h1>
+        <p class="gallery-subtitle">
+            Discover the stunning artwork that brings Magic: The Gathering to life
+        </p>
+    </div>
+    
+    {% if gallery_cards %}        <!-- Art Carousel -->
+        <div id="artCarousel" class="carousel slide art-carousel" data-bs-ride="carousel" data-bs-interval="5000">
+            <div class="carousel-inner">
+                {% for card in gallery_cards %}
+                    <div class="carousel-item {% if forloop.first %}active{% endif %}" data-slide="{{ forloop.counter }}">
+                        <div class="art-image-container">
+                            <!-- Loading Spinner -->
+                            <div class="loading-spinner d-none">
+                                <i class="bi bi-hourglass-split"></i>
+                            </div>
+                              <!-- Art Image -->
+                            <img src="{{ card.art_url|default:card.imageUris.art_crop }}" 
+                                 alt="{{ card.name }} - Art by {{ card.artist|default:'Unknown Artist' }}" 
+                                 class="art-image"
+                                 loading="{% if forloop.first %}eager{% else %}lazy{% endif %}"
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                            
+                            <!-- Fallback if art_crop fails -->
+                            <img src="{{ card.imageUris.large|default:card.imageUris.normal }}" 
+                                 alt="{{ card.name }}" 
+                                 class="art-image"
+                                 style="display: none;">
+                        </div>
+                        
+                        <!-- Card Info Overlay -->
+                        <div class="card-info-overlay">
+                            <div class="card-name">{{ card.name }}</div>
+                              {% if card.artist %}
+                                <div class="artist-info">
+                                    <i class="bi bi-brush"></i> Art by {{ card.artist }}
+                                </div>
+                            {% endif %}
+                              <div class="card-actions">
+                                <a href="{{ card.detail_url }}" class="btn-art">
+                                    <i class="bi bi-eye"></i> View Details
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Carousel Controls -->
+            <button class="carousel-control-prev" type="button" data-bs-target="#artCarousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon"></span>
+                <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#artCarousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon"></span>
+                <span class="visually-hidden">Next</span>
+            </button>
+        </div>
+        
+        <!-- Preload next few images -->
+        <div class="preload-images">
+            {% for card in gallery_cards|slice:":5" %}
+                {% if not forloop.first %}
+                    <img src="{{ card.imageUris.art_crop }}" alt="preload">
+                {% endif %}
+            {% endfor %}
+        </div>
+        
+    {% else %}
+        <div class="container text-center" style="margin-top: 100px;">
+            <h3>Gallery is currently empty</h3>
+            <p class="text-muted">No cards available for the art gallery at the moment.</p>
+            {% if error %}
+                <p class="text-danger">Error: {{ error }}</p>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const carousel = document.getElementById('artCarousel');
+    const currentSlideElement = document.getElementById('current-slide');
+    
+    if (carousel && currentSlideElement) {
+        // Update counter when slide changes
+        carousel.addEventListener('slid.bs.carousel', function (event) {
+            const activeSlide = event.relatedTarget;
+            const slideNumber = activeSlide.getAttribute('data-slide');
+            currentSlideElement.textContent = slideNumber;
+        });
+        
+        // Preload images for smoother experience
+        let preloadedCount = 0;
+        const maxPreload = 10;
+        
+        carousel.addEventListener('slid.bs.carousel', function (event) {
+            if (preloadedCount < maxPreload) {
+                const nextSlides = carousel.querySelectorAll('.carousel-item img[loading="lazy"]');
+                for (let i = 0; i < Math.min(3, nextSlides.length); i++) {
+                    nextSlides[i].loading = 'eager';
+                    preloadedCount++;
+                }
+            }
+        });
+        
+        // Keyboard navigation
+        document.addEventListener('keydown', function(event) {
+            if (event.code === 'ArrowLeft') {
+                bootstrap.Carousel.getInstance(carousel).prev();
+            } else if (event.code === 'ArrowRight') {
+                bootstrap.Carousel.getInstance(carousel).next();
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -128,75 +128,18 @@ def card_detail(request, card_uuid):
     return view(request, card_uuid=card_uuid)
 
 def browse_cards(request):
-    """Browse cards with filtering and search."""
-    try:
-        cards_collection = get_cards_collection()
-        
-        # Get query parameters
-        search_query = request.GET.get('q', '').strip()
-        color_filter = request.GET.get('color', '')
-        type_filter = request.GET.get('type', '')
-        analysis_filter = request.GET.get('analysis', '')  # 'analyzed', 'unanalyzed', 'all'
-        
-        # Build MongoDB query
-        mongo_query = {}
-        
-        if search_query:
-            mongo_query['$or'] = [
-                {'name': {'$regex': search_query, '$options': 'i'}},
-                {'text': {'$regex': search_query, '$options': 'i'}},
-                {'type': {'$regex': search_query, '$options': 'i'}}
-            ]
-        
-        if color_filter:
-            mongo_query['colors'] = {'$in': [color_filter]}
-        
-        if type_filter:
-            mongo_query['type'] = {'$regex': type_filter, '$options': 'i'}
-        
-        if analysis_filter == 'analyzed':
-            mongo_query['analysis.fully_analyzed'] = True
-        elif analysis_filter == 'unanalyzed':
-            mongo_query['$or'] = [
-                {'analysis.fully_analyzed': {'$ne': True}},
-                {'analysis': {'$exists': False}}
-            ]
-        
-        # Get total count for pagination
-        total_cards = cards_collection.count_documents(mongo_query)
-        
-        # Pagination
-        page = request.GET.get('page', 1)
-        per_page = 24
-        skip = (int(page) - 1) * per_page
-        
-        # Get cards
-        cards = list(cards_collection.find(mongo_query).skip(skip).limit(per_page))
-        
-        # Create pagination info
-        total_pages = (total_cards + per_page - 1) // per_page
-        
-        context = {
-            'cards': cards,
-            'search_query': search_query,
-            'color_filter': color_filter,
-            'type_filter': type_filter,
-            'analysis_filter': analysis_filter,
-            'current_page': int(page),
-            'total_pages': total_pages,
-            'total_cards': total_cards,
-            'has_previous': int(page) > 1,
-            'has_next': int(page) < total_pages,
-            'previous_page': int(page) - 1 if int(page) > 1 else None,
-            'next_page': int(page) + 1 if int(page) < total_pages else None,
-        }
-        
-        return render(request, 'cards/browse.html', context)
-        
-    except Exception as e:
-        logger.error(f"Error in browse_cards view: {e}")
-        messages.error(request, "Error loading cards")
-        return render(request, 'cards/browse.html', {'cards': []})
+    """Redirect to The Abyss page - our enhanced search/discovery experience."""
+    from django.shortcuts import redirect
+    from django.urls import reverse
+    
+    # Preserve any query parameters
+    query_params = request.GET.urlencode()
+    abyss_url = reverse('cards:the_abyss')
+    
+    if query_params:
+        return redirect(f"{abyss_url}?{query_params}")
+    else:
+        return redirect(abyss_url)
 
 @require_http_methods(["POST"])
 @csrf_exempt
@@ -527,8 +470,7 @@ def the_abyss(request):
                 {'prices.usd': {'$gte': 20}},
                 {'prices.eur': {'$gte': 18}}
             ]
-            sort_criteria = [('prices.usd', -1), ('prices.eur', -1)]  # Most expensive first
-        elif collection == 'budget':
+            sort_criteria = [('prices.usd', -1), ('prices.eur', -1)]  # Most expensive first        elif collection == 'budget':
             query['$and'] = [
                 {'$or': [
                     {'prices.usd': {'$lte': 1}},
@@ -540,6 +482,9 @@ def the_abyss(request):
                 ]}
             ]
             sort_criteria = [('prices.usd', 1), ('prices.eur', 1)]  # Cheapest first
+        elif collection == 'edhrec':
+            query['edhrecRank'] = {'$exists': True, '$ne': None}
+            sort_criteria = [('edhrecRank', 1)]  # Most popular first (lowest rank number)
         
         # Text search
         if search_query:
@@ -665,11 +610,17 @@ def the_abyss(request):
         # Calculate pagination info
         total_pages = (total_cards + per_page - 1) // per_page
         has_previous = page > 1
-        has_next = page < total_pages
-          # Enhanced featured collections with more pricing options
+        has_next = page < total_pages        # Enhanced featured collections with more pricing options
         featured_collections = []
         if not any([search_query, color_filter, rarity_filter, type_filter, set_filter, price_min, price_max, trend_filter, collection]):
             featured_collections = [
+                {
+                    'name': 'EDHREC Popular',
+                    'url': '?collection=edhrec',
+                    'description': 'All cards ranked by EDHREC popularity',
+                    'icon': 'bi-trophy',
+                    'special': True
+                },
                 {
                     'name': 'Top Commanders',
                     'url': '?collection=commanders',
@@ -757,4 +708,83 @@ def the_abyss(request):
         return render(request, 'cards/the_abyss.html', {
             'cards': [],
             'error_message': 'Unable to load cards at this time.'
+        })
+
+def art_gallery(request):
+    """
+    MTG Art Gallery - Beautiful carousel showcasing high-quality card art.
+    Uses Scryfall's artCrop images for a stunning visual experience.
+    Prioritizes cards with high-resolution scans and beautiful artwork.
+    """
+    try:
+        cards_collection = get_cards_collection()        # Get 100 cards with exceptional art quality
+        # Prioritize cards with highres_scan status and art_crop images
+        query = {
+            'imageUris.art_crop': {'$exists': True, '$ne': None},
+            '$or': [
+                # High-resolution scans with great art
+                {'imageStatus': 'highres_scan'},
+                # Mythic and rare cards often have stunning art
+                {'rarity': {'$in': ['mythic', 'rare']}},
+                # Planeswalkers have iconic artwork
+                {'type': {'$regex': 'Planeswalker', '$options': 'i'}},
+                # Popular cards often have memorable art
+                {'edhrecRank': {'$lte': 2000}},
+                # Include some legendary creatures (often have great art)
+                {'$and': [
+                    {'type': {'$regex': 'Legendary', '$options': 'i'}},
+                    {'type': {'$regex': 'Creature', '$options': 'i'}}
+                ]}
+            ]
+        }
+          # Get a diverse selection of 120 cards (we'll shuffle and take 100)
+        gallery_cards = list(cards_collection.find(
+            query,
+            {
+                'uuid': 1,
+                'name': 1,
+                'imageUris': 1,
+                'artist': 1,
+                'setCode': 1,
+                'setName': 1,
+                'rarity': 1,
+                'type': 1,
+                'manaCost': 1,
+                'colors': 1,
+                'scryfallUri': 1,
+                'edhrecRank': 1,
+                'imageStatus': 1,
+                'highresImage': 1,
+                'releasedAt': 1
+            }
+        ).limit(120))
+        
+        # Shuffle for variety and take 100 for performance
+        import random
+        random.shuffle(gallery_cards)
+        gallery_cards = gallery_cards[:100]
+          # Add card detail URLs and enhance data
+        for card in gallery_cards:
+            card['detail_url'] = f"/card/{card['uuid']}/"
+            # Ensure we have the art_crop URL
+            if 'imageUris' in card and 'art_crop' in card['imageUris']:
+                card['art_url'] = card['imageUris']['art_crop']
+            else:
+                # Fallback to normal image if art_crop not available
+                card['art_url'] = card.get('imageUris', {}).get('normal', '')
+            
+        context = {
+            'gallery_cards': gallery_cards,
+            'total_cards': len(gallery_cards),
+            'page_title': 'MTG Art Gallery'
+        }
+        
+        return render(request, 'cards/art_gallery.html', context)
+        
+    except Exception as e:
+        logger.error(f"Error in art_gallery: {e}")
+        return render(request, 'cards/art_gallery.html', {
+            'gallery_cards': [],
+            'total_cards': 0,
+            'error': str(e)
         })

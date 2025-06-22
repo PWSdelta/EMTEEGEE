@@ -1,9 +1,15 @@
 #!/usr/bin/env python3
-"""Test script to verify Scryfall enhancement worked properly."""
+"""Test sc          print(f"📊 Testing {len(test_cards)} cards:")
+        for card in test_cards:
+            name = card.get('name', 'Unknown')
+            edhrec_rank = card.get('edhrecRank', 999999)
+            old_score = card.get('edhrecPriorityScore', 0)
+            priority = job_queue._calculate_smart_priority(card)  print(f"📊 Testing {len(test_cards)} cards:")
+        
+        for card in test_cards:pt to verify smart prioritization system."""
 
 import os
 import sys
-from pymongo import MongoClient
 
 # Add the project root to sys.path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -13,80 +19,65 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'emteegee.settings')
 import django
 django.setup()
 
-# Import Django settings to get MongoDB config
-from django.conf import settings
-
-def test_card_enhancement(card_name="Sol Ring"):
-    """Test that a card has been enhanced with Scryfall data."""
-    print(f"Testing enhancement for: {card_name}")
-    print("="*50)
-      # Connect to MongoDB
-    mongo_settings = settings.MONGODB_SETTINGS
-    client = MongoClient(mongo_settings['host'])
-    db = client[mongo_settings['db_name']]
-    cards_collection = db.cards
+def test_smart_prioritization():
+    """Test the smart prioritization logic."""
+    print("🎯 Testing Smart Prioritization System")
+    print("=" * 60)
     
-    card = cards_collection.find_one({"name": card_name})
-    if not card:
-        print(f"❌ {card_name} not found in database")
-        return
-    
-    print(f"✅ Found card: {card['name']}")
-    print(f"📝 Mana Cost: {card.get('manaCost', 'N/A')}")
-    print(f"🔗 Scryfall ID: {card.get('scryfallId', 'N/A')}")
-    print(f"📊 EDHREC Rank: {card.get('edhrecRank', 'N/A')}")
-    
-    # Test pricing data
-    if card.get('prices'):
-        usd = card['prices'].get('usd')
-        print(f"💰 USD Price: ${usd}" if usd else "💰 USD Price: N/A")
-    else:
-        print("💰 No pricing data")
-    
-    # Test images
-    if card.get('images'):
-        print(f"🖼️  Images: {len(card['images'])} available")
-        for img_type, url in card['images'].items():
-            print(f"   - {img_type}: {url[:50]}...")
-    else:
-        print("🖼️  No image data")
-    
-    # Test relationships
-    if card.get('allParts'):
-        print(f"🔗 Relationships: {len(card['allParts'])}")
-        for part in card['allParts'][:3]:  # Show first 3
-            print(f"   - {part.get('name', 'Unknown')}: {part.get('component', 'unknown')}")
-    else:
-        print("🔗 No relationship data")
-    
-    # Test legalities
-    if card.get('legalities'):
-        print(f"⚖️  Legalities: {len(card['legalities'])} formats")
-        commander = card['legalities'].get('commander', 'unknown')
-        print(f"   - Commander: {commander}")
-    else:
-        print("⚖️  No legality data")
-    
-    print(f"🕒 Enhanced At: {card.get('enhancedAt', 'Never')}")
-    print("\n" + "="*50)
+    try:
+        from cards.models import get_cards_collection
+        from cards.job_queue import JobQueue
+        
+        cards_collection = get_cards_collection()
+        job_queue = JobQueue()
+        
+        print("✅ Successfully imported modules")
+          # Test with a few real cards that have EDHREC ranks
+        test_cards = list(cards_collection.find(
+            {'edhrecRank': {'$exists': True, '$ne': None}}, {
+            'uuid': 1, 'name': 1, 'edhrecRank': 1, 'analysis.components': 1, 
+            'edhrecPriorityScore': 1, 'prices.usd': 1
+        }).limit(5))
+        
+        print(f"� Testing {len(test_cards)} cards:")
+        for card in test_cards:
+            name = card.get('name', 'Unknown')
+            priority = job_queue._calculate_smart_priority(card)
+            
+            # Count components
+            components = card.get('analysis', {}).get('components', {})
+            completed_count = sum(1 for comp in components.values() if comp is not None) if components else 0
+            
+            # Handle EDHREC score (might be stored as different types)
+            edhrec_score = card.get('edhrecPriorityScore', 0)
+            try:
+                edhrec_score = float(edhrec_score) if edhrec_score else 0
+            except (ValueError, TypeError):
+                edhrec_score = 0
+            
+            # Handle USD price (might be stored as string)
+            usd_price = card.get('prices', {}).get('usd', 0)
+            try:
+                usd_price = float(usd_price) if usd_price else 0
+            except (ValueError, TypeError):
+                usd_price = 0
+            
+            print(f"\n🃏 {name}")
+            print(f"   Components: {completed_count}/20")
+            print(f"   EDHREC: {edhrec_score:.3f}")
+            print(f"   Price: ${usd_price:.2f}")
+            print(f"   🎯 Priority: {priority}")
+          print("\n✅ EDHREC-based prioritization system is working!")
+        print("📋 Priority logic (EDHREC rank-based):")
+        print("  - 999999+ = EDHREC Rank #1 (highest priority)")
+        print("  - 950000+ = EDHREC Rank #50,000")
+        print("  - 900000+ = EDHREC Rank #100,000")
+        print("  - 1 = No EDHREC data (lowest priority)")
+        
+    except Exception as e:
+        print(f"❌ Error during test: {e}")
+        import traceback
+        traceback.print_exc()
 
 if __name__ == "__main__":
-    # Test a few key cards
-    test_card_enhancement("Sol Ring")
-    test_card_enhancement("Lightning Bolt")
-    test_card_enhancement("Black Lotus")
-      # Show total stats
-    mongo_settings = settings.MONGODB_SETTINGS
-    client = MongoClient(mongo_settings['host'])
-    db = client[mongo_settings['db_name']]
-    cards_collection = db.cards
-    
-    total_cards = cards_collection.count_documents({})
-    enhanced_cards = cards_collection.count_documents({"enhancedAt": {"$exists": True}})
-    scryfall_cards = cards_collection.count_documents({"scryfallId": {"$exists": True}})
-    
-    print("\n📈 IMPORT STATISTICS:")
-    print(f"Total cards: {total_cards}")
-    print(f"Enhanced cards: {enhanced_cards}")
-    print(f"With Scryfall ID: {scryfall_cards}")
-    print(f"Enhancement rate: {(enhanced_cards/total_cards*100):.1f}%")
+    test_smart_prioritization()

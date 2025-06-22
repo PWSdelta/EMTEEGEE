@@ -12,8 +12,9 @@ urlpatterns = [
     # Public views
     path('', views.home, name='home'),
     path('card/<str:card_uuid>/', views.card_detail, name='card_detail'),
-    path('browse/', views.browse_cards, name='browse'),
-    path('abyss/', views.the_abyss, name='the_abyss'),
+    path('browse/', views.browse_cards, name='browse'),    path('abyss/', views.the_abyss, name='the_abyss'),
+      # Art Gallery
+    path('gallery/', views.art_gallery, name='art_gallery'),
     
     # Analysis features
     path('analysis/dashboard/', views.analysis_dashboard, name='analysis_dashboard'),
