@@ -25,9 +25,8 @@ logger = logging.getLogger(__name__)
 
 class DesktopWorker:
     """Worker optimized for GPU-based fast analysis components"""
-    def __init__(self, server_url: str = None):
-        # Use environment variable or default
-        self.server_url = server_url or os.getenv('SWARM_SERVER_URL', 'http://localhost:8001')
+    def __init__(self, server_url: str = None):        # Use environment variable or default to remote server
+        self.server_url = server_url or os.getenv('SWARM_SERVER_URL', 'https://emteegee.tcgplex.com')
         self.worker_id = f"desktop-{socket.gethostname()}"
         self.capabilities = self._detect_capabilities()
         self.running = False
