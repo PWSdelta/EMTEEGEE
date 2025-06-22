@@ -57,8 +57,7 @@ class UniversalWorker:
         logger.info(f"🤖 Initialized {self.worker_type} worker: {self.worker_id}")
         logger.info(f"🎯 Using model: {self.current_model}")
         logger.info(f"🌐 Server: {self.server_url}")
-        
-    def _detect_capabilities(self) -> Dict[str, Any]:
+          def _detect_capabilities(self) -> Dict[str, Any]:
         """Auto-detect hardware and determine worker type"""
         ram_gb = round(psutil.virtual_memory().total / (1024**3))
         cpu_cores = psutil.cpu_count()
@@ -89,9 +88,10 @@ class UniversalWorker:
     def _test_ollama_connection(self) -> bool:
         """Test Ollama connection and model availability"""
         try:
-            models = ollama.list()
-            available_models = [model['name'] for model in models.get('models', [])]
+            models_response = ollama.list()
+            available_models = [model.model for model in models_response.models]
             
+            # Check if any preferred model is available
             model_available = any(model in available_models for model in self.preferred_models)
             if not model_available:
                 logger.warning(f"⚠️  Preferred models {self.preferred_models} not found")
@@ -100,8 +100,14 @@ class UniversalWorker:
                 if available_models:
                     self.current_model = available_models[0]
                     logger.info(f"🔄 Using fallback model: {self.current_model}")
+            else:
+                # Use the first available preferred model
+                for model in self.preferred_models:
+                    if model in available_models:
+                        self.current_model = model
+                        break
             
-            logger.info("✅ Ollama connection successful")
+            logger.info(f"✅ Ollama connection successful - using {self.current_model}")
             return True
             
         except Exception as e:
