@@ -16,15 +16,10 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from django.http import HttpResponseRedirect
-
-def home_redirect(request):
-    """Redirect root URL to cards app"""
-    return HttpResponseRedirect('/cards/')
 
 urlpatterns = [
-    path('', home_redirect, name='home'),
     path('admin/', admin.site.urls),
+    path('', include('cards.urls')),  # Root URL goes to cards app
     path('cards/', include('cards.urls')),
     # Direct API access for workers (without /cards/ prefix)
     path('api/swarm/', include('cards.api_urls')),
