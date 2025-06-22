@@ -9,8 +9,10 @@ from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.views import View
+from django.db.models import Q
 from cards.models import get_cards_collection
 import logging
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -191,3 +193,143 @@ def card_analysis_status(request, card_uuid):
     except Exception as e:
         logger.error(f"Error getting card analysis status: {e}")
         return JsonResponse({'error': ERROR_INTERNAL_SERVER}, status=500)
+
+
+@require_http_methods(["GET"])
+def autocomplete_suggestions(request):
+    """
+    Provide autocomplete suggestions for card search.
+    Returns a mix of card names, types, keywords, artists, and sets.
+    """
+    query = request.GET.get('q', '').strip()
+    
+    if not query or len(query) < 2:
+        return JsonResponse({'suggestions': []})
+    
+    try:
+        cards_collection = get_cards_collection()
+        suggestions = []
+        
+        # Escape special regex characters but preserve the query structure
+        escaped_query = re.escape(query)
+        regex_pattern = {'$regex': escaped_query, '$options': 'i'}
+        
+        # MongoDB aggregation constants
+        MATCH_OP = '$match'
+        GROUP_OP = '$group'
+        LIMIT_OP = '$limit'
+        
+        # Get suggestions from different sources
+        suggestions.extend(_get_card_name_suggestions(cards_collection, regex_pattern))
+        
+        if len(suggestions) < 15:
+            suggestions.extend(_get_type_suggestions(cards_collection, regex_pattern, suggestions, MATCH_OP, GROUP_OP, LIMIT_OP))
+        
+        if len(suggestions) < 15:
+            suggestions.extend(_get_artist_suggestions(cards_collection, regex_pattern, suggestions, MATCH_OP, GROUP_OP, LIMIT_OP))
+        
+        if len(suggestions) < 15:
+            suggestions.extend(_get_set_suggestions(cards_collection, regex_pattern, suggestions, MATCH_OP, GROUP_OP, LIMIT_OP))
+        
+        # Limit total suggestions
+        suggestions = suggestions[:15]
+        
+        return JsonResponse({'suggestions': suggestions})
+        
+    except Exception as e:
+        logger.error(f"Autocomplete error: {str(e)}")
+        return JsonResponse({'suggestions': []})
+
+
+def _get_card_name_suggestions(cards_collection, regex_pattern):
+    """Get card name suggestions."""
+    name_matches = cards_collection.find(
+        {'name': regex_pattern},
+        {'name': 1, 'uuid': 1, '_id': 0}
+    ).limit(8)
+    
+    suggestions = []
+    for doc in name_matches:
+        suggestions.append({
+            'text': doc['name'],
+            'type': 'card',
+            'icon': 'bi-diamond',
+            'category': 'Cards',
+            'uuid': doc.get('uuid')  # Include UUID for direct navigation
+        })
+    return suggestions
+
+
+def _get_type_suggestions(cards_collection, regex_pattern, existing_suggestions, match_op, group_op, limit_op):
+    """Get card type suggestions."""
+    existing_texts = [s['text'] for s in existing_suggestions]
+    type_pipeline = [
+        {match_op: {'type': regex_pattern}},
+        {group_op: {'_id': '$type'}},
+        {limit_op: 5}
+    ]
+    type_matches = cards_collection.aggregate(type_pipeline)
+    
+    suggestions = []
+    for doc in type_matches:
+        type_name = doc['_id']
+        if type_name and type_name not in existing_texts:
+            suggestions.append({
+                'text': type_name,
+                'type': 'type',
+                'icon': 'bi-tags',
+                'category': 'Types'
+            })
+    return suggestions
+
+
+def _get_artist_suggestions(cards_collection, regex_pattern, existing_suggestions, match_op, group_op, limit_op):
+    """Get artist suggestions."""
+    existing_texts = [s['text'] for s in existing_suggestions]
+    artist_pipeline = [
+        {match_op: {'artist': regex_pattern}},
+        {group_op: {'_id': '$artist'}},
+        {limit_op: 3}
+    ]
+    artist_matches = cards_collection.aggregate(artist_pipeline)
+    
+    suggestions = []
+    for doc in artist_matches:
+        artist_name = doc['_id']
+        if artist_name and artist_name not in existing_texts:
+            suggestions.append({
+                'text': artist_name,
+                'type': 'artist',
+                'icon': 'bi-palette',
+                'category': 'Artists'
+            })
+    return suggestions
+
+
+def _get_set_suggestions(cards_collection, regex_pattern, existing_suggestions, match_op, group_op, limit_op):
+    """Get set suggestions."""
+    existing_texts = [s['text'] for s in existing_suggestions]
+    set_pipeline = [
+        {match_op: {
+            '$or': [
+                {'set_name': regex_pattern},
+                {'set': regex_pattern}
+            ]
+        }},
+        {group_op: {'_id': {'set': '$set', 'set_name': '$set_name'}}},
+        {limit_op: 3}
+    ]
+    set_matches = cards_collection.aggregate(set_pipeline)
+    
+    suggestions = []
+    for doc in set_matches:
+        set_info = doc['_id']
+        set_name = set_info.get('set_name', set_info.get('set', ''))
+        if set_name and set_name not in existing_texts:
+            suggestions.append({
+                'text': set_name,
+                'type': 'set',
+                'icon': 'bi-collection',
+                'category': 'Sets'
+            })
+    return suggestions

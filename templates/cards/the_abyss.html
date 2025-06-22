@@ -44,7 +44,10 @@
                        value="{{ search_query }}" 
                        placeholder="Search for any Magic card... (name, text, type, artist, set)"
                        autocomplete="off"
+                       id="abyss-search-input"
                        autofocus>
+                <!-- Autocomplete dropdown will be inserted here -->
+                <div class="autocomplete-dropdown" id="autocomplete-dropdown"></div>
                 <button type="submit" class="btn btn-primary abyss-search-btn">
                     <i class="bi bi-search"></i>
                     <span class="btn-text">Search</span>
@@ -58,7 +61,7 @@
                 </div>
             {% endif %}
         </form>
-    </div>    <!-- Cards Grid -->
+    </div><!-- Cards Grid -->
     {% if cards %}
     <div class="abyss-cards-section">
         <div class="abyss-cards-grid">
@@ -135,7 +138,216 @@
                     <i class="bi bi-arrow-left"></i> Back to The Abyss
                 </a>
             </div>
-        </div>
-    {% endif %}
+        </div>    {% endif %}
 </div>
+
+<script>
+// Autocomplete functionality for The Abyss search
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('abyss-search-input');
+    const dropdown = document.getElementById('autocomplete-dropdown');
+    let currentRequest = null;
+    let selectedIndex = -1;
+    let suggestions = [];
+    
+    // Debounce function to limit API calls
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+      // Show autocomplete suggestions
+    function showSuggestions(query) {
+        if (query.length < 2) {
+            hideDropdown();
+            return;
+        }
+        
+        // Position the dropdown relative to the input
+        positionDropdown();
+        
+        // Cancel previous request
+        if (currentRequest) {
+            currentRequest.abort();
+        }
+        
+        // Show loading state
+        dropdown.innerHTML = '<div class="autocomplete-loading"><i class="bi bi-three-dots"></i> Searching...</div>';
+        dropdown.classList.add('show');
+        
+        // Make API request
+        currentRequest = new AbortController();
+        fetch(`/api/autocomplete/?q=${encodeURIComponent(query)}`, {
+            signal: currentRequest.signal
+        })
+        .then(response => response.json())
+        .then(data => {
+            suggestions = data.suggestions || [];
+            renderSuggestions(suggestions);
+        })
+        .catch(error => {
+            if (error.name !== 'AbortError') {
+                console.error('Autocomplete error:', error);
+                hideDropdown();
+            }
+        })
+        .finally(() => {
+            currentRequest = null;
+        });
+    }
+    
+    // Position dropdown relative to input field
+    function positionDropdown() {
+        const rect = searchInput.getBoundingClientRect();
+        dropdown.style.top = (rect.bottom) + 'px';
+        dropdown.style.left = rect.left + 'px';
+        dropdown.style.width = rect.width + 'px';
+    }
+      // Render suggestion dropdown
+    function renderSuggestions(suggestions) {
+        // Position the dropdown
+        positionDropdown();
+        
+        if (!suggestions.length) {
+            dropdown.innerHTML = '<div class="autocomplete-no-results">No suggestions found</div>';
+            dropdown.classList.add('show');
+            return;
+        }
+          let html = '';
+        suggestions.forEach((suggestion, index) => {
+            const uuid = suggestion.uuid ? `data-uuid="${escapeHtml(suggestion.uuid)}"` : '';
+            const suggestionType = suggestion.type || 'other';
+            html += `
+                <div class="autocomplete-item" data-index="${index}" data-text="${escapeHtml(suggestion.text)}" data-type="${suggestionType}" ${uuid}>
+                    <i class="bi ${suggestion.icon} autocomplete-icon"></i>
+                    <span class="autocomplete-text">${escapeHtml(suggestion.text)}</span>
+                    <span class="autocomplete-category">${escapeHtml(suggestion.category)}</span>
+                </div>
+            `;
+        });
+        
+        dropdown.innerHTML = html;
+        dropdown.classList.add('show');
+        selectedIndex = -1;
+        
+        // Add click listeners
+        dropdown.querySelectorAll('.autocomplete-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const suggestionType = this.getAttribute('data-type');
+                const uuid = this.getAttribute('data-uuid');
+                const text = this.getAttribute('data-text');
+                  hideDropdown();
+                
+                // If it's a card suggestion with UUID, go directly to card detail
+                if (suggestionType === 'card' && uuid) {
+                    window.location.href = `/card/${uuid}/`;
+                } else {
+                    // For other suggestions (types, artists, sets), do a search
+                    searchInput.value = text;
+                    searchInput.form.submit();
+                }
+            });
+        });
+    }
+    
+    // Hide dropdown
+    function hideDropdown() {
+        dropdown.classList.remove('show');
+        dropdown.innerHTML = '';
+        selectedIndex = -1;
+    }
+    
+    // Escape HTML to prevent XSS
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    // Handle keyboard navigation
+    function handleKeyboardNavigation(e) {
+        const items = dropdown.querySelectorAll('.autocomplete-item');
+        
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+            updateSelection(items);
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            selectedIndex = Math.max(selectedIndex - 1, -1);
+            updateSelection(items);        } else if (e.key === 'Enter') {
+            if (selectedIndex >= 0 && selectedIndex < items.length) {
+                e.preventDefault();
+                const selectedItem = items[selectedIndex];
+                const suggestionType = selectedItem.getAttribute('data-type');
+                const uuid = selectedItem.getAttribute('data-uuid');
+                const text = selectedItem.getAttribute('data-text');
+                  hideDropdown();
+                
+                // If it's a card suggestion with UUID, go directly to card detail
+                if (suggestionType === 'card' && uuid) {
+                    window.location.href = `/card/${uuid}/`;
+                } else {
+                    // For other suggestions, do a search
+                    searchInput.value = text;
+                    searchInput.form.submit();
+                }
+            }
+        } else if (e.key === 'Escape') {
+            hideDropdown();
+        }
+    }
+    
+    // Update visual selection
+    function updateSelection(items) {
+        items.forEach((item, index) => {
+            item.classList.toggle('active', index === selectedIndex);
+        });
+    }
+    
+    // Debounced search function
+    const debouncedSearch = debounce(showSuggestions, 300);
+    
+    // Event listeners
+    searchInput.addEventListener('input', function() {
+        const query = this.value.trim();
+        debouncedSearch(query);
+    });
+    
+    searchInput.addEventListener('keydown', handleKeyboardNavigation);
+    
+    searchInput.addEventListener('focus', function() {
+        const query = this.value.trim();
+        if (query.length >= 2) {
+            showSuggestions(query);
+        }
+    });
+      // Hide dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
+            hideDropdown();
+        }
+    });
+    
+    // Reposition dropdown on window resize or scroll
+    window.addEventListener('resize', function() {
+        if (dropdown.classList.contains('show')) {
+            positionDropdown();
+        }
+    });
+    
+    window.addEventListener('scroll', function() {
+        if (dropdown.classList.contains('show')) {
+            positionDropdown();
+        }
+    });
+});
+</script>
+
 {% endblock %}

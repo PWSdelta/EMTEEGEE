@@ -21,18 +21,18 @@
                         comprehensive card data, and intelligent deck building recommendations.
                     </p>                    <div class="hero-actions">
                         {% if user.is_authenticated %}
-                            <button type="button" class="btn btn-primary btn-lg me-3" data-bs-toggle="modal" data-bs-target="#quickSearchModal">
-                                <i class="bi bi-search"></i> Find a Card
+                            <a href="/abyss/" class="btn btn-primary btn-lg me-3">
+                                <i class="bi bi-grid-3x3-gap"></i> The Abyss
+                            </a>
+                            <button type="button" class="btn btn-outline-primary btn-lg" data-bs-toggle="modal" data-bs-target="#quickSearchModal">
+                                <i class="bi bi-search"></i> Quick Search
                             </button>
-                            <a href="{% url 'cards:analysis_dashboard' %}" class="btn btn-outline-primary btn-lg">
-                                <i class="bi bi-graph-up"></i> Analysis Dashboard
-                            </a>
                         {% else %}
-                            <a href="{% url 'account_login' %}" class="btn btn-primary btn-lg me-3">
-                                <i class="bi bi-box-arrow-in-right"></i> Get Started
+                            <a href="/abyss/" class="btn btn-primary btn-lg me-3">
+                                <i class="bi bi-grid-3x3-gap"></i> The Abyss
                             </a>
-                            <a href="/abyss/" class="btn btn-outline-primary btn-lg">
-                                <i class="bi bi-eye"></i> The Abyss
+                            <a href="{% url 'account_login' %}" class="btn btn-outline-primary btn-lg">
+                                <i class="bi bi-box-arrow-in-right"></i> Get Started
                             </a>
                         {% endif %}
                     </div>
@@ -71,95 +71,82 @@
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- Featured Cards Section -->
+    </div>    <!-- Featured Cards Section -->
     {% if featured_cards %}
     <section class="featured-section">
         <div class="section-header">
             <h2 class="section-title">
-                <i class="bi bi-stars"></i> Featured Analysis
+                <i class="bi bi-stars"></i> Featured Cards
             </h2>
-            <p class="section-subtitle">Cards with complete AI analysis and insights</p>
+            <p class="section-subtitle">Discover powerful Magic cards with complete analysis</p>
         </div>
         <div class="row g-4">
             {% for card in featured_cards %}
                 <div class="col-lg-4 col-md-6">
-                    <div class="featured-card">
-                        <div class="card-image-wrapper">
-                            {% with card|card_image:'small' as card_image_url %}
+                    <div class="featured-card-enhanced">
+                        <div class="card-image-enhanced">
+                            {% with card|card_image:'normal' as card_image_url %}
                                 {% if card_image_url %}
-                                    <img src="{{ card_image_url }}" alt="{{ card.name }}" class="featured-card-image">
+                                    <img src="{{ card_image_url }}" alt="{{ card.name }}" class="featured-card-image-enhanced">
                                 {% else %}
-                                    <div class="featured-card-placeholder">
+                                    <div class="featured-card-placeholder-enhanced">
                                         <i class="bi bi-image"></i>
                                     </div>
                                 {% endif %}
                             {% endwith %}
                         </div>
-                        <div class="featured-card-content">
-                            <h3 class="featured-card-title">{{ card.name }}</h3>
-                            <p class="featured-card-type">{{ card.type|format_card_types }}</p>
-                            <div class="featured-card-meta">
-                                {% if card.rarity %}
-                                    <span class="rarity-badge-sm {{ card.rarity }}">{{ card.rarity|title }}</span>
-                                {% endif %}
-                                {% if card.setCode %}
-                                    <span class="set-badge">{{ card.setCode|upper }}</span>
-                                {% endif %}
-                            </div>
-                            <a href="{% url 'cards:card_detail' card.uuid %}" class="featured-card-link">
-                                View Analysis <i class="bi bi-arrow-right"></i>
-                            </a>
+                        <div class="featured-card-info-enhanced">
+                            <h3 class="card-name-enhanced">{{ card.name }}</h3>
+                            {% if card.rarity %}
+                                <span class="rarity-dot-enhanced {{ card.rarity }}"></span>
+                            {% endif %}
                         </div>
+                        <a href="{% url 'cards:card_detail' card.uuid %}" class="featured-card-link-enhanced">
+                            <div class="card-overlay-enhanced">
+                                <i class="bi bi-eye-fill"></i>
+                                <span>View Card</span>
+                            </div>
+                        </a>
                     </div>
                 </div>
             {% endfor %}
         </div>
     </section>
-    {% endif %}
-
-    <!-- Recent Cards Section -->
+    {% endif %}    <!-- Recent Cards Section -->
     {% if recent_cards %}
     <section class="recent-section">
         <div class="section-header">
             <h2 class="section-title">
                 <i class="bi bi-clock-history"></i> Recently Added
             </h2>
-            <p class="section-subtitle">Latest cards in our database</p>
+            <p class="section-subtitle">Latest cards in our collection</p>
         </div>
         <div class="row g-3">
             {% for card in recent_cards %}
                 <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                    <div class="recent-card">
-                        <div class="recent-card-image">
-                            {% with card|card_image:'small' as card_image_url %}
+                    <div class="recent-card-enhanced">
+                        <div class="recent-card-image-enhanced">
+                            {% with card|card_image:'normal' as card_image_url %}
                                 {% if card_image_url %}
                                     <img src="{{ card_image_url }}" alt="{{ card.name }}">
                                 {% else %}
-                                    <div class="recent-card-placeholder">
+                                    <div class="recent-card-placeholder-enhanced">
                                         <i class="bi bi-image"></i>
                                     </div>
                                 {% endif %}
                             {% endwith %}
                         </div>
-                        <div class="recent-card-info">
-                            <h4 class="recent-card-name">{{ card.name }}</h4>
-                            {% if card.setCode %}
-                                <small class="recent-card-set">{{ card.setCode|upper }}</small>
-                            {% endif %}
+                        <div class="recent-card-info-enhanced">
+                            <h4 class="recent-card-name-enhanced">{{ card.name }}</h4>
                         </div>
-                        <a href="{% url 'cards:card_detail' card.uuid %}" class="recent-card-overlay">
-                            <i class="bi bi-eye"></i>
+                        <a href="{% url 'cards:card_detail' card.uuid %}" class="recent-card-overlay-enhanced">
+                            <div class="recent-overlay-content">
+                                <i class="bi bi-eye-fill"></i>
+                            </div>
                         </a>
                     </div>
                 </div>
-            {% endfor %}
-        </div>        <div class="text-center mt-4">
-            <a href="/abyss/" class="btn btn-outline-primary">
-                <i class="bi bi-grid"></i> Enter The Abyss
-            </a>
-        </div>
+            {% endfor %}        </div>
     </section>
     {% endif %}
 
@@ -278,111 +265,26 @@
                     <i class="bi bi-search"></i> Quick Card Search
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
+            </div>            <div class="modal-body">
                 <form id="quickSearchForm" action="/abyss/" method="get">
                     <div class="mb-3">
-                        <label for="cardNameSearch" class="form-label">Search by Card Name</label>
-                        <input type="text" class="form-control form-control-lg" id="cardNameSearch" name="q" 
-                               placeholder="Enter card name (e.g., Lightning Bolt, Sol Ring...)" 
-                               autocomplete="off">
-                        <div class="form-text">Start typing to find cards by name</div>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="colorFilter" class="form-label">Colors</label>
-                                <select class="form-select" id="colorFilter" name="colors">
-                                    <option value="">Any Color</option>
-                                    <option value="W">White</option>
-                                    <option value="U">Blue</option>
-                                    <option value="B">Black</option>
-                                    <option value="R">Red</option>
-                                    <option value="G">Green</option>
-                                    <option value="C">Colorless</option>
-                                </select>
-                            </div>
+                        <label for="cardNameSearch" class="form-label">Search Cards</label>
+                        <div class="position-relative">
+                            <input type="text" class="form-control form-control-lg" id="cardNameSearch" name="q" 
+                                   placeholder="Search by name, text, type, artist, set, or any card details..." 
+                                   autocomplete="off">
+                            <div class="autocomplete-dropdown" id="modal-autocomplete-dropdown"></div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="rarityFilter" class="form-label">Rarity</label>
-                                <select class="form-select" id="rarityFilter" name="rarity">
-                                    <option value="">Any Rarity</option>
-                                    <option value="common">Common</option>
-                                    <option value="uncommon">Uncommon</option>
-                                    <option value="rare">Rare</option>
-                                    <option value="mythic">Mythic Rare</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                      <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="typeFilter" class="form-label">Card Type</label>
-                                <select class="form-select" id="typeFilter" name="type">
-                                    <option value="">Any Type</option>
-                                    <option value="creature">Creature</option>
-                                    <option value="instant">Instant</option>
-                                    <option value="sorcery">Sorcery</option>
-                                    <option value="enchantment">Enchantment</option>
-                                    <option value="artifact">Artifact</option>
-                                    <option value="planeswalker">Planeswalker</option>
-                                    <option value="land">Land</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="setFilter" class="form-label">Set</label>
-                                <input type="text" class="form-control" id="setFilter" name="set" 
-                                       placeholder="e.g., MH3, DOM, etc.">
-                            </div>
+                        <div class="form-text">
+                            <i class="bi bi-lightbulb text-warning"></i>
+                            <strong>Pro tip:</strong> Search for anything - card names, abilities, flavor text, artists, sets, keywords, or even partial matches!
                         </div>
                     </div>
                     
-                    <!-- Pricing Filters -->
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="mb-3">
-                                <label for="priceCurrencyModal" class="form-label">Currency</label>
-                                <select class="form-select" id="priceCurrencyModal" name="price_currency">
-                                    <option value="usd">USD ($)</option>
-                                    <option value="eur">EUR (€)</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="mb-3">
-                                <label for="priceMinModal" class="form-label">Min Price</label>
-                                <input type="number" class="form-control" id="priceMinModal" name="price_min" 
-                                       placeholder="0.00" step="0.01" min="0">
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="mb-3">
-                                <label for="priceMaxModal" class="form-label">Max Price</label>
-                                <input type="number" class="form-control" id="priceMaxModal" name="price_max" 
-                                       placeholder="1000.00" step="0.01" min="0">
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="mb-3">
-                                <label class="form-label">Quick Price</label>
-                                <div class="d-flex gap-1">
-                                    <button type="button" class="btn btn-outline-success btn-sm flex-fill" onclick="setModalQuickPrice('budget')">
-                                        Budget
-                                    </button>
-                                    <button type="button" class="btn btn-outline-warning btn-sm flex-fill" onclick="setModalQuickPrice('mid')">
-                                        Mid
-                                    </button>
-                                    <button type="button" class="btn btn-outline-danger btn-sm flex-fill" onclick="setModalQuickPrice('high')">
-                                        High
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>Powerful Search:</strong> Try searches like "draw cards", "Lightning", "Urza", "enters the battlefield", 
+                        "MH3", or even "Rebecca Guay" to find cards by artist.
                     </div>
                 </form>
             </div>
@@ -393,28 +295,196 @@
                 <button type="submit" form="quickSearchForm" class="btn btn-primary">
                     <i class="bi bi-search"></i> Search The Abyss
                 </button>
-            </div>        </div>
-    </div>
+            </div>
+        </div>    </div>
 </div>
 
 <script>
-function setModalQuickPrice(type) {
-    const minInput = document.getElementById('priceMinModal');
-    const maxInput = document.getElementById('priceMaxModal');
-    const currencySelect = document.getElementById('priceCurrencyModal');
+// Autocomplete functionality for Quick Search Modal
+document.addEventListener('DOMContentLoaded', function() {
+    const modalSearchInput = document.getElementById('cardNameSearch');
+    const modalDropdown = document.getElementById('modal-autocomplete-dropdown');
+    let modalCurrentRequest = null;
+    let modalSelectedIndex = -1;
+    let modalSuggestions = [];
     
-    currencySelect.value = 'usd';
-    
-    if (type === 'budget') {
-        minInput.value = '';
-        maxInput.value = '1';
-    } else if (type === 'mid') {
-        minInput.value = '1';
-        maxInput.value = '10';
-    } else if (type === 'high') {
-        minInput.value = '20';
-        maxInput.value = '';
+    // Debounce function
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
     }
-}
+    
+    // Show modal autocomplete suggestions
+    function showModalSuggestions(query) {
+        if (query.length < 2) {
+            hideModalDropdown();
+            return;
+        }
+        
+        if (modalCurrentRequest) {
+            modalCurrentRequest.abort();
+        }
+        
+        modalDropdown.innerHTML = '<div class="autocomplete-loading"><i class="bi bi-three-dots"></i> Searching...</div>';
+        modalDropdown.classList.add('show');
+        
+        modalCurrentRequest = new AbortController();
+        fetch(`/api/autocomplete/?q=${encodeURIComponent(query)}`, {
+            signal: modalCurrentRequest.signal
+        })
+        .then(response => response.json())
+        .then(data => {
+            modalSuggestions = data.suggestions || [];
+            renderModalSuggestions(modalSuggestions);
+        })
+        .catch(error => {
+            if (error.name !== 'AbortError') {
+                console.error('Modal autocomplete error:', error);
+                hideModalDropdown();
+            }
+        })
+        .finally(() => {
+            modalCurrentRequest = null;
+        });
+    }
+    
+    // Render modal suggestions
+    function renderModalSuggestions(suggestions) {
+        if (!suggestions.length) {
+            modalDropdown.innerHTML = '<div class="autocomplete-no-results">No suggestions found</div>';
+            modalDropdown.classList.add('show');
+            return;
+        }
+          let html = '';
+        suggestions.forEach((suggestion, index) => {
+            const uuid = suggestion.uuid ? `data-uuid="${escapeHtml(suggestion.uuid)}"` : '';
+            const suggestionType = suggestion.type || 'other';
+            html += `
+                <div class="autocomplete-item" data-index="${index}" data-text="${escapeHtml(suggestion.text)}" data-type="${suggestionType}" ${uuid}>
+                    <i class="bi ${suggestion.icon} autocomplete-icon"></i>
+                    <span class="autocomplete-text">${escapeHtml(suggestion.text)}</span>
+                    <span class="autocomplete-category">${escapeHtml(suggestion.category)}</span>
+                </div>
+            `;
+        });
+        
+        modalDropdown.innerHTML = html;
+        modalDropdown.classList.add('show');
+        modalSelectedIndex = -1;
+        
+        modalDropdown.querySelectorAll('.autocomplete-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const suggestionType = this.getAttribute('data-type');
+                const uuid = this.getAttribute('data-uuid');
+                const text = this.getAttribute('data-text');
+                
+                hideModalDropdown();
+                  // If it's a card suggestion with UUID, go directly to card detail
+                if (suggestionType === 'card' && uuid) {
+                    // Close modal first
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('quickSearchModal'));
+                    if (modal) modal.hide();
+                    // Navigate to card
+                    window.location.href = `/card/${uuid}/`;
+                } else {
+                    // For other suggestions, do a search in The Abyss
+                    modalSearchInput.value = text;
+                    document.getElementById('quickSearchForm').submit();
+                }
+            });
+        });
+    }
+    
+    // Hide modal dropdown
+    function hideModalDropdown() {
+        modalDropdown.classList.remove('show');
+        modalDropdown.innerHTML = '';
+        modalSelectedIndex = -1;
+    }
+    
+    // Escape HTML
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    // Handle modal keyboard navigation
+    function handleModalKeyboardNavigation(e) {
+        const items = modalDropdown.querySelectorAll('.autocomplete-item');
+        
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            modalSelectedIndex = Math.min(modalSelectedIndex + 1, items.length - 1);
+            updateModalSelection(items);
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            modalSelectedIndex = Math.max(modalSelectedIndex - 1, -1);
+            updateModalSelection(items);
+        } else if (e.key === 'Enter') {
+            if (modalSelectedIndex >= 0 && modalSelectedIndex < items.length) {
+                e.preventDefault();
+                const selectedItem = items[modalSelectedIndex];
+                const text = selectedItem.getAttribute('data-text');
+                modalSearchInput.value = text;
+                hideModalDropdown();
+                document.getElementById('quickSearchForm').submit();
+            }
+        } else if (e.key === 'Escape') {
+            hideModalDropdown();
+        }
+    }
+    
+    // Update modal selection
+    function updateModalSelection(items) {
+        items.forEach((item, index) => {
+            item.classList.toggle('active', index === modalSelectedIndex);
+        });
+    }
+    
+    // Debounced modal search
+    const debouncedModalSearch = debounce(showModalSuggestions, 300);
+    
+    // Modal event listeners
+    if (modalSearchInput) {
+        modalSearchInput.addEventListener('input', function() {
+            const query = this.value.trim();
+            debouncedModalSearch(query);
+        });
+        
+        modalSearchInput.addEventListener('keydown', handleModalKeyboardNavigation);
+        
+        modalSearchInput.addEventListener('focus', function() {
+            const query = this.value.trim();
+            if (query.length >= 2) {
+                showModalSuggestions(query);
+            }
+        });
+    }
+    
+    // Hide modal dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        if (modalSearchInput && modalDropdown && 
+            !modalSearchInput.contains(e.target) && !modalDropdown.contains(e.target)) {
+            hideModalDropdown();
+        }
+    });
+    
+    // Clear modal autocomplete when modal is hidden
+    document.getElementById('quickSearchModal').addEventListener('hidden.bs.modal', function() {
+        hideModalDropdown();
+        if (modalSearchInput) {
+            modalSearchInput.value = '';
+        }
+    });
+});
 </script>
+
 {% endblock %}

@@ -8,4 +8,7 @@ urlpatterns = [
     path('request-analysis/', api_views.RequestAnalysisView.as_view(), name='request_analysis'),
     path('queue-status/', api_views.analysis_queue_status, name='queue_status'),
     path('card-status/<str:card_uuid>/', api_views.card_analysis_status, name='card_status'),
+    
+    # Search autocomplete
+    path('autocomplete/', api_views.autocomplete_suggestions, name='autocomplete'),
 ]
