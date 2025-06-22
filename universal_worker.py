@@ -57,31 +57,38 @@ class UniversalWorker:
         logger.info(f"🤖 Initialized {self.worker_type} worker: {self.worker_id}")
         logger.info(f"🎯 Using model: {self.current_model}")
         logger.info(f"🌐 Server: {self.server_url}")
-          def _detect_capabilities(self) -> Dict[str, Any]:
-        """Auto-detect hardware and determine worker type"""
+        
+    def _detect_capabilities(self) -> Dict[str, Any]:
+        """Auto-detect hardware and determine worker type based on CPU"""
         ram_gb = round(psutil.virtual_memory().total / (1024**3))
         cpu_cores = psutil.cpu_count()
+        cpu_info = platform.processor().lower()
         
-        # Simple heuristic: laptops typically have more RAM and cores for CPU-intensive work
-        # Desktops typically have GPUs and are optimized for quick processing
-        is_laptop = (
-            ram_gb >= 64 or  # High RAM suggests laptop for large models
-            cpu_cores >= 16 or  # Many cores suggest CPU-focused machine
-            'laptop' in self.hostname.lower() or
-            'mobile' in platform.processor().lower()
-        )
-        
-        worker_type = 'laptop' if is_laptop else 'desktop'
+        # Reliable detection: AMD = Desktop, Intel = Laptop
+        if 'amd' in cpu_info:
+            worker_type = 'desktop'
+            has_gpu = True
+        elif 'intel' in cpu_info:
+            worker_type = 'laptop'
+            has_gpu = False
+        else:
+            # Fallback if neither AMD nor Intel detected clearly
+            logger.warning(f"⚠️  Unknown CPU type: {cpu_info}, defaulting to desktop")
+            worker_type = 'desktop'
+            has_gpu = True
         
         capabilities = {
             'hostname': socket.gethostname(),
             'platform': platform.platform(),
+            'processor': cpu_info,
             'cpu_cores': cpu_cores,
             'ram_gb': ram_gb,
-            'gpu_available': not is_laptop,  # Assume desktop has GPU
+            'gpu_available': has_gpu,
             'worker_type': worker_type,
-            'specialization': 'deep_cpu_analysis' if is_laptop else 'fast_gpu_analysis'
+            'specialization': 'deep_cpu_analysis' if worker_type == 'laptop' else 'fast_gpu_analysis'
         }
+        
+        logger.info(f"🔍 Detected: {worker_type.title()} ({cpu_info[:50]})")
         
         return capabilities
     
