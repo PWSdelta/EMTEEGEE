@@ -137,13 +137,11 @@ class Command(BaseCommand):
                 analysis = card.get('analysis', {})
                 if analysis.get('fully_analyzed') and analysis.get('component_count', 0) >= 20:
                     continue
-                
-                # Queue the card
-                job_id = job_queue.enqueue_card_analysis(card['uuid'], priority=1)
+                  # Queue the card with smart prioritization
+                job_id = job_queue.enqueue_card_analysis_smart(card['uuid'])
                 if job_id:
                     jobs_queued += 1
-                
-                # Progress update every batch
+                  # Progress update every batch
                 if cards_processed % batch_size == 0:
                     self.stdout.write(f"   📊 Processed {cards_processed:,}/{limit:,} cards, queued {jobs_queued:,} jobs")
             
@@ -151,13 +149,14 @@ class Command(BaseCommand):
                 self.style.SUCCESS(f"✅ Queued {jobs_queued:,} cards for analysis!")
             )
             
-        except Exception as e:            self.stdout.write(
+        except Exception as e:
+            self.stdout.write(
                 self.style.ERROR(f"❌ Error queueing cards: {e}")
             )
     
     def _process_entire_queue(self):
-        """Process the entire job queue sequentially using the actual worker logic."""
-        self.stdout.write("\n🔄 Step 2: Processing the ENTIRE queue...")
+        """Process the job queue sequentially, respecting max_cards limit."""
+        self.stdout.write("\n🔄 Step 2: Processing the queue...")
         
         # Get initial queue stats
         initial_stats = job_queue.get_queue_stats()
@@ -167,10 +166,16 @@ class Command(BaseCommand):
             self.stdout.write("   ℹ️ No jobs in queue to process")
             return
         
-        self.stdout.write(f"   📊 Processing {total_pending:,} pending jobs...")
+        # Respect max_cards limit for processing too
+        jobs_to_process = total_pending
+        if self.max_cards > 0:
+            jobs_to_process = min(total_pending, self.max_cards)
+            self.stdout.write(f"   📊 Processing {jobs_to_process:,} jobs (limited from {total_pending:,} total)")
+        else:
+            self.stdout.write(f"   📊 Processing {total_pending:,} pending jobs...")
+            
         self.stdout.write("   ⚡ Running in sequential mode for maximum reliability")
-        
-        # Import the worker command and run it properly
+          # Import the worker command and run it properly
         from cards.management.commands.queue_worker import Command as WorkerCommand
         from io import StringIO
         
@@ -197,6 +202,11 @@ class Command(BaseCommand):
                     continue
             
             jobs_processed += 1
+            
+            # Check if we've hit our processing limit
+            if self.max_cards > 0 and jobs_processed > jobs_to_process:
+                self.stdout.write(f"   ✅ Reached processing limit of {jobs_to_process:,} jobs")
+                break
             
             # Process the job using the analysis manager directly
             try:

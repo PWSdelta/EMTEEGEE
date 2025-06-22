@@ -485,14 +485,13 @@ class JobQueue:
     
     def enqueue_card_analysis_smart(self, card_uuid: str, job_type: str = "full_analysis") -> Optional[str]:
         """
-        Add a card analysis job with price-based prioritization.
+        Add a card analysis job with EDHREC rank-based prioritization.
         
-        Priority system: Card price * 100 (higher price = higher priority)
-        - $100.00 card = priority 10,000
-        - $10.50 card = priority 1,050
-        - $1.25 card = priority 125
-        - $0.50 card = priority 50
-        - $0.00 card = priority 0
+        Priority system: -edhrecRank (lower rank = higher priority)
+        - Rank #1 (Sol Ring) = priority -1 (highest)
+        - Rank #2 (Command Tower) = priority -2
+        - Rank #5,000 = priority -5,000
+        - No EDHREC data = priority -999,999 (lowest)
         
         Args:
             card_uuid: UUID of the card to analyze
@@ -503,13 +502,13 @@ class JobQueue:
         """
         from .models import get_cards_collection
         
-        try:
-            # Get card data to determine priority
+        try:            # Get card data to determine priority
             cards_collection = get_cards_collection()
             card = cards_collection.find_one(
                 {'uuid': card_uuid},
                 {
                     'analysis.components': 1, 
+                    'edhrecRank': 1,
                     'edhrecPriorityScore': 1,
                     'prices.usd': 1,
                     'name': 1
@@ -522,17 +521,17 @@ class JobQueue:
             
             # Calculate smart priority
             priority = self._calculate_smart_priority(card)
-            
-            # Log priority reasoning
+              # Log priority reasoning
             card_name = card.get('name', 'Unknown')
-            if priority >= 1000:
-                logger.info(f"🎯 HIGH PRIORITY (Finishing): {card_name} - Priority {priority}")
-            elif priority >= 500:
-                logger.info(f"⭐ EDHREC Priority: {card_name} - Priority {priority}")
-            elif priority >= 50:
-                logger.info(f"💰 Price Priority: {card_name} - Priority {priority}")
+            edhrec_rank = card.get('edhrecRank', 999999)
+            if priority >= -100:  # Top 100 EDHREC cards
+                logger.info(f"� TOP 100 EDHREC: {card_name} (Rank #{edhrec_rank}) - Priority {priority}")
+            elif priority >= -1000:  # Top 1000 EDHREC cards
+                logger.info(f"⭐ TOP 1000 EDHREC: {card_name} (Rank #{edhrec_rank}) - Priority {priority}")
+            elif priority >= -10000:  # Top 10k EDHREC cards
+                logger.info(f"🎯 HIGH EDHREC: {card_name} (Rank #{edhrec_rank}) - Priority {priority}")
             else:
-                logger.info(f"📋 Standard Priority: {card_name} - Priority {priority}")
+                logger.info(f"📋 Standard Priority: {card_name} (Rank #{edhrec_rank}) - Priority {priority}")
             
             return self.enqueue_card_analysis(card_uuid, priority=priority, job_type=job_type)
             
