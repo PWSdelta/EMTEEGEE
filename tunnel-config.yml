@@ -1,0 +1,33 @@
+tunnel: emteegee-tunnel
+credentials-file: emteegee-tunnel.json
+
+ingress:
+  # Primary domain - direct to Django app
+  - hostname: tcgplex.com
+    service: http://localhost:8001
+  
+  # WWW redirect to primary domain
+  - hostname: www.tcgplex.com
+    service: http://localhost:8001
+  
+  # API specific routes
+  - hostname: tcgplex.com
+    path: /api/*
+    service: http://localhost:8001
+  
+  # Admin routes
+  - hostname: tcgplex.com
+    path: /admin/*
+    service: http://localhost:8001
+  
+  # Static files
+  - hostname: tcgplex.com
+    path: /static/*
+    service: http://localhost:8001
+  
+  # Catch all
+  - service: http://localhost:8001
+
+# Additional settings
+no-autoupdate: true
+protocol: http2

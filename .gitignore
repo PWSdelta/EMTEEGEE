@@ -59,3 +59,8 @@ Thumbs.db
 downloads/
 logs/
 scryfall_import.log
+
+# Swarm system
+data/swarm_cache/
+*.pid
+swarm_tasks.json

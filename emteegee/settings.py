@@ -11,6 +11,11 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,10 +25,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-d2hi@3x*dquyd&r$egqz&3sspc=d@ffvra-555&vm0k^_281@i'
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-d2hi@3x*dquyd&r$egqz&3sspc=d@ffvra-555&vm0k^_281@i')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DJANGO_DEBUG', 'True').lower() == 'true'
 
 ALLOWED_HOSTS = []
 
@@ -122,13 +127,30 @@ STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
 
-# MongoDB Configuration
-MONGODB_SETTINGS = {
-    'host': 'localhost:27017',
-    'db_name': 'emteegee',
-    'username': '',
-    'password': '',
-    'auth_source': 'admin'
+# MongoDB Configuration - Support both local and remote databases
+MONGODB_CONNECTION_STRING = os.getenv('MONGODB_CONNECTION_STRING')
+
+if MONGODB_CONNECTION_STRING:
+    # Use remote MongoDB connection string
+    MONGODB_SETTINGS = {
+        'connection_string': MONGODB_CONNECTION_STRING,
+        'db_name': 'emteegee_dev'  # Default database name
+    }
+else:
+    # Fallback to local MongoDB
+    MONGODB_SETTINGS = {
+        'host': 'localhost:27017',
+        'db_name': 'emteegee_dev',
+        'username': '',
+        'password': '',
+        'auth_source': 'admin'
+    }
+
+# Disable migrations for MongoDB apps
+MIGRATION_MODULES = {
+    'cards': None,
+    'analyses': None,
+    'users': None,
 }
 
 # Default primary key field type
