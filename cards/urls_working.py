@@ -113,52 +113,69 @@ def card_detail(request, card_uuid):
         })
 
 def the_abyss(request):
-    """Simple abyss page"""
-    return render(request, 'cards/the_abyss.html', {'cards': []})
+    """Import the real the_abyss function"""
+    from . import views as real_views
+    return real_views.the_abyss(request)
 
 def art_gallery(request):
-    """Simple art gallery page"""
-    return render(request, 'cards/art_gallery.html', {'gallery_cards': []})
+    """Import the real art_gallery function"""
+    from . import views as real_views
+    return real_views.art_gallery(request)
+
+def autocomplete_api(request):
+    """Import the real autocomplete API function"""
+    from . import views as real_views
+    return real_views.autocomplete_api(request)
 
 def analysis_dashboard(request):
-    """Simple analysis dashboard"""
-    return HttpResponse("Analysis Dashboard - Coming Soon!")
+    """Import the real analysis dashboard function"""
+    from . import views as real_views
+    return real_views.analysis_dashboard(request)
 
 def start_analysis(request, card_uuid):
-    """Simple analysis start"""
-    return HttpResponse("Analysis Started")
+    """Import the real start analysis function"""
+    from . import views as real_views
+    return real_views.start_analysis(request, card_uuid)
 
 def worker_control_panel(request):
-    """Simple worker control"""
-    return HttpResponse("Worker Control Panel")
+    """Import the real worker control panel function"""
+    from . import views as real_views
+    return real_views.worker_control_panel(request)
 
 def job_queue_status(request):
-    """Simple queue status"""
-    return HttpResponse("Queue Status")
+    """Import the real job queue status function"""
+    from . import views as real_views
+    return real_views.job_queue_status(request)
 
 def bulk_queue_cards(request):
-    """Simple bulk queue"""
-    return HttpResponse("Bulk Queue")
+    """Import the real bulk queue function"""
+    from . import views as real_views
+    return real_views.bulk_queue_cards(request)
 
 def retry_failed_job(request, job_id):
-    """Simple retry job"""
-    return HttpResponse("Retry Job")
+    """Import the real retry job function"""
+    from . import views as real_views
+    return real_views.retry_failed_job(request, job_id)
 
 def cleanup_old_jobs(request):
-    """Simple cleanup"""
-    return HttpResponse("Cleanup Jobs")
+    """Import the real cleanup function"""
+    from . import views as real_views
+    return real_views.cleanup_old_jobs(request)
 
 def reset_stuck_jobs(request):
-    """Simple reset jobs"""
-    return HttpResponse("Reset Jobs")
+    """Import the real reset stuck jobs function"""
+    from . import views as real_views
+    return real_views.reset_stuck_jobs(request)
 
 def admin_card_list(request):
-    """Simple admin list"""
-    return HttpResponse("Admin Card List")
+    """Import the real admin card list function"""
+    from . import views as real_views
+    return real_views.admin_card_list(request)
 
 def admin_card_detail(request, card_uuid):
-    """Simple admin detail"""
-    return HttpResponse("Admin Card Detail")
+    """Import the real admin card detail function"""
+    from . import views as real_views
+    return real_views.admin_card_detail(request, card_uuid)
 
 def browse_cards(request):
     """Simple browse redirect"""
@@ -172,9 +189,11 @@ urlpatterns = [
     path('browse/', browse_cards, name='browse'),
     path('abyss/', the_abyss, name='the_abyss'),
     path('card-list/', the_abyss, name='card_list'),  # Legacy compatibility
-    
-    # Art Gallery
+      # Art Gallery
     path('gallery/', art_gallery, name='art_gallery'),
+    
+    # Search API
+    path('api/autocomplete/', autocomplete_api, name='autocomplete_api'),
 
     # Analysis features
     path('analysis/dashboard/', analysis_dashboard, name='analysis_dashboard'),
