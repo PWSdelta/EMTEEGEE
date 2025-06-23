@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>EMTEEGEE - Cache Cleared!</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+            padding: 50px;
+            margin: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.1);
+            padding: 40px;
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+        }
+        h1 { font-size: 3rem; margin-bottom: 1rem; }
+        .btn {
+            display: inline-block;
+            background: #fff;
+            color: #333;
+            padding: 15px 30px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            margin: 10px;
+            transition: transform 0.2s;
+        }
+        .btn:hover { transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎉 Cache Cleared!</h1>
+        <p><strong>EMTEEGEE is now running with fresh, updated pages!</strong></p>
+        <p>The cache has been completely cleared and all static files are fresh.</p>
+        <p><strong>Server is now running on PORT 8001</strong></p>
+        
+        <div style="margin: 30px 0;">
+            <a href="http://localhost:8001/" class="btn">🏠 Home Page</a>
+            <a href="http://localhost:8001/abyss/" class="btn">🔍 The Abyss</a>
+            <a href="http://localhost:8001/gallery/" class="btn">🎨 Art Gallery</a>
+        </div>
+        
+        <h3>✅ What's Fixed:</h3>
+        <ul style="text-align: left; max-width: 400px; margin: 0 auto;">
+            <li>✅ Killed all Django server processes</li>
+            <li>✅ Removed entire staticfiles directory</li>
+            <li>✅ Recreated all static files from scratch</li>
+            <li>✅ Added aggressive cache busting</li>
+            <li>✅ Changed to port 8001</li>
+            <li>✅ Added timestamp parameters</li>
+            <li>✅ Cleared localStorage and sessionStorage</li>
+        </ul>
+        
+        <p style="margin-top: 30px;">
+            <strong>If you still see old content, try:</strong><br>
+            Ctrl+F5 or Ctrl+Shift+R for hard refresh
+        </p>
+    </div>
+    
+    <script>
+        // Additional cache clearing
+        if ('caches' in window) {
+            caches.keys().then(names => {
+                names.forEach(name => caches.delete(name));
+            });
+        }
+        localStorage.clear();
+        sessionStorage.clear();
+        console.log("🎉 All caches cleared! Fresh EMTEEGEE experience ready!");
+    </script>
+</body>
+</html>
