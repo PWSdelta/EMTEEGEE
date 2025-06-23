@@ -372,8 +372,12 @@ class EnhancedSwarmManager:
             return {'status': 'error', 'message': 'Task not assigned to this worker'}
         
         card_uuid = task['card_uuid']
+        # Try to find card by uuid first, then by id
         card = self.cards.find_one({'uuid': card_uuid})
         if not card:
+            card = self.cards.find_one({'id': card_uuid})
+        if not card:
+            enhanced_swarm_logger.error(f"Card not found with uuid/id: {card_uuid}")
             return {'status': 'error', 'message': 'Card not found'}
           # Get existing analysis for coherence checking
         existing_components = {}
