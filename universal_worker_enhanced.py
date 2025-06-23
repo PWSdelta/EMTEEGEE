@@ -54,30 +54,31 @@ class EnhancedUniversalWorker:
         self.active_tasks = set()  # Track tasks currently being processed
         self.completed_tasks = set()  # Track completed tasks to avoid duplicates
         self.last_heartbeat = None
-        
-        # Configure models based on hardware
+          # Configure models based on hardware - LLAMA ONLY v2.0
         if self.worker_type == 'desktop':
-            self.preferred_models = ['qwen2.5:7b', 'llama3.2:3b']
-            self.current_model = 'qwen2.5:7b'
-            self.specialization = 'fast_gpu_analysis'
+            # Desktop GPU: Fast, balanced analysis
+            self.preferred_models = ['llama3.1:8b']
+            self.current_model = 'llama3.1:8b'
+            self.specialization = 'balanced_analysis'
             self.max_tasks = 2  # Reduced for better tracking
             self.poll_interval = 3  # Faster polling for GPU worker
         elif self.worker_type == 'laptop_lite':
-            # Laptop Lite: Lightweight models for mid-range hardware
-            self.preferred_models = ['llama3.2:3b', 'llama3.2:1b', 'qwen2.5:3b']
+            # Laptop Lite: Lightweight models for low-RAM hardware
+            self.preferred_models = ['llama3.2:3b']
             self.current_model = 'llama3.2:3b'
-            self.specialization = 'lightweight_analysis'
+            self.specialization = 'efficient_analysis'
             self.max_tasks = 2  # Can handle multiple small tasks
             self.poll_interval = 4  # Moderate polling
         else:  # laptop
-            self.preferred_models = ['mixtral:8x7b', 'llama3.3:70b']
-            self.current_model = 'mixtral:8x7b'
-            self.specialization = 'deep_cpu_analysis'
+            # Beast Laptop: Deep analysis with massive models
+            self.preferred_models = ['llama3.1:70b']
+            self.current_model = 'llama3.1:70b'
+            self.specialization = 'deep_analysis'
             self.max_tasks = 1  # Single task for deep analysis
-            self.poll_interval = 5  # Slower polling for CPU worker
-        
+            self.poll_interval = 5  # Slower polling for CPU worker        
         logger.info(f"🤖 Initialized {self.worker_type} worker: {self.worker_id}")
-        logger.info(f"🎯 Using model: {self.current_model}")
+        logger.info(f"🦙 Using Llama model v2.0: {self.current_model}")
+        logger.info(f"🎯 Specialization: {self.specialization}")
         logger.info(f"🌐 Server: {self.server_url}")
         logger.info(f"⚙️  Max concurrent tasks: {self.max_tasks}")
 
