@@ -7,7 +7,7 @@ import requests
 import time
 import json
 
-API_BASE = "http://localhost:8000/api/enhanced_swarm"
+API_BASE = "http://localhost:8000/api/simple_swarm"
 
 def test_instant_work():
     """Test that get_work responds instantly with priority cache"""

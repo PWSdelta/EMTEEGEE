@@ -261,11 +261,11 @@ class EnhancedUniversalWorker:
         """Poll server for available work"""
         try:
             work_request = {
-                'worker_id': self.worker_id,
-                'max_tasks': self.max_tasks - len(self.active_tasks),
+                'worker_id': self.worker_id,                'max_tasks': self.max_tasks - len(self.active_tasks),
                 'specialization': self.specialization
             }
-              response = requests.post(
+            
+            response = requests.post(
                 f"{self.server_url}/api/enhanced_swarm/get_work",
                 json=work_request,
                 timeout=30  # Increased timeout for enhanced API
@@ -301,13 +301,13 @@ class EnhancedUniversalWorker:
             
             # Submit results
             results = {
-                'task_id': task_id,
-                'worker_id': self.worker_id,
+                'task_id': task_id,                'worker_id': self.worker_id,
                 'status': 'completed',
                 'results': {'placeholder': 'analysis_data'},
                 'completed_at': datetime.now(timezone.utc).isoformat()
             }
-              response = requests.post(
+            
+            response = requests.post(
                 f"{self.server_url}/api/enhanced_swarm/submit_results",
                 json=results,
                 timeout=30  # Increased timeout for enhanced API

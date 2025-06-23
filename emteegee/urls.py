@@ -25,6 +25,7 @@ urlpatterns = [
     # path('', include('cards.urls')),  # Main cards.urls has import issues
     path('api/swarm/', include('cards.api_urls')),  # Original Swarm API - v1.0
     path('api/enhanced_swarm/', include('cards.enhanced_api_urls')),  # Enhanced Swarm API - v2.0
+    path('api/simple_swarm/', include('cards.simple_api_urls')),  # SIMPLE Swarm API - INSTANT
 ]
 
 # Serve static files during development
