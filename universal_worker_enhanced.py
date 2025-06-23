@@ -291,6 +291,7 @@ class EnhancedUniversalWorker:
         """Process a single task (placeholder for now)"""
         task_id = task.get('task_id', 'unknown')
         card_name = task.get('card_name', 'Unknown Card')
+        card_id = task.get('card_id') or task.get('card_uuid')  # Support both field names
         
         logger.info(f"🎯 Processing task {task_id}: {card_name}")
         self.active_tasks.add(task_id)
@@ -299,9 +300,11 @@ class EnhancedUniversalWorker:
             # Simulate work (replace with actual analysis)
             time.sleep(2)
             
-            # Submit results
+            # Submit results with required card_id field
             results = {
-                'task_id': task_id,                'worker_id': self.worker_id,
+                'task_id': task_id,
+                'worker_id': self.worker_id,
+                'card_id': card_id,  # This was missing - required by API
                 'status': 'completed',
                 'results': {'placeholder': 'analysis_data'},
                 'completed_at': datetime.now(timezone.utc).isoformat()
@@ -318,6 +321,7 @@ class EnhancedUniversalWorker:
                 self.completed_tasks.add(task_id)
             else:
                 logger.error(f"❌ Failed to submit results for task {task_id}")
+                logger.error(f"Response: {response.text}")  # Added error details
                 
         except Exception as e:
             logger.error(f"❌ Task {task_id} failed: {e}")
