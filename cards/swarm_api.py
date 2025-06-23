@@ -73,18 +73,40 @@ def get_work(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 def submit_results(request):
-    """Accept completed work from a worker"""
+    """Accept completed work from a worker - simplified approach"""
     try:
         data = json.loads(request.body)
         worker_id = data.get('worker_id')
-        task_id = data.get('task_id')
+        card_id = data.get('card_id')
         results = data.get('results', {})
         
-        if not all([worker_id, task_id, results]):
-            return JsonResponse({'error': 'worker_id, task_id, and results required'}, status=400)
+        if not all([worker_id, card_id, results]):
+            return JsonResponse({'error': 'worker_id, card_id, and results required'}, status=400)
+          # Update card directly
+        for component_type, component_data in results.items():
+            update_data = {
+                f'analysis.components.{component_type}': {
+                    'content': component_data,
+                    'generated_at': datetime.now().isoformat(),
+                    'worker_id': worker_id
+                }
+            }
+            
+            swarm.cards.update_one(
+                {'_id': ObjectId(card_id)},
+                {'$set': update_data}
+            )
         
-        result = swarm.submit_results(worker_id, task_id, results)
-        return JsonResponse(result)
+        # Update worker stats
+        swarm.workers.update_one(
+            {'worker_id': worker_id},
+            {
+                '$inc': {'tasks_completed': 1},
+                '$set': {'last_heartbeat': datetime.now().isoformat()}
+            }
+        )
+        
+        return JsonResponse({'status': 'success', 'message': 'Results submitted'})
         
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
