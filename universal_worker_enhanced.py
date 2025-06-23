@@ -20,7 +20,7 @@ import sys
 from typing import Dict, List, Any, Optional
 import logging
 from dotenv import load_dotenv
-from datetime import datetime
+from datetime import datetime, timezone
 
 # Load environment variables
 load_dotenv()
@@ -58,14 +58,20 @@ class EnhancedUniversalWorker:
         self.active_tasks = set()  # Track tasks currently being processed
         self.completed_tasks = set()  # Track completed tasks to avoid duplicates
         self.last_heartbeat = None
-        
-        # Configure models based on hardware
+          # Configure models based on hardware
         if self.worker_type == 'desktop':
             self.preferred_models = ['qwen2.5:7b', 'llama3.2:3b']
             self.current_model = 'qwen2.5:7b'
             self.specialization = 'fast_gpu_analysis'
             self.max_tasks = 2  # Reduced for better tracking
             self.poll_interval = 3  # Faster polling for GPU worker
+        elif self.worker_type == 'laptop_lite':
+            # Laptop Lite: Lightweight models for mid-range hardware
+            self.preferred_models = ['llama3.2:3b', 'llama3.2:1b', 'qwen2.5:3b']
+            self.current_model = 'llama3.2:3b'
+            self.specialization = 'lightweight_analysis'
+            self.max_tasks = 2  # Can handle multiple small tasks
+            self.poll_interval = 4  # Moderate polling
         else:  # laptop
             self.preferred_models = ['mixtral:8x7b', 'llama3.3:70b']
             self.current_model = 'mixtral:8x7b'
@@ -76,28 +82,37 @@ class EnhancedUniversalWorker:
         logger.info(f"🤖 Initialized {self.worker_type} worker: {self.worker_id}")
         logger.info(f"🎯 Using model: {self.current_model}")
         logger.info(f"🌐 Server: {self.server_url}")
-        logger.info(f"⚙️  Max concurrent tasks: {self.max_tasks}")
-        
-    def _detect_capabilities(self) -> Dict[str, Any]:
+        logger.info(f"⚙️  Max concurrent tasks: {self.max_tasks}")        
+    def _detect_capabilities(self) ->Dict[str, Any]:
         """Auto-detect hardware and determine worker type"""
         ram_gb = round(psutil.virtual_memory().total / (1024**3))
         cpu_cores = psutil.cpu_count()
         cpu_info = platform.processor().lower()
         
-        # Reliable detection: AMD = Desktop, Intel = Laptop
+        # Enhanced detection for three computer types
         if 'amd' in cpu_info:
-            worker_type = 'desktop'
-            has_gpu = True
+            if ram_gb >= 100:  # High-end laptop (128GB)
+                worker_type = 'laptop'
+                has_gpu = False
+            elif ram_gb >= 60:  # Desktop (64GB)
+                worker_type = 'desktop'
+                has_gpu = True
+            else:  # Mid-range laptop (16GB) - Lenovo with Ryzen 5
+                worker_type = 'laptop_lite'
+                has_gpu = True  # Has AMD Radeon graphics
         elif 'intel' in cpu_info:
             worker_type = 'laptop'
             has_gpu = False
         else:
             # Fallback detection based on RAM
-            if ram_gb >= 100:  # Laptop has 128GB
+            if ram_gb >= 100:
                 worker_type = 'laptop'
                 has_gpu = False
-            else:  # Desktop has 64GB
+            elif ram_gb >= 60:
                 worker_type = 'desktop'
+                has_gpu = True
+            else:
+                worker_type = 'laptop_lite'
                 has_gpu = True
         
         capabilities = {
@@ -108,7 +123,7 @@ class EnhancedUniversalWorker:
             'ram_gb': ram_gb,
             'gpu_available': has_gpu,
             'worker_type': worker_type,
-            'specialization': 'deep_cpu_analysis' if worker_type == 'laptop' else 'fast_gpu_analysis',
+            'specialization': 'deep_cpu_analysis' if worker_type == 'laptop' else ('lightweight_analysis' if worker_type == 'laptop_lite' else 'fast_gpu_analysis'),
             'version': '2.0.0'  # Enhanced version
         }
         
@@ -158,14 +173,13 @@ class EnhancedUniversalWorker:
         except Exception as e:
             logger.error(f"❌ Ollama connection failed: {e}")
             return False
-    
     def register(self) -> bool:
         """Register with the central server with enhanced error handling"""
         registration_data = {
             'worker_id': self.worker_id,
             'capabilities': self.capabilities,
             'status': 'active',
-            'registered_at': datetime.utcnow().isoformat()
+            'registered_at': datetime.now(timezone.UTC).isoformat()
         }
         
         # Determine servers to try based on configuration
@@ -210,7 +224,7 @@ class EnhancedUniversalWorker:
                     logger.info(f"📝 Assigned components: {len(result.get('assigned_components', []))}")
                     # Update server URL to the working one
                     self.server_url = server_url
-                    self.last_heartbeat = datetime.utcnow()
+                    self.last_heartbeat = datetime.now(timezone.UTC)
                     return True
                 else:
                     logger.warning(f"⚠️  Registration failed: HTTP {response.status_code} - {response.text[:200]}")
@@ -243,7 +257,7 @@ class EnhancedUniversalWorker:
                 'status': 'active',
                 'active_tasks': len(self.active_tasks),
                 'completed_tasks': len(self.completed_tasks),
-                'last_heartbeat': datetime.utcnow().isoformat()
+                'last_heartbeat': datetime.now(timezone.UTC).isoformat()
             }
             
             response = requests.post(
@@ -253,7 +267,7 @@ class EnhancedUniversalWorker:
             )
             
             if response.status_code == 200:
-                self.last_heartbeat = datetime.utcnow()
+                self.last_heartbeat = datetime.now(timezone.UTC)
                 return True
             else:
                 logger.warning(f"⚠️  Heartbeat failed: {response.status_code}")
@@ -316,7 +330,7 @@ class EnhancedUniversalWorker:
                 'results': results,
                 'worker_type': self.worker_type,
                 'model_used': self.current_model,
-                'completed_at': datetime.utcnow().isoformat(),
+                'completed_at': datetime.now(timezone.UTC).isoformat(),
                 'processing_time': None  # Could add timing metrics
             }
             
@@ -389,13 +403,20 @@ class EnhancedUniversalWorker:
                 logger.info(f"🧠 Generating {component} for {card_name}")
                 
                 prompt = self._create_enhanced_prompt(card_data, component)
-                
-                # Configure generation based on worker type
+                  # Configure generation based on worker type
                 if self.worker_type == 'desktop':
                     # Fast, efficient analysis for desktop
                     options = {
                         "temperature": 0.7,
                         "num_predict": 250,  # Balanced length
+                        "top_p": 0.9,
+                        "repeat_penalty": 1.1
+                    }
+                elif self.worker_type == 'laptop_lite':
+                    # Lightweight analysis for laptop lite
+                    options = {
+                        "temperature": 0.7,
+                        "num_predict": 200,  # Shorter responses for efficiency
                         "top_p": 0.9,
                         "repeat_penalty": 1.1
                     }
@@ -447,8 +468,7 @@ Type: {type_line}"""
             base_info += f"\nPower/Toughness: {power}/{toughness}"
         
         base_info += f"\nText: {oracle_text}"
-        
-        # Component-specific prompts
+          # Component-specific prompts
         prompts = {
             'play_tips': {
                 'desktop': f"""{base_info}
@@ -459,6 +479,15 @@ Provide 3 essential gameplay tips for this Magic card:
 3. Key strategic considerations
 
 Be practical and concise (150-200 words).""",
+                
+                'laptop_lite': f"""{base_info}
+
+Provide 3 practical gameplay tips for this Magic card:
+1. When and how to play this card effectively
+2. Key synergies and card combinations
+3. Strategic considerations for competitive play
+
+Be concise and focused (120-150 words).""",
                 
                 'laptop': f"""{base_info}
 
@@ -482,6 +511,15 @@ Quick deck building guide:
 
 Focus on actionable advice (150-200 words).""",
                 
+                'laptop_lite': f"""{base_info}
+
+Deck building essentials:
+1. Best deck types for this card
+2. Key supporting cards and synergies
+3. Format recommendations
+
+Be practical and direct (120-150 words).""",
+                
                 'laptop': f"""{base_info}
 
 Comprehensive deck building analysis:
@@ -504,6 +542,15 @@ Tournament viability assessment:
 
 Be direct and analytical (150-200 words).""",
                 
+                'laptop_lite': f"""{base_info}
+
+Competitive assessment:
+1. Tournament viability and meta position
+2. Strengths and weaknesses in competitive play
+3. Format recommendations
+
+Be analytical and concise (120-150 words).""",
+                
                 'laptop': f"""{base_info}
 
 Deep competitive analysis:
@@ -516,14 +563,20 @@ Deep competitive analysis:
 Include statistical context and strategic depth (300-400 words)."""
             }
         }
-        
-        # Get appropriate prompt or create default
+          # Get appropriate prompt or create default
         if component in prompts:
             return prompts[component].get(self.worker_type, prompts[component]['desktop'])
         else:
             # Default prompt for unspecified components
-            detail_level = "detailed" if self.worker_type == 'laptop' else "concise"
-            word_count = "300-400" if self.worker_type == 'laptop' else "150-200"
+            if self.worker_type == 'laptop':
+                detail_level = "detailed"
+                word_count = "300-400"
+            elif self.worker_type == 'laptop_lite':
+                detail_level = "focused"
+                word_count = "120-150"
+            else:  # desktop
+                detail_level = "concise"
+                word_count = "150-200"
             
             return f"""{base_info}
 

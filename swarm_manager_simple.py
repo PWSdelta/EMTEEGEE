@@ -88,9 +88,11 @@ class SwarmManager:
         # All systems can handle balanced components
         assigned.extend(self.BALANCED_COMPONENTS)
         
-        return list(set(assigned))  # Remove duplicates
-    def get_work(self, worker_id: str, max_tasks: int = 1) -> List[Dict[str, Any]]:
-        """Get work assignments for a specific worker with improved duplicate prevention"""
+        return list(set(assigned))  # Remove duplicates    def get_work(self, worker_id: str, max_tasks: int = 1) -> List[Dict[str, Any]]:
+        """Get work assignments for a specific worker with atomic task assignment"""
+        # Clean up any stale locks first
+        self.cleanup_stale_locks()
+        
         worker = self.workers.find_one({'worker_id': worker_id})
         if not worker:
             return []
@@ -113,41 +115,53 @@ class SwarmManager:
         if len(existing_tasks) >= max_tasks:
             return existing_tasks
         
-        # Get cards that are not currently being processed by any worker
-        currently_processing_cards = set()
-        active_tasks = self.tasks.find({'status': {'$in': ['assigned', 'in_progress']}})
-        for task in active_tasks:
-            currently_processing_cards.add(task['card_id'])
-        
-        # Find cards that need analysis and are not currently being processed
+        # Calculate how many new tasks we can assign
+        available_slots = max_tasks - len(existing_tasks)
         tasks = []
-        cards_needing_work = self.cards.find({
-            '$and': [
+          # Use atomic operations to prevent duplicate assignments
+        for _ in range(available_slots):
+            # First, get the list of card IDs that are currently being processed
+            processing_card_ids = [
+                task['card_id'] for task in self.tasks.find({
+                    'status': {'$in': ['assigned', 'in_progress']}
+                })
+            ]
+            
+            # Find and atomically claim a card that needs work
+            card = self.cards.find_one_and_update(
                 {
-                    '$or': [
-                        {'analysis.fully_analyzed': {'$ne': True}},
-                        {'analysis.components': {'$exists': False}}
+                    '$and': [
+                        {
+                            '$or': [
+                                {'analysis.fully_analyzed': {'$ne': True}},
+                                {'analysis.components': {'$exists': False}}
+                            ]
+                        },
+                        # Ensure no active task exists for this card
+                        {'_id': {'$nin': processing_card_ids}},
+                        # Add a temporary lock field to prevent race conditions
+                        {'temp_locked': {'$exists': False}}
                     ]
                 },
-                {'_id': {'$nin': list(currently_processing_cards)}}  # Exclude cards being processed
-            ]
-        }).limit(max_tasks * 20)  # Get more to filter from
-        
-        for card in cards_needing_work:
-            if len(tasks) >= max_tasks - len(existing_tasks):
-                break
+                {
+                    '$set': {
+                        'temp_locked': worker_id,
+                        'temp_locked_at': datetime.now(timezone.utc)
+                    }
+                },
+                return_document=True  # Return the updated document
+            )
+            
+            if not card:
+                break  # No more cards available
                 
             card_id = str(card['_id'])
             
-            # Skip if already being processed
-            if card_id in currently_processing_cards:
-                continue
-                
+            # Find missing components this worker can handle
             existing_components = set()
             if 'analysis' in card and 'components' in card['analysis']:
                 existing_components = set(card['analysis']['components'].keys())
             
-            # Find missing components this worker can handle
             missing_components = []
             for component in assigned_components:
                 if component not in existing_components:
@@ -166,10 +180,22 @@ class SwarmManager:
                     'card_data': card  # Include card data for analysis
                 }
                 
-                # Store task in database
+                # Store task in database atomically
                 self.tasks.insert_one(task)
                 tasks.append(task)
-                currently_processing_cards.add(card_id)  # Mark as being processed
+            else:
+                # No work needed for this card, remove the lock
+                self.cards.update_one(
+                    {'_id': card['_id']},
+                    {'$unset': {'temp_locked': 1, 'temp_locked_at': 1}}
+                )
+        
+        # Clean up temporary locks for cards we processed
+        for task in tasks:
+            self.cards.update_one(
+                {'_id': task['card_data']['_id']},
+                {'$unset': {'temp_locked': 1, 'temp_locked_at': 1}}
+            )
         
         # Return existing tasks + new tasks
         return existing_tasks + tasks
@@ -256,3 +282,13 @@ class SwarmManager:
                 'tasks': {'pending': 0, 'completed': 0},
                 'analysis': {'total_cards': 0, 'analyzed_cards': 0, 'progress_percentage': 0}
             }
+    
+    def cleanup_stale_locks(self):
+        """Remove temporary locks that are older than 5 minutes (in case workers crashed)"""
+        stale_cutoff = datetime.now(timezone.utc) - timedelta(minutes=5)
+        result = self.cards.update_many(
+            {'temp_locked_at': {'$lt': stale_cutoff}},
+            {'$unset': {'temp_locked': 1, 'temp_locked_at': 1}}
+        )
+        if result.modified_count > 0:
+            print(f"Cleaned up {result.modified_count} stale locks")
