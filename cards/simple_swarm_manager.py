@@ -46,12 +46,12 @@ class SimpleSwarmManager:
         # Simple in-memory work queue - thread-safe
         self.work_queue = deque()
         self.queue_lock = threading.Lock()
-        
-        # Load the queue at startup
+          # Load the queue at startup
         self._load_work_queue()
         
         logger.info(f"🚀 Simple Swarm Manager initialized with {len(self.work_queue)} cards ready for work")
-      def _load_work_queue(self):
+    
+    def _load_work_queue(self):
         """Load all unanalyzed card IDs into work queue, sorted by priority"""
         logger.info("📥 Loading work queue...")
         
