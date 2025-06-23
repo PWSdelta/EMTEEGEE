@@ -101,15 +101,30 @@ class SwarmManager:
         )
         
         assigned_components = self._get_worker_components(worker['capabilities'])
-        
-        # Simple: Find a random card that doesn't have all components yet
+          # Simple: Find a random card that doesn't have all components yet
         cards_needing_work = list(self.cards.aggregate([
             {
                 '$match': {
                     '$or': [
                         {'analysis.components': {'$exists': False}},
-                        {'analysis.components': {'$size': {'$lt': 20}}}  # Less than 20 components
+                        {'analysis.fully_analyzed': {'$ne': True}}
                     ]
+                }
+            },
+            {
+                '$addFields': {
+                    'component_count': {
+                        '$cond': {
+                            'if': {'$exists': ['$analysis.components', True]},
+                            'then': {'$size': {'$objectToArray': '$analysis.components'}},
+                            'else': 0
+                        }
+                    }
+                }
+            },
+            {
+                '$match': {
+                    'component_count': {'$lt': 20}
                 }
             },
             {'$sample': {'size': max_tasks}}  # Get random cards
