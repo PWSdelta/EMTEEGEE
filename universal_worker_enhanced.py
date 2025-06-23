@@ -265,11 +265,10 @@ class EnhancedUniversalWorker:
                 'max_tasks': self.max_tasks - len(self.active_tasks),
                 'specialization': self.specialization
             }
-            
-            response = requests.post(
+              response = requests.post(
                 f"{self.server_url}/api/enhanced_swarm/get_work",
                 json=work_request,
-                timeout=15
+                timeout=30  # Increased timeout for enhanced API
             )
             
             if response.status_code == 200:
@@ -308,11 +307,10 @@ class EnhancedUniversalWorker:
                 'results': {'placeholder': 'analysis_data'},
                 'completed_at': datetime.now(timezone.utc).isoformat()
             }
-            
-            response = requests.post(
+              response = requests.post(
                 f"{self.server_url}/api/enhanced_swarm/submit_results",
                 json=results,
-                timeout=15
+                timeout=30  # Increased timeout for enhanced API
             )
             
             if response.status_code == 200:
