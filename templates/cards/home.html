@@ -1,103 +1,609 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% load card_filters %}
-{% block title %}EMTEEGEE - Magic: The Gathering Analysis Platform{% endblock %}
-{% block content %}
-<div class="container-xxl">
-    <!-- Hero Section -->
-    <div class="hero-home-section">
-        <div class="row align-items-center">
-            <div class="col-lg-6">
-                <div class="hero-content">
-                    <h1 class="hero-home-title">
-                        <span class="brand-icon">🎴</span>
-                        <span class="brand-name">EMTEEGEE</span>
-                    </h1>
-                    <p class="hero-subtitle">Advanced Magic: The Gathering Analysis Platform</p>                    <p class="hero-description">
-                        Explore 198 Magic cards with comprehensive AI analysis featuring 20 detailed components each.
-                        From tactical breakdowns to beginner guides, discover insights you won't find anywhere else.
-                    </p><div class="hero-actions">
-                        <a href="/abyss/?analyzed=true" class="btn btn-primary btn-lg me-3">
-                            <i class="bi bi-robot"></i> View AI-Analyzed Cards
-                        </a>
-                        <button type="button" class="btn btn-outline-primary btn-lg" data-bs-toggle="modal" data-bs-target="#quickSearchModal">
-                            <i class="bi bi-search"></i> Quick Search
-                        </button>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-6">
-                <div class="hero-stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="bi bi-collection"></i></div>                        <div class="stat-content">
-                            <div class="stat-number">{{ card_count|default:"29,448" }}</div>
-                            <div class="stat-label">Magic Cards</div>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="bi bi-cpu"></i></div>                        <div class="stat-content">
-                            <div class="stat-number">{{ analysis_progress.analyzed_cards|default:"198" }}</div>
-                            <div class="stat-label">AI Analyzed</div>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="bi bi-graph-up"></i></div>
-                        <div class="stat-content">
-                            <div class="stat-number">20</div>
-                            <div class="stat-label">Analysis Types</div>
-                        </div>
-                    </div>                    <div class="stat-card">
-                        <div class="stat-icon"><i class="bi bi-lightning-charge"></i></div>
-                        <div class="stat-content">
-                            <div class="stat-number">3,960+</div>
-                            <div class="stat-label">AI Insights</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>    </div>
 
-    <!-- AI Analyzed Cards Showcase -->
-    <section class="analyzed-showcase-section">
-        <div class="container">
-            <div class="section-header">
-                <h2 class="section-title">
-                    <i class="bi bi-brain"></i> AI-Analyzed Cards
-                </h2>                <p class="section-subtitle">
-                    Explore our growing collection of 198 cards with comprehensive 20-component AI analysis
-                </p>
+{% block title %}EMTEEGEE - Magic: The Gathering AI Analysis Platform{% endblock %}
+
+{% block extra_head %}
+<style>
+/* Hero Section */
+.hero-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 5rem 0;
+    margin-bottom: 4rem;
+    border-radius: 0 0 3rem 3rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.2"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+    opacity: 0.3;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+}
+
+.hero-title {
+    font-size: 4rem;
+    font-weight: 800;
+    margin-bottom: 1.5rem;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.hero-subtitle {
+    font-size: 1.5rem;
+    opacity: 0.9;
+    margin-bottom: 2rem;
+    font-weight: 300;
+}
+
+.hero-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 2rem;
+    margin-top: 3rem;
+}
+
+.hero-stat {
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(10px);
+    padding: 2rem;
+    border-radius: 1.5rem;
+    border: 1px solid rgba(255,255,255,0.3);
+    text-align: center;
+    transition: transform 0.3s ease;
+}
+
+.hero-stat:hover {
+    transform: translateY(-5px);
+}
+
+.hero-stat-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    display: block;
+}
+
+.hero-stat-label {
+    font-size: 1rem;
+    opacity: 0.8;
+    margin-top: 0.5rem;
+}
+
+/* Fully Analyzed Cards Section */
+.analyzed-cards-section {
+    margin: 4rem 0;
+}
+
+.section-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.section-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+}
+
+.section-subtitle {
+    font-size: 1.25rem;
+    color: #7f8c8d;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 2rem;
+    margin-top: 3rem;
+}
+
+.analyzed-card {
+    background: white;
+    border-radius: 1.5rem;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    position: relative;
+    border: 2px solid transparent;
+}
+
+.analyzed-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    border-color: #667eea;
+}
+
+.card-image-container {
+    position: relative;
+    aspect-ratio: 5/7;
+    overflow: hidden;
+    background: #f8f9fa;
+}
+
+.card-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.analyzed-card:hover .card-image {
+    transform: scale(1.05);
+}
+
+.card-image-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(45deg, #f8f9fa, #e9ecef);
+    color: #6c757d;
+    font-size: 3rem;
+}
+
+.analysis-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: #28a745;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 2rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.card-info {
+    padding: 1.5rem;
+}
+
+.card-name {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 0.75rem;
+    line-height: 1.3;
+}
+
+.card-type {
+    color: #7f8c8d;
+    font-size: 0.95rem;
+    margin-bottom: 1rem;
+}
+
+.card-stats {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.card-stat {
+    background: #f8f9fa;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    color: #495057;
+    font-weight: 600;
+}
+
+.rarity-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.rarity-badge.common { background: #6c757d; color: white; }
+.rarity-badge.uncommon { background: #c0c0c0; color: #333; }
+.rarity-badge.rare { background: #ffd700; color: #333; }
+.rarity-badge.mythic { background: #ff8c00; color: white; }
+
+/* Component Preview */
+.component-preview {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e9ecef;
+}
+
+.component-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.component-tag {
+    background: #e3f2fd;
+    color: #1976d2;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.component-count {
+    background: #667eea;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-left: auto;
+}
+
+/* View More Section */
+.view-more-section {
+    text-align: center;
+    margin: 4rem 0;
+    padding: 3rem;
+    background: #f8f9fa;
+    border-radius: 2rem;
+}
+
+.view-more-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+}
+
+.view-more-subtitle {
+    color: #7f8c8d;
+    margin-bottom: 2rem;
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.btn-hero {
+    padding: 1rem 2rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+    border-radius: 1rem;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-hero-primary {
+    background: #667eea;
+    color: white;
+    border: 2px solid #667eea;
+}
+
+.btn-hero-primary:hover {
+    background: #5a6fd8;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+    color: white;
+}
+
+.btn-hero-outline {
+    background: transparent;
+    color: #667eea;
+    border: 2px solid #667eea;
+}
+
+.btn-hero-outline:hover {
+    background: #667eea;
+    color: white;
+    transform: translateY(-2px);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .hero-title {
+        font-size: 2.5rem;
+    }
+    
+    .hero-stats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+    
+    .cards-grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .cards-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Loading Animation */
+.loading-shimmer {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+/* Card Link Overlay */
+.card-link {
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+    text-decoration: none;
+}
+
+.card-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(102, 126, 234, 0.9);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    gap: 0.5rem;
+}
+
+.analyzed-card:hover .card-overlay {
+    opacity: 1;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="container">
+        <div class="hero-content text-center">
+            <h1 class="hero-title">
+                🎴 EMTEEGEE
+            </h1>
+            <p class="hero-subtitle">
+                Comprehensive AI Analysis for Magic: The Gathering Cards
+            </p>
+            
+            <div class="hero-stats">
+                <div class="hero-stat">
+                    <span class="hero-stat-number">{{ card_count|default:"29,448" }}</span>
+                    <div class="hero-stat-label">Total Cards</div>
+                </div>
+                <div class="hero-stat">
+                    <span class="hero-stat-number">{{ analyzed_cards_count|default:"0" }}</span>
+                    <div class="hero-stat-label">Fully Analyzed</div>
+                </div>
+                <div class="hero-stat">
+                    <span class="hero-stat-number">20</span>
+                    <div class="hero-stat-label">Analysis Components</div>
+                </div>
+                <div class="hero-stat">
+                    <span class="hero-stat-number">{{ total_components|default:"0" }}</span>
+                    <div class="hero-stat-label">AI Insights</div>
+                </div>
             </div>
             
-            <div class="analyzed-cards-preview">
-                <div class="row g-4 mb-4">
-                    <div class="col-md-4">
-                        <div class="analysis-stat-card">
-                            <div class="analysis-stat-icon">
-                                <i class="bi bi-cpu-fill"></i>
+            <div class="action-buttons" style="margin-top: 3rem;">
+                <a href="{% url 'cards:the_abyss' %}?analyzed=true" class="btn-hero btn-hero-primary">
+                    <i class="bi bi-robot"></i>
+                    Explore AI Analysis
+                </a>
+                <a href="{% url 'cards:the_abyss' %}" class="btn-hero btn-hero-outline">
+                    <i class="bi bi-search"></i>
+                    Search All Cards
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Fully Analyzed Cards Section -->
+{% if fully_analyzed_cards %}
+<section class="analyzed-cards-section">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="bi bi-brain"></i> Fully Analyzed Cards
+            </h2>
+            <p class="section-subtitle">
+                Each card features comprehensive AI analysis with 20 detailed components covering tactical insights, 
+                play strategies, format analysis, and much more.
+            </p>
+        </div>
+        
+        <div class="cards-grid">
+            {% for card in fully_analyzed_cards %}
+                <div class="analyzed-card">
+                    <div class="card-image-container">
+                        {% with card|card_image:'normal' as card_image_url %}
+                            {% if card_image_url %}
+                                <img src="{{ card_image_url }}" 
+                                     alt="{{ card.name }}" 
+                                     class="card-image"
+                                     loading="lazy">
+                            {% else %}
+                                <div class="card-image-placeholder">
+                                    <i class="bi bi-image"></i>
+                                </div>
+                            {% endif %}
+                        {% endwith %}
+                        
+                        <div class="analysis-badge">
+                            <i class="bi bi-cpu"></i> AI Analyzed
+                        </div>
+                        
+                        <a href="{% url 'cards:card_detail' card.uuid %}" class="card-link">
+                            <div class="card-overlay">
+                                <i class="bi bi-eye" style="font-size: 2rem;"></i>
+                                <span>View Analysis</span>
                             </div>
-                            <div class="analysis-stat-content">
-                                <h3>198 Cards</h3>
-                                <p>Fully analyzed with 20 AI components each</p>
+                        </a>
+                    </div>
+                    
+                    <div class="card-info">
+                        <h3 class="card-name">{{ card.name }}</h3>
+                        <div class="card-type">{{ card.type|default:"Unknown Type" }}</div>
+                        
+                        <div class="card-stats">
+                            {% if card.manaValue %}
+                                <div class="card-stat">CMC {{ card.manaValue }}</div>
+                            {% endif %}
+                            {% if card.rarity %}
+                                <span class="rarity-badge {{ card.rarity }}">{{ card.rarity|title }}</span>
+                            {% endif %}
+                            {% if card.edhrecRank %}
+                                <div class="card-stat">Rank #{{ card.edhrecRank|floatformat:0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="component-preview">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="component-tags">
+                                    <span class="component-tag">Tactical</span>
+                                    <span class="component-tag">Strategy</span>
+                                    <span class="component-tag">Combos</span>
+                                </div>
+                                <span class="component-count">{{ card.component_count|default:"20" }} Components</span>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4">
-                        <div class="analysis-stat-card">
-                            <div class="analysis-stat-icon">
-                                <i class="bi bi-lightning-charge-fill"></i>
-                            </div>
-                            <div class="analysis-stat-content">
-                                <h3>3,960+ Insights</h3>
-                                <p>Individual AI-generated analysis components</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="analysis-stat-card">
-                            <div class="analysis-stat-icon">
-                                <i class="bi bi-robot"></i>
-                            </div>
-                            <div class="analysis-stat-content">
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- View More Section -->
+<section class="view-more-section">
+    <div class="container">
+        <h2 class="view-more-title">Discover More</h2>
+        <p class="view-more-subtitle">
+            Explore our complete database of Magic: The Gathering cards with advanced search and filtering options.
+        </p>
+        
+        <div class="action-buttons">
+            <a href="{% url 'cards:the_abyss' %}?analyzed=true" class="btn-hero btn-hero-primary">
+                <i class="bi bi-cpu"></i>
+                View All Analyzed Cards
+            </a>
+            <a href="{% url 'cards:the_abyss' %}" class="btn-hero btn-hero-outline">
+                <i class="bi bi-grid-3x3-gap"></i>
+                Browse Card Database
+            </a>
+        </div>
+        
+        <!-- Analysis Components Preview -->
+        <div style="margin-top: 3rem;">
+            <h3 style="color: #2c3e50; margin-bottom: 1.5rem;">20 Analysis Components Include:</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; text-align: left;">
+                <div>
+                    <strong>🎯 Strategic Analysis</strong>
+                    <ul style="margin: 0.5rem 0 0 1rem; color: #7f8c8d;">
+                        <li>Tactical Analysis</li>
+                        <li>Power Level Assessment</li>
+                        <li>Competitive Analysis</li>
+                        <li>Meta Positioning</li>
+                    </ul>
+                </div>
+                <div>
+                    <strong>💡 Practical Guides</strong>
+                    <ul style="margin: 0.5rem 0 0 1rem; color: #7f8c8d;">
+                        <li>Play Tips</li>
+                        <li>Combo Suggestions</li>
+                        <li>Format Analysis</li>
+                        <li>Deck Archetypes</li>
+                    </ul>
+                </div>
+                <div>
+                    <strong>📚 Educational Content</strong>
+                    <ul style="margin: 0.5rem 0 0 1rem; color: #7f8c8d;">
+                        <li>New Player Guide</li>
+                        <li>Rules Clarifications</li>
+                        <li>Budget Alternatives</li>
+                        <li>Historical Context</li>
+                    </ul>
+                </div>
+                <div>
+                    <strong>🎨 Thematic Analysis</strong>
+                    <ul style="margin: 0.5rem 0 0 1rem; color: #7f8c8d;">
+                        <li>Art & Flavor Analysis</li>
+                        <li>Design Philosophy</li>
+                        <li>Investment Outlook</li>
+                        <li>Advanced Interactions</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- No Cards Fallback -->
+{% if not fully_analyzed_cards %}
+<section class="analyzed-cards-section">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="bi bi-brain"></i> AI Analysis In Progress
+            </h2>
+            <p class="section-subtitle">
+                Our AI workers are currently analyzing Magic cards. Check back soon to see fully analyzed cards with 20 comprehensive components each!
+            </p>
+        </div>
+        
+        <div class="text-center">
+            <div style="font-size: 4rem; color: #667eea; margin: 2rem 0;">
+                <i class="bi bi-gear-fill" style="animation: spin 2s linear infinite;"></i>
+            </div>
+            <p style="color: #7f8c8d;">Analysis system active - cards will appear here as they're completed.</p>
+        </div>
+    </div>
+</section>
+
+<style>
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+</style>
+{% endif %}
+
+{% endblock %}
                                 <h3>4 AI Models</h3>
                                 <p>Specialized models for different analysis types</p>
                             </div>
