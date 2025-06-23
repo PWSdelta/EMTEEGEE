@@ -127,7 +127,7 @@ class EnhancedSwarmManager:
         return score
     
     def get_priority_work_batch(self, worker_id: str, max_tasks: int = 1) -> List[Dict[str, Any]]:
-        """Get prioritized work batch with smart card selection"""
+        """Get prioritized work batch using simple EDHREC queue"""
         worker = self.workers.find_one({'worker_id': worker_id})
         if not worker:
             return []
@@ -169,9 +169,7 @@ class EnhancedSwarmManager:
                 tasks.append(task)
         
         enhanced_swarm_logger.info(f"🎯 Created {len(tasks)} tasks for worker {worker_id}")
-        
         return tasks
-    
     def _create_smart_batches(self, priority_cards: List[Dict[str, Any]], 
                             assigned_components: List[str], max_batches: int) -> List[List[Dict[str, Any]]]:
         """Create smart batches of related cards for context-aware analysis"""
