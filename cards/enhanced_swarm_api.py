@@ -75,8 +75,8 @@ def get_work(request):
         if logger:
             logger.info(f"🔍 Priority work request from {worker_id}, max_tasks: {max_tasks}")
         
-        # Use enhanced swarm manager's get_work method which uses priority cache
-        tasks = enhanced_swarm.get_work(worker_id, max_tasks)
+        # Use enhanced swarm manager's get_priority_work_batch method which uses priority cache
+        tasks = enhanced_swarm.get_priority_work_batch(worker_id, max_tasks)
         
         # Convert ObjectId fields to strings for JSON serialization
         json_tasks = json.loads(json.dumps(tasks, cls=MongoJSONEncoder))
