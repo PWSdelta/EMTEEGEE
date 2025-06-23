@@ -1,199 +1,218 @@
-# EMTeeGee Documentation Hub
-## Complete VPS Deployment Documentation
+# EMTEEGEE - Magic: The Gathering AI Analysis System
 
-### 📚 Available Guides
+**A distributed AI-powered Magic card analysis platform with swarm processing capabilities.**
 
-1. **[VPS Deployment Plan](VPS_DEPLOYMENT_PLAN.md)**
-   - Architecture overview
-   - Cost breakdown ($5/month)
-   - Performance expectations
-   - Technology stack
+## 🚀 Quick Start
 
-2. **[VPS Setup Guide](VPS_SETUP_GUIDE.md)**
-   - Step-by-step server setup
-   - Django configuration
-   - Nginx and SSL setup
-   - Testing and troubleshooting
-
-3. **[Deployment Scripts](scripts/)**
-   - `initial_setup.sh` - Server initialization
-   - `django_setup.sh` - Django application setup
-   - `configure_services.sh` - Nginx and systemd configuration
-
-4. **[Production Configuration]()**
-   - `requirements_production.txt` - Additional Python packages
-   - `settings_production.py` - Production Django settings
-
-### 🚀 Quick Start Deployment
-
-**1. Create Linode Server**
-- Plan: Nanode 1GB ($5/month)
-- OS: Ubuntu 22.04 LTS
-- Add SSH key
-
-**2. Run Initial Setup**
+### Local Development
 ```bash
-ssh root@YOUR_SERVER_IP
-curl -sSL https://raw.githubusercontent.com/yourusername/emteegee/main/claude/scripts/initial_setup.sh | bash
-```
-
-**3. Deploy Application**
-```bash
-su - emteegee
+# Clone and setup
 git clone https://github.com/yourusername/emteegee.git
 cd emteegee
-./claude/scripts/django_setup.sh
+pip install -r requirements.txt
+
+# Configure environment
+cp .env.example .env
+# Edit .env with your MongoDB connection and settings
+
+# Run locally
+python manage.py runserver 8001
 ```
 
-**4. Configure Services**
+### Production Deployment (VPS)
 ```bash
-sudo ./claude/scripts/configure_services.sh
-```
+# 1. Create Linode server (Ubuntu 22.04, $5/month)
+ssh root@YOUR_SERVER_IP
 
-**5. Setup SSL**
-```bash
+# 2. Run deployment script
+curl -sSL https://raw.githubusercontent.com/yourusername/emteegee/main/claude/scripts/full_deploy.sh | bash
+
+# 3. Setup domain and SSL
 sudo certbot --nginx -d yourdomain.com
 ```
 
-### 🛠️ Features Included
+## 🏗️ Architecture
 
-**Server Configuration:**
-- ✅ Nginx reverse proxy
-- ✅ Gunicorn WSGI server
-- ✅ systemd service management
-- ✅ SSL certificate (Let's Encrypt)
-- ✅ Firewall configuration
-- ✅ Automatic backups
-- ✅ Log rotation
+**Core Components:**
+- **Django Web Server** - Main application, API endpoints, web interface
+- **MongoDB Atlas** - Card data and analysis storage  
+- **Swarm Workers** - Distributed AI analysis processing
+- **Ollama AI** - Local language models for card analysis
 
-**Security:**
-- ✅ HTTPS enforcement
-- ✅ Security headers
-- ✅ Firewall rules
-- ✅ File permissions
-- ✅ Process isolation
+**Processing Flow:**
+1. Cards imported from Scryfall API
+2. EDHREC priority system queues cards for analysis
+3. Distributed workers pull work from server
+4. AI analyzes cards with 20 component types
+5. Results stored and displayed in web interface
 
-**Monitoring:**
-- ✅ Application logs
-- ✅ Nginx access logs
-- ✅ Health check endpoints
-- ✅ Service status monitoring
+## � Features
 
-**Maintenance:**
-- ✅ Deployment script
-- ✅ Backup script
-- ✅ Log rotation
-- ✅ Auto-restart services
+### Card Analysis
+- **20 AI Components** per card (tactics, synergies, power level, etc.)
+- **EDHREC Integration** for popularity-based prioritization
+- **Comprehensive Coverage** of Magic card database
+- **Real-time Processing** with distributed workers
 
-### 📊 Expected Performance
+### Web Interface
+- **Card Gallery** - Browse analyzed cards with beautiful UI
+- **Search & Filter** - Find cards by various criteria  
+- **Analysis Dashboard** - Monitor processing progress
+- **The Abyss** - Comprehensive card database view
 
-**Response Times:**
-- API registration: <100ms
-- Work requests: <200ms
-- Result submission: <300ms
+### Swarm System
+- **Universal Workers** - Run analysis on any machine
+- **Load Balancing** - Automatic work distribution
+- **Fault Tolerance** - Handles worker disconnections
+- **Progress Tracking** - Real-time status monitoring
 
-**Capacity:**
-- 10+ concurrent workers
-- Hundreds of API calls/minute
-- 99.9% uptime
+## 🛠️ Configuration
 
-**Resource Usage:**
-- RAM: ~300-500MB
-- CPU: Low utilization
-- Storage: <5GB
-
-### 🔧 Maintenance Commands
-
-**Service Management:**
+### Environment Variables (.env)
 ```bash
-# Check status
-sudo systemctl status emteegee nginx
+# MongoDB
+MONGODB_CONNECTION_STRING=mongodb+srv://user:pass@cluster.mongodb.net/emteegee?retryWrites=true&w=majority
 
-# Restart services
+# Django
+DJANGO_SECRET_KEY=your-secret-key
+DJANGO_DEBUG=False
+DJANGO_API_BASE_URL=https://yourdomain.com
+
+# Ollama (optional)
+OLLAMA_HOST=http://localhost:11434
+
+# Swarm
+SWARM_SERVER_URL=http://yourdomain.com
+```
+
+### Worker Setup
+```bash
+# On any machine (desktop, laptop, etc.)
+git clone https://github.com/yourusername/emteegee.git
+cd emteegee
+pip install -r requirements.txt
+
+# Configure worker
+cp .env.example .env
+# Set SWARM_SERVER_URL to your production server
+
+# Run worker
+python universal_worker_enhanced.py
+```
+
+## 🔧 Management Commands
+
+### Development
+```bash
+# Import cards from Scryfall
+python setup_scryfall.py
+
+# Setup EDHREC prioritization  
+python setup_edhrec_prioritization.py
+
+# Run swarm manager
+python swarm_manager.py
+
+# Check system status
+python manage.py shell
+```
+
+### Production
+```bash
+# Deploy updates
+/home/emteegee/deploy.sh
+
+# Service management
+sudo systemctl status emteegee nginx
 sudo systemctl restart emteegee
-sudo systemctl reload nginx
 
 # View logs
 sudo journalctl -u emteegee -f
 sudo tail -f /var/log/nginx/emteegee_access.log
+
+# Backup data
+/home/emteegee/backup.sh
 ```
 
-**Application Updates:**
-```bash
-# Quick deployment
-/home/emteegee/deploy.sh
+## 📈 Performance
 
-# Manual deployment
-cd /home/emteegee/emteegee
-git pull
-source venv/bin/activate
-pip install -r requirements.txt
+**Expected Capacity:**
+- 10+ concurrent workers
+- Hundreds of API calls/minute
+- 99.9% uptime
+- <200ms API response times
+
+**Resource Usage:**
+- VPS: 1GB RAM, 1 CPU core ($5/month)
+- Worker: Minimal resources, scales horizontally
+- Storage: <5GB for full card database
+
+## 🆘 Troubleshooting
+
+### Common Issues
+```bash
+# Server not responding
+sudo systemctl status emteegee nginx
+
+# Database connection issues  
+python manage.py shell
+# Test MongoDB connection
+
+# Worker connection issues
+# Check SWARM_SERVER_URL in worker .env
+# Verify server API endpoints accessible
+
+# Template/static file issues
 python manage.py collectstatic --noinput
 sudo systemctl restart emteegee
 ```
 
-**Backups:**
+### Debug Mode
 ```bash
-# Manual backup
-/home/emteegee/backup.sh
+# Run Django directly for debugging
+cd /path/to/emteegee
+source venv/bin/activate  # if using venv
+python manage.py runserver 0.0.0.0:8001
 
-# View backups
-ls -la /home/emteegee/backups/
+# Test specific components
+python debug_card_structure.py
+python simple_api_test.py
 ```
 
-### 🆘 Troubleshooting
+## 🎯 Success Criteria
 
-**Common Issues:**
-- 502 Bad Gateway → Check Gunicorn service
-- Permission errors → Check file ownership
-- SSL issues → Verify certificate
-- MongoDB connection → Check Atlas whitelist
-
-**Debug Commands:**
-```bash
-# Test Django directly
-cd /home/emteegee/emteegee
-source venv/bin/activate
-python manage.py check
-python manage.py runserver 0.0.0.0:8000
-
-# Test Gunicorn
-gunicorn --bind 0.0.0.0:8000 emteegee.wsgi:application
-
-# Check service logs
-sudo journalctl -u emteegee --no-pager -l
-```
-
-### 🎯 Success Criteria
-
-- [ ] Server accessible via domain/IP
+✅ **Core Functionality:**
+- [ ] Web interface loads and displays cards
 - [ ] API endpoints respond correctly
-- [ ] SSL certificate working (green padlock)
-- [ ] Universal workers can connect
-- [ ] Services auto-restart after reboot
-- [ ] Static files served by Nginx
+- [ ] Workers can connect and process cards
+- [ ] Analysis results stored in database
+
+✅ **Production Ready:**
+- [ ] HTTPS/SSL working (green padlock)
+- [ ] Services auto-restart after reboot  
 - [ ] Logs rotating properly
-- [ ] Backups running daily
+- [ ] Backups running automatically
 
-### 💡 Next Steps
+✅ **Performance:**
+- [ ] Multiple workers processing concurrently
+- [ ] Response times under targets
+- [ ] No memory leaks or resource issues
 
-After successful deployment:
+## 📚 Documentation Files
 
-1. **Update Workers**: Change `.env` to point to your VPS
-2. **Test Distributed Processing**: Run workers from desktop/laptop
-3. **Monitor Performance**: Watch logs and resource usage
-4. **Setup Alerts**: Configure email notifications
-5. **Scale as Needed**: Upgrade server if traffic increases
+**Keep These:**
+- `README.md` (this file) - Main documentation
+- `ENHANCED_SWARM_GUIDE.md` - Detailed swarm system docs
+- `scripts/` - Deployment automation
 
-Your Magic card analysis system will be production-ready and rock-solid! 🎉
+**Archive/Remove:**
+- Multiple overlapping roadmaps and status files
+- Duplicate technical summaries  
+- Outdated development insights
 
-### 📞 Support
+---
 
-If you encounter issues:
-1. Check the troubleshooting section
-2. Review service logs
-3. Verify configuration files
-4. Test components individually
-5. Restore from backup if needed
+🎉 **You now have a professional Magic card analysis platform running for $5/month!**
 
-**Remember**: This setup gives you a professional, scalable Magic card analysis platform for just $5/month! 🌟
+For detailed swarm system documentation, see `ENHANCED_SWARM_GUIDE.md`.
+For deployment scripts, see the `scripts/` directory.
