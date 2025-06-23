@@ -163,6 +163,27 @@ WORKER COMPATIBILITY:
 ✅ Smart task prioritization
 ✅ Enhanced error handling
 
+WORKER COMMANDS - FINAL VERSION:
+=================================
+
+# 🌐 PRODUCTION WORKER (default - connects to mtgabyss.com):
+python universal_worker_enhanced.py
+
+# � PRODUCTION WORKER (explicit):
+python universal_worker_enhanced.py https://mtgabyss.com
+
+# 🏠 LOCAL DEVELOPMENT WORKER (when needed):
+python universal_worker_enhanced.py http://localhost:8000
+
+WORKER BEHAVIOR:
+- ✅ DEFAULTS TO PRODUCTION SERVER (mtgabyss.com) 
+- ✅ Registers with server and gets 20 analysis components
+- ✅ Starts continuous work polling loop (every 3 seconds for desktop)
+- ✅ Sends heartbeat to maintain connection
+- ✅ Processes tasks and submits results
+- ✅ Handles max concurrent tasks (2 for desktop worker)
+- ✅ Graceful shutdown with Ctrl+C
+
 TESTING COMMANDS:
 ================
 

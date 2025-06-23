@@ -34,14 +34,14 @@ class EnhancedUniversalWorker:
     """Enhanced universal worker with proper task tracking"""
     
     def __init__(self, server_url: str = None):
-        # Auto-detect server URL with fallback
+        # Auto-detect server URL with production as default
         if server_url is None:
-            server_url = os.getenv('DJANGO_API_BASE_URL', 'https://mtgabyss.com')
+            server_url = os.getenv('DJANGO_API_BASE_URL', 'https://mtgabyss.com')  # Production default
         
         self.server_url = server_url
         self.server_ip_url = 'http://64.23.130.187:8000'  # DigitalOcean server IP
         
-        # Determine localhost fallback URL - always use port 8000 for production compatibility
+        # Determine localhost fallback URL - only used when explicitly specified
         self.fallback_url = 'http://localhost:8000'
         
         self.hostname = socket.gethostname()
