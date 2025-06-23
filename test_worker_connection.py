@@ -6,7 +6,7 @@ Diagnose connection issues with swarm API endpoints
 
 import requests
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 
 def test_server_connection(server_url):
     """Test connection to a specific server"""
@@ -45,7 +45,7 @@ def test_server_connection(server_url):
                 'gpu_available': True
             },
             'status': 'active',
-            'registered_at': datetime.utcnow().isoformat()
+            'registered_at': datetime.now(timezone.utc).isoformat()
         }
         
         response = requests.post(

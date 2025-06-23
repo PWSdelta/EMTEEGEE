@@ -100,8 +100,7 @@ class SwarmManager:
             {'$set': {'last_heartbeat': datetime.now(timezone.utc)}}
         )
         
-        assigned_components = self._get_worker_components(worker['capabilities'])
-          # Simple: Find a random card that doesn't have all components yet
+        assigned_components = self._get_worker_components(worker['capabilities'])        # Simple: Find a random card that doesn't have all components yet
         cards_needing_work = list(self.cards.aggregate([
             {
                 '$match': {
@@ -115,7 +114,7 @@ class SwarmManager:
                 '$addFields': {
                     'component_count': {
                         '$cond': {
-                            'if': {'$exists': ['$analysis.components', True]},
+                            'if': {'$eq': [{'$type': '$analysis.components'}, 'object']},
                             'then': {'$size': {'$objectToArray': '$analysis.components'}},
                             'else': 0
                         }

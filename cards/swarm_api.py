@@ -9,7 +9,7 @@ import json
 import sys
 import os
 from bson import ObjectId
-from datetime import datetime
+from datetime import datetime, timezone
 
 # Custom JSON encoder to handle MongoDB ObjectId and datetime objects
 class MongoJSONEncoder(json.JSONEncoder):
@@ -82,12 +82,13 @@ def submit_results(request):
         
         if not all([worker_id, card_id, results]):
             return JsonResponse({'error': 'worker_id, card_id, and results required'}, status=400)
-          # Update card directly
+        
+        # Update card directly
         for component_type, component_data in results.items():
             update_data = {
                 f'analysis.components.{component_type}': {
                     'content': component_data,
-                    'generated_at': datetime.now().isoformat(),
+                    'generated_at': datetime.now(timezone.utc).isoformat(),
                     'worker_id': worker_id
                 }
             }
@@ -102,7 +103,7 @@ def submit_results(request):
             {'worker_id': worker_id},
             {
                 '$inc': {'tasks_completed': 1},
-                '$set': {'last_heartbeat': datetime.now().isoformat()}
+                '$set': {'last_heartbeat': datetime.now(timezone.utc).isoformat()}
             }
         )
         
@@ -152,7 +153,7 @@ def heartbeat(request):
             {'worker_id': worker_id},
             {
                 '$set': {
-                    'last_heartbeat': datetime.now(),
+                    'last_heartbeat': datetime.now(timezone.utc),
                     'status': data.get('status', 'active'),
                     'active_tasks': data.get('active_tasks', 0),
                     'completed_tasks': data.get('completed_tasks', 0)
