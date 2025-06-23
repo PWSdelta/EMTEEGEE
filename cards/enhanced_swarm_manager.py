@@ -65,15 +65,20 @@ class EnhancedSwarmManager:
         
         # Calculate priority scores for all cards
         cards_cursor = self.cards.find({}, {
-            'uuid': 1, 'name': 1, 'edhrecRank': 1, 'prices': 1,
+            'uuid': 1, 'id': 1, 'name': 1, 'edhrecRank': 1, 'prices': 1,
             'analysis.component_count': 1, 'view_count': 1
         })
         
         priority_updates = []
         for card in cards_cursor:
             priority_score = self._calculate_priority_score(card)
+            # Handle both 'uuid' and 'id' fields for card identification
+            card_id = card.get('uuid') or card.get('id') or str(card.get('_id'))
+            if not card_id:
+                enhanced_swarm_logger.error(f"Card missing identification field: {card.get('name', 'Unknown')}")
+                continue
             priority_updates.append({
-                'card_uuid': card['uuid'],
+                'card_uuid': card_id,
                 'priority_score': priority_score,
                 'last_updated': datetime.now(timezone.utc)
             })
