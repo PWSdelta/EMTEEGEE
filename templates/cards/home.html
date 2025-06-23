@@ -163,12 +163,37 @@
         color: white;
         text-decoration: none;
     }
-    
-    .no-cards-message {
+      .no-cards-message {
         text-align: center;
         padding: 3rem;
         color: #666;
         font-size: 1.1rem;
+    }
+      /* Loading skeleton animations */
+    .loading-skeleton {
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: loading 1.5s infinite;
+    }
+    
+    @keyframes loading {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
+    
+    /* Enhanced card image loading */
+    .card-image img {
+        transition: opacity 0.3s ease;
+    }
+    
+    /* Enhanced card focus states for accessibility */
+    .card-item:focus {
+        outline: 3px solid #667eea;
+        outline-offset: 2px;
+    }
+    
+    .card-item:focus-visible {
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
     }
     
     @media (max-width: 768px) {
@@ -198,12 +223,42 @@
 {% endblock %}
 
 {% block content %}
+<!-- Hero Section with Live Statistics -->
+<div class="hero-section">
+    <div class="container">
+        <h1 class="hero-title">EMTEEGEE</h1>
+        <p class="hero-subtitle">AI-Powered Magic: The Gathering Card Analysis</p>
+        
+        {% if statistics %}
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">{{ statistics.total_cards }}</div>
+                <div class="stat-label">Total Cards</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ statistics.fully_analyzed }}</div>
+                <div class="stat-label">Fully Analyzed</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ statistics.total_components }}</div>
+                <div class="stat-label">AI Components</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ statistics.avg_components }}</div>
+                <div class="stat-label">Avg Components</div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
 <div class="container">
-    <h1 class="section-title">Fully Analyzed Cards</h1>
+    <h1 class="section-title">Recently Analyzed Cards</h1>
     
-    {% if fully_analyzed_cards %}        <div class="cards-grid">
-            {% for card in fully_analyzed_cards %}
-                <div class="card-item" onclick="window.location.href='{% url 'cards:card_detail' card.uuid %}'">
+    {% if fully_analyzed_cards %}        <div class="cards-grid">            {% for card in fully_analyzed_cards %}
+                <a href="{% url 'cards:card_detail' card.uuid %}" class="card-item" 
+                   aria-label="View details for {{ card.name }}"
+                   style="text-decoration: none; color: inherit;">
                     {% if card.imageUris.normal %}
                         <img src="{{ card.imageUris.normal }}" alt="{{ card.name }}" class="card-image" loading="lazy">
                     {% else %}
@@ -214,19 +269,55 @@
                     
                     <div class="card-content">
                         <h3 class="card-name">{{ card.name }}</h3>
-                        
-                        <div class="card-stats">
+                          <div class="card-stats">
                             <span class="completion-badge">Analyzed</span>
                         </div>
                     </div>
-                </div>
-            {% endfor %}
+                </a>
+            {% endfor %}        </div>
+        
+        <!-- View More Section -->
+        <div class="view-more-section">
+            <h3>Discover More Cards</h3>
+            <p>Explore our vast collection of Magic cards with advanced search and filtering</p>
+            <a href="{% url 'cards:the_abyss' %}" class="view-more-btn">
+                <i class="bi bi-compass"></i> Explore The Abyss
+            </a>
         </div>
     {% else %}
         <div class="no-cards-message">
             <h3>No fully analyzed cards yet</h3>
             <p>Cards are being analyzed continuously. Check back soon!</p>
-        </div>
-    {% endif %}
+        </div>    {% endif %}
 </div>
+
+<script>
+// Add loading skeleton animation
+document.addEventListener('DOMContentLoaded', function() {
+    // Add subtle loading effect for images
+    const cardItems = document.querySelectorAll('.card-item');
+    cardItems.forEach(card => {
+        const img = card.querySelector('.card-image img');
+        if (img) {
+            img.addEventListener('load', function() {
+                this.style.opacity = '1';
+            });
+            img.style.opacity = '0';
+            img.style.transition = 'opacity 0.3s ease';
+        }
+    });
+    
+    // Enhance stats animation
+    const statNumbers = document.querySelectorAll('.stat-number');
+    statNumbers.forEach(stat => {
+        stat.style.opacity = '0';
+        stat.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+            stat.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            stat.style.opacity = '1';
+            stat.style.transform = 'translateY(0)';
+        }, Math.random() * 200);
+    });
+});
+</script>
 {% endblock %}

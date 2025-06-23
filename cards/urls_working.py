@@ -79,8 +79,38 @@ def home(request):
     return render(request, 'cards/home.html', context)
 
 def card_detail(request, card_uuid):
-    """Simple card detail page"""
-    return render(request, 'cards/card_detail.html', {'card': {'uuid': card_uuid, 'name': 'Test Card'}})
+    """Enhanced card detail page with real data"""
+    from cards.analysis_manager import analysis_manager
+    import logging
+    
+    logger = logging.getLogger(__name__)
+    
+    try:
+        card = analysis_manager.get_card_by_uuid(card_uuid)
+        
+        if not card:
+            return render(request, 'cards/card_detail_test.html', {
+                'error': "Card not found in database"
+            })
+        
+        # Get analysis data
+        analysis = card.get('analysis', {})
+        components = analysis.get('components', {})
+        
+        context = {
+            'card': card,
+            'analysis': analysis,
+            'components': components,
+            'completion_percentage': (len(components) / 20) * 100 if components else 0
+        }
+        
+        return render(request, 'cards/card_detail_test.html', context)
+        
+    except Exception as e:
+        logger.error(f"Error in card_detail view for {card_uuid}: {e}")
+        return render(request, 'cards/card_detail_test.html', {
+            'error': f"Error loading card: {str(e)}"
+        })
 
 def the_abyss(request):
     """Simple abyss page"""

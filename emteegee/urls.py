@@ -21,8 +21,8 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('cards.urls_working')),  # Working version with updated home view
-    # path('', include('cards.urls_working')),  # Working version - has urlpatterns import issue
+    path('', include('cards.urls_working')),  # Using working version temporarily while debugging
+    # path('', include('cards.urls')),  # Main cards.urls has import issues
     path('api/swarm/', include('cards.api_urls')),  # Swarm API - re-enabled after fixing SwarmManager issues
 ]
 

@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block title %}Test Card Detail - EMTEEGEE{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1>Card Detail Test Page</h1>
+    
+    {% if card %}
+        <div class="card">
+            <div class="card-body">
+                <h2>{{ card.name }}</h2>
+                <p><strong>Type:</strong> {{ card.type|default:"Unknown" }}</p>
+                <p><strong>UUID:</strong> {{ card.uuid }}</p>
+                
+                {% if card.imageUris.normal %}
+                    <img src="{{ card.imageUris.normal }}" alt="{{ card.name }}" style="max-width: 300px;" class="img-fluid">
+                {% endif %}
+                
+                {% if card.analysis %}
+                    <h3>Analysis</h3>
+                    <p>Components: {{ card.analysis.components|length|default:0 }}</p>
+                    
+                    {% if card.analysis.components %}
+                        <ul>
+                        {% for comp_type, content in card.analysis.components.items %}
+                            <li><strong>{{ comp_type }}:</strong> {{ content|truncatewords:10 }}</li>
+                        {% endfor %}
+                        </ul>
+                    {% endif %}
+                {% else %}
+                    <p>No analysis data available.</p>
+                {% endif %}
+            </div>
+        </div>
+    {% else %}
+        <div class="alert alert-warning">
+            <h3>No Card Data</h3>
+            <p>Card data was not provided to this template.</p>
+        </div>
+    {% endif %}
+    
+    <div class="mt-3">
+        <a href="{% url 'cards:home' %}" class="btn btn-primary">← Back to Home</a>
+    </div>
+</div>
+{% endblock %}
