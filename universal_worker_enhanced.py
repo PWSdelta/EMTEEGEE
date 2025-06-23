@@ -296,9 +296,44 @@ class EnhancedUniversalWorker:
         logger.info(f"🎯 Processing task {task_id}: {card_name}")
         self.active_tasks.add(task_id)
         
-        try:
-            # Simulate work (replace with actual analysis)
-            time.sleep(2)
+        try:            # REAL AI Analysis using Ollama
+            components = task.get('components', [])
+            card_data = task.get('card_data', {})
+            analysis_results = {}
+            
+            logger.info(f"🔍 Starting AI analysis for {len(components)} components")
+            
+            for component in components:
+                logger.info(f"🤖 Analyzing {component}...")
+                
+                try:
+                    # Create analysis prompt
+                    prompt = f"""
+Analyze this Magic: The Gathering card for {component}:
+
+Card: {card_data.get('name', 'Unknown')}
+Mana Cost: {card_data.get('mana_cost', '')}
+Type: {card_data.get('type_line', '')}
+Text: {card_data.get('oracle_text', '')}
+
+Provide detailed {component} analysis in 2-3 paragraphs.
+"""
+                    
+                    # Call Ollama AI
+                    response = ollama.chat(
+                        model='llama3.2',
+                        messages=[
+                            {'role': 'system', 'content': 'You are an expert Magic: The Gathering analyst.'},
+                            {'role': 'user', 'content': prompt}
+                        ]
+                    )
+                    
+                    analysis_results[component] = response['message']['content']
+                    logger.info(f"✅ Completed {component} analysis")
+                    
+                except Exception as e:
+                    logger.error(f"❌ Failed to analyze {component}: {e}")
+                    analysis_results[component] = f"Analysis failed: {str(e)}"
             
             # Submit results with required card_id field
             results = {
@@ -306,14 +341,13 @@ class EnhancedUniversalWorker:
                 'worker_id': self.worker_id,
                 'card_id': card_id,  # This was missing - required by API
                 'status': 'completed',
-                'results': {'placeholder': 'analysis_data'},
-                'completed_at': datetime.now(timezone.utc).isoformat()
+                'results': analysis_results,  # Real AI analysis results                'completed_at': datetime.now(timezone.utc).isoformat()
             }
             
             response = requests.post(
                 f"{self.server_url}/api/enhanced_swarm/submit_results",
                 json=results,
-                timeout=30  # Increased timeout for enhanced API
+                timeout=120  # Longer timeout for real AI analysis
             )
             
             if response.status_code == 200:
