@@ -201,9 +201,130 @@ class EnhancedUniversalWorker:
             logger.error("   - Fix network connectivity to remote servers")
             logger.error("   - Or run without server argument for local development")
         else:
-            logger.error("💡 LOCAL MODE: Ensure Django server is running: python manage.py runserver")
-        
+            logger.error("💡 LOCAL MODE: Ensure Django server is running: python manage.py runserver")        
         return False
+
+    def run(self):
+        """Main work loop - poll for tasks and process them"""
+        logger.info("🔄 Starting main work loop...")
+        self.running = True
+        
+        try:
+            while self.running:
+                try:
+                    # Send heartbeat
+                    self._send_heartbeat()
+                    
+                    # Check if we can take more work
+                    if len(self.active_tasks) < self.max_tasks:
+                        self._poll_for_work()
+                    
+                    # Sleep before next poll
+                    time.sleep(self.poll_interval)
+                    
+                except KeyboardInterrupt:
+                    logger.info("🛑 Received shutdown signal...")
+                    break
+                except Exception as e:
+                    logger.error(f"❌ Work loop error: {e}")
+                    time.sleep(5)  # Brief pause on error
+                    
+        finally:
+            self.running = False
+            logger.info("🛑 Worker stopped")
+
+    def _send_heartbeat(self):
+        """Send heartbeat to maintain connection"""
+        try:
+            heartbeat_data = {
+                'worker_id': self.worker_id,
+                'status': 'active',
+                'active_tasks': len(self.active_tasks),
+                'timestamp': datetime.now(timezone.utc).isoformat()
+            }
+            
+            response = requests.post(
+                f"{self.server_url}/api/enhanced_swarm/heartbeat",
+                json=heartbeat_data,
+                timeout=10
+            )
+            
+            if response.status_code == 200:
+                self.last_heartbeat = datetime.now(timezone.utc)
+            else:
+                logger.warning(f"⚠️  Heartbeat failed: HTTP {response.status_code}")
+                
+        except Exception as e:
+            logger.warning(f"⚠️  Heartbeat error: {e}")
+
+    def _poll_for_work(self):
+        """Poll server for available work"""
+        try:
+            work_request = {
+                'worker_id': self.worker_id,
+                'max_tasks': self.max_tasks - len(self.active_tasks),
+                'specialization': self.specialization
+            }
+            
+            response = requests.post(
+                f"{self.server_url}/api/enhanced_swarm/get_work",
+                json=work_request,
+                timeout=15
+            )
+            
+            if response.status_code == 200:
+                work_data = response.json()
+                tasks = work_data.get('tasks', [])
+                
+                if tasks:
+                    logger.info(f"📋 Received {len(tasks)} task(s)")
+                    for task in tasks:
+                        self._process_task(task)
+                else:
+                    logger.debug("ℹ️  No tasks available")
+            else:
+                logger.warning(f"⚠️  Work request failed: HTTP {response.status_code}")
+                
+        except Exception as e:
+            logger.warning(f"⚠️  Work polling error: {e}")
+
+    def _process_task(self, task):
+        """Process a single task (placeholder for now)"""
+        task_id = task.get('task_id', 'unknown')
+        card_name = task.get('card_name', 'Unknown Card')
+        
+        logger.info(f"🎯 Processing task {task_id}: {card_name}")
+        self.active_tasks.add(task_id)
+        
+        try:
+            # Simulate work (replace with actual analysis)
+            time.sleep(2)
+            
+            # Submit results
+            results = {
+                'task_id': task_id,
+                'worker_id': self.worker_id,
+                'status': 'completed',
+                'results': {'placeholder': 'analysis_data'},
+                'completed_at': datetime.now(timezone.utc).isoformat()
+            }
+            
+            response = requests.post(
+                f"{self.server_url}/api/enhanced_swarm/submit_results",
+                json=results,
+                timeout=15
+            )
+            
+            if response.status_code == 200:
+                logger.info(f"✅ Task {task_id} completed successfully")
+                self.completed_tasks.add(task_id)
+            else:
+                logger.error(f"❌ Failed to submit results for task {task_id}")
+                
+        except Exception as e:
+            logger.error(f"❌ Task {task_id} failed: {e}")
+        finally:
+            self.active_tasks.discard(task_id)
 
 def main():
     """Main entry point with enhanced argument parsing"""
@@ -235,9 +356,13 @@ Press Ctrl+C to stop the worker gracefully.
     """)
     
     try:
-        # Just test registration for now
+        # Register with the server
         if worker.register():
             print("✅ Registration successful! Worker is ready for production deployment.")
+            
+            # Start the main work loop
+            print("🔄 Starting work polling loop...")
+            worker.run()
         else:
             print("❌ Registration failed. Check server status and try again.")
     except KeyboardInterrupt:
