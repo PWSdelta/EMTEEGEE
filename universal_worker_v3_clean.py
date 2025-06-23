@@ -3,16 +3,7 @@
 Enhanced Universal EMTeeGee Worker v3.0 - Enhanced Swarm Integration
 - Updated for enhanced swarm manager with smart prioritization
 - Supports all 20 analysis components with GPU/CPU allocation
-- Enhanced co        if self.server_url != self.fallback_url:
-            logger.error("🌐 REMOTE MODE: Will not fall back to localhost")
-            logger.error("💡 This prevents accidentally processing local work instead of remote work")
-            logger.error("💡 Solutions:")
-            logger.error("   - Deploy swarm system to production server")
-            logger.error("   - Fix network connectivity to remote servers")
-            logger.error("   - Or run without server argument for local development")
-        else:
-            logger.error("💡 LOCAL MODE: Ensure Django server is running: python manage.py runserver")
-        return Falsealidation and batch processing support
+- Enhanced coherence validation and batch processing support
 - Improved task tracking and state management
 - Better logging and monitoring
 """
@@ -29,11 +20,7 @@ import os
 import sys
 from typing import Dict, List, Any, Optional
 import logging
-from dotenv import load_dotenv
 from datetime import datetime, timezone
-
-# Load environment variables
-load_dotenv()
 
 # Configure logging with better formatting
 logging.basicConfig(
@@ -44,9 +31,10 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 class EnhancedUniversalWorker:
-    """Enhanced universal worker with proper task tracking"""
+    """Enhanced universal worker v3.0 with enhanced swarm integration"""
     
-    def __init__(self, server_url: str = None):        # Auto-detect server URL with fallback
+    def __init__(self, server_url: str = None):
+        # Auto-detect server URL with fallback
         if server_url is None:
             server_url = os.getenv('DJANGO_API_BASE_URL', 'https://mtgabyss.com')
         
@@ -58,6 +46,7 @@ class EnhancedUniversalWorker:
             self.fallback_url = 'http://localhost:8001'
         else:
             self.fallback_url = 'http://localhost:8000'
+        
         self.hostname = socket.gethostname()
         self.capabilities = self._detect_capabilities()
         self.worker_type = self.capabilities['worker_type']
@@ -68,7 +57,8 @@ class EnhancedUniversalWorker:
         self.active_tasks = set()  # Track tasks currently being processed
         self.completed_tasks = set()  # Track completed tasks to avoid duplicates
         self.last_heartbeat = None
-          # Configure models based on hardware
+        
+        # Configure models based on hardware
         if self.worker_type == 'desktop':
             self.preferred_models = ['qwen2.5:7b', 'llama3.2:3b']
             self.current_model = 'qwen2.5:7b'
@@ -92,8 +82,9 @@ class EnhancedUniversalWorker:
         logger.info(f"🤖 Initialized {self.worker_type} worker: {self.worker_id}")
         logger.info(f"🎯 Using model: {self.current_model}")
         logger.info(f"🌐 Server: {self.server_url}")
-        logger.info(f"⚙️  Max concurrent tasks: {self.max_tasks}")        
-    def _detect_capabilities(self) ->Dict[str, Any]:
+        logger.info(f"⚙️  Max concurrent tasks: {self.max_tasks}")
+        
+    def _detect_capabilities(self) -> Dict[str, Any]:
         """Auto-detect hardware and determine worker type"""
         ram_gb = round(psutil.virtual_memory().total / (1024**3))
         cpu_cores = psutil.cpu_count()
@@ -133,13 +124,22 @@ class EnhancedUniversalWorker:
             'ram_gb': ram_gb,
             'gpu_available': has_gpu,
             'worker_type': worker_type,
-            'specialization': 'deep_cpu_analysis' if worker_type == 'laptop' else ('lightweight_analysis' if worker_type == 'laptop_lite' else 'fast_gpu_analysis'),
+            'specialization': self._get_specialization(worker_type),
             'version': '3.0.0'  # Enhanced swarm integration version
         }
         
         logger.info(f"🔍 Detected: {worker_type.title()} ({cpu_cores} cores, {ram_gb}GB RAM)")
         
         return capabilities
+    
+    def _get_specialization(self, worker_type: str) -> str:
+        """Get specialization based on worker type"""
+        if worker_type == 'laptop':
+            return 'deep_cpu_analysis'
+        elif worker_type == 'laptop_lite':
+            return 'lightweight_analysis'
+        else:
+            return 'fast_gpu_analysis'
     
     def _test_ollama_connection(self) -> bool:
         """Test Ollama connection and model availability"""
@@ -183,6 +183,7 @@ class EnhancedUniversalWorker:
         except Exception as e:
             logger.error(f"❌ Ollama connection failed: {e}")
             return False
+    
     def register(self) -> bool:
         """Register with the central server with enhanced error handling"""
         registration_data = {
@@ -212,7 +213,8 @@ class EnhancedUniversalWorker:
                 if basic_response.status_code != 200:
                     logger.warning(f"⚠️  Server {server_url} basic connectivity failed: HTTP {basic_response.status_code}")
                     continue
-                  # Test enhanced swarm API availability
+                
+                # Test enhanced swarm API availability
                 status_response = requests.get(f"{server_url}/api/enhanced_swarm/status", timeout=15)
                 if status_response.status_code != 200:
                     logger.warning(f"⚠️  Server {server_url} missing enhanced swarm API (HTTP {status_response.status_code})")
@@ -247,13 +249,15 @@ class EnhancedUniversalWorker:
         
         logger.error("❌ Registration failed on all configured servers")
         if self.server_url != self.fallback_url:
-            logger.error("� REMOTE MODE: Will not fall back to localhost")
+            logger.error("🚫 REMOTE MODE: Will not fall back to localhost")
             logger.error("💡 This prevents accidentally processing local work instead of remote work")
             logger.error("💡 Solutions:")
-            logger.error("   - Deploy swarm system to production server")            logger.error("   - Fix network connectivity to remote servers")
+            logger.error("   - Deploy swarm system to production server")
+            logger.error("   - Fix network connectivity to remote servers")
             logger.error("   - Or run without server argument for local development")
         else:
             logger.error("💡 LOCAL MODE: Ensure Django server is running: python manage.py runserver")
+        
         return False
     
     def send_heartbeat(self) -> bool:
@@ -281,7 +285,8 @@ class EnhancedUniversalWorker:
                 return False
                 
         except Exception as e:
-            logger.warning(f"⚠️  Heartbeat error: {e}")            return False
+            logger.warning(f"⚠️  Heartbeat error: {e}")
+            return False
     
     def get_work(self) -> List[Dict[str, Any]]:
         """Request work from the server with improved task filtering"""
@@ -317,7 +322,8 @@ class EnhancedUniversalWorker:
                         self.active_tasks.add(task_id)
                         logger.info(f"📋 Added task {task_id} to active queue")
                 
-                return tasks            else:
+                return tasks
+            else:
                 logger.error(f"❌ Work request failed: HTTP {response.status_code} - {response.text[:200]}")
                 return []
                 
@@ -386,7 +392,8 @@ class EnhancedUniversalWorker:
             if not results or all(not v for v in results.values()):
                 logger.error(f"❌ No valid analysis generated for {card_name}")
                 return False
-              # Submit results (card_uuid is passed from task structure)
+            
+            # Submit results
             success = self.submit_results(task_id, results)
             
             processing_time = time.time() - start_time
@@ -411,7 +418,8 @@ class EnhancedUniversalWorker:
                 logger.info(f"🧠 Generating {component} for {card_name}")
                 
                 prompt = self._create_enhanced_prompt(card_data, component)
-                  # Configure generation based on worker type
+                
+                # Configure generation based on worker type
                 if self.worker_type == 'desktop':
                     # Fast, efficient analysis for desktop
                     options = {
@@ -455,7 +463,8 @@ class EnhancedUniversalWorker:
             except Exception as e:
                 logger.error(f"❌ Analysis failed for {component}: {e}")
                 results[component] = f"Analysis failed: {str(e)}"
-          return results
+        
+        return results
     
     def _create_enhanced_prompt(self, card_data: Dict, component: str) -> str:
         """Create enhanced analysis prompts for all component types"""
@@ -769,7 +778,8 @@ def main():
     
     # Create and run worker
     worker = EnhancedUniversalWorker(server_url)
-      print(f"""
+    
+    print(f"""
 🤖 EMTeeGee Enhanced Universal Worker v3.0 - Enhanced Swarm Integration
 ====================================================================
 Worker Type: {worker.worker_type.upper()}
