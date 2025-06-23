@@ -51,14 +51,17 @@ class SimpleSwarmManager:
         self._load_work_queue()
         
         logger.info(f"🚀 Simple Swarm Manager initialized with {len(self.work_queue)} cards ready for work")
-    
-    def _load_work_queue(self):
-        """Load all unanalyzed cards into work queue, sorted by priority"""
+      def _load_work_queue(self):
+        """Load all unanalyzed card IDs into work queue, sorted by priority"""
         logger.info("📥 Loading work queue...")
         
-        # Get all unanalyzed cards
+        # Get only card IDs and minimal data for unanalyzed cards
         unanalyzed_cards = list(self.cards.find({
             'analysis.fully_analyzed': {'$ne': True}
+        }, {
+            '_id': 1,           # Only get the ID
+            'name': 1,          # And name for display
+            'edhrecRank': 1     # And EDHREC rank for sorting
         }))
         
         # Sort by priority (EDHREC rank = lower number = higher priority)
