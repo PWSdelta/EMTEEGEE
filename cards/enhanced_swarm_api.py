@@ -60,7 +60,7 @@ def register_worker(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 def get_work(request):
-    """Get prioritized work assignments for a worker"""
+    """Get prioritized work assignments for a worker - SIMPLIFIED VERSION"""
     try:
         data = json.loads(request.body)
         worker_id = data.get('worker_id')
@@ -69,18 +69,35 @@ def get_work(request):
         if not worker_id:
             return JsonResponse({'error': 'worker_id required'}, status=400)
         
-        if enhanced_swarm is None:
-            return JsonResponse({'error': 'Enhanced SwarmManager not available'}, status=500)
+        logger.info(f"🔍 Simple work request from {worker_id}, max_tasks: {max_tasks}")
         
-        tasks = enhanced_swarm.get_work(worker_id, max_tasks)
+        # SIMPLIFIED: Just get basic unanalyzed cards
+        from django.conf import settings
+        from pymongo import MongoClient
         
-        # Use custom encoder to handle ObjectId
-        json_tasks = json.loads(json.dumps(tasks, cls=MongoJSONEncoder))
+        client = MongoClient('mongodb://localhost:27017/')
+        db = client['emteegee']
+        cards_collection = db['cards_card']
         
-        if logger and tasks:
-            logger.info(f"📋 Assigned {len(tasks)} tasks to worker {worker_id}")
+        # Find unanalyzed cards (simple query - no complex aggregation)
+        unanalyzed_cards = list(cards_collection.find({
+            'analysis_complete': {'$ne': True}
+        }).limit(max_tasks))
         
-        return JsonResponse({'tasks': json_tasks})
+        tasks = []
+        for card in unanalyzed_cards:
+            task = {
+                'task_id': str(card['_id']),
+                'card_name': card.get('name', 'Unknown'),
+                'card_id': str(card['_id']),
+                'components': ['pricing', 'legality'],  # Basic components only
+                'priority': 'normal'
+            }
+            tasks.append(task)
+        
+        logger.info(f"✅ Simple API returning {len(tasks)} tasks to {worker_id}")
+        
+        return JsonResponse({'tasks': tasks})
         
     except Exception as e:
         if logger:
