@@ -36,14 +36,18 @@ logger = logging.getLogger(__name__)
 class EnhancedUniversalWorker:
     """Enhanced universal worker with proper task tracking"""
     
-    def __init__(self, server_url: str = None):
-        # Auto-detect server URL with fallback
+    def __init__(self, server_url: str = None):        # Auto-detect server URL with fallback
         if server_url is None:
             server_url = os.getenv('DJANGO_API_BASE_URL', 'https://mtgabyss.com')
         
         self.server_url = server_url
         self.server_ip_url = 'http://64.23.130.187:8000'  # DigitalOcean server IP
-        self.fallback_url = 'http://localhost:8000'
+        
+        # Determine localhost fallback URL based on common Django ports
+        if 'localhost:8001' in server_url or '127.0.0.1:8001' in server_url:
+            self.fallback_url = 'http://localhost:8001'
+        else:
+            self.fallback_url = 'http://localhost:8000'
         self.hostname = socket.gethostname()
         self.capabilities = self._detect_capabilities()
         self.worker_type = self.capabilities['worker_type']
@@ -164,10 +168,36 @@ class EnhancedUniversalWorker:
             'registered_at': datetime.utcnow().isoformat()
         }
         
-        # Try primary server first, then fallbacks
-        for server_url in [self.server_url, self.server_ip_url, self.fallback_url]:
+        # Determine servers to try based on configuration
+        if self.server_url == self.fallback_url:
+            # If configured for localhost, only try localhost
+            servers_to_try = [self.fallback_url]
+            logger.info("🏠 Configured for local development mode")
+        else:
+            # If configured for remote, try remote servers only (NO localhost fallback)
+            servers_to_try = [self.server_url, self.server_ip_url]
+            logger.info("🌐 Configured for remote/distributed mode")
+            logger.info("⚠️  Will NOT fall back to localhost - this prevents accidental local work")
+        
+        for i, server_url in enumerate(servers_to_try):
             try:
-                logger.info(f"🔄 Attempting registration with {server_url}")
+                logger.info(f"🔄 Attempting registration with {server_url} ({i+1}/{len(servers_to_try)})")
+                
+                # First test basic connectivity
+                basic_response = requests.get(f"{server_url}/", timeout=15)
+                if basic_response.status_code != 200:
+                    logger.warning(f"⚠️  Server {server_url} basic connectivity failed: HTTP {basic_response.status_code}")
+                    continue
+                
+                # Test swarm API availability
+                status_response = requests.get(f"{server_url}/api/swarm/status", timeout=15)
+                if status_response.status_code != 200:
+                    logger.warning(f"⚠️  Server {server_url} missing swarm API (HTTP {status_response.status_code})")
+                    if "404" in str(status_response.status_code):
+                        logger.warning("   💡 This server hasn't been deployed with swarm system yet")
+                    continue
+                
+                # Attempt registration
                 response = requests.post(
                     f"{server_url}/api/swarm/register",
                     json=registration_data,
@@ -176,7 +206,8 @@ class EnhancedUniversalWorker:
                 
                 if response.status_code == 200:
                     result = response.json()
-                    logger.info(f"✅ Registered successfully: {result}")
+                    logger.info(f"✅ Registered successfully with {server_url}")
+                    logger.info(f"📝 Assigned components: {len(result.get('assigned_components', []))}")
                     # Update server URL to the working one
                     self.server_url = server_url
                     self.last_heartbeat = datetime.utcnow()
@@ -184,10 +215,24 @@ class EnhancedUniversalWorker:
                 else:
                     logger.warning(f"⚠️  Registration failed: HTTP {response.status_code} - {response.text[:200]}")
                     
+            except requests.exceptions.ConnectionError as e:
+                logger.warning(f"⚠️  Connection refused to {server_url}: {str(e)[:100]}...")
+            except requests.exceptions.Timeout as e:
+                logger.warning(f"⚠️  Timeout connecting to {server_url}: {str(e)[:100]}...")
             except Exception as e:
-                logger.warning(f"⚠️  Registration error: {e}")
+                logger.warning(f"⚠️  Registration error with {server_url}: {str(e)[:100]}...")
         
-        logger.error("❌ Registration failed on all servers")
+        logger.error("❌ Registration failed on all configured servers")
+        if self.server_url != self.fallback_url:
+            logger.error("� REMOTE MODE: Will not fall back to localhost")
+            logger.error("💡 This prevents accidentally processing local work instead of remote work")
+            logger.error("💡 Solutions:")
+            logger.error("   - Deploy swarm system to production server")
+            logger.error("   - Fix network connectivity to remote servers")
+            logger.error("   - Or run without server argument for local development")
+        else:
+            logger.error("💡 LOCAL MODE: Ensure Django server is running: python manage.py runserver")
+        
         return False
     
     def send_heartbeat(self) -> bool:

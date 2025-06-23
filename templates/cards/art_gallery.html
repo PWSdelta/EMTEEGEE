@@ -38,6 +38,37 @@
     margin-bottom: 1rem;
 }
 
+.gallery-stats {
+    margin-top: 1rem;
+}
+
+.gallery-stats .badge {
+    font-size: 0.9rem;
+    padding: 0.5rem 1rem;
+    border-radius: 1rem;
+}
+
+.analyzed-badge {
+    background: linear-gradient(45deg, #28a745, #20c997);
+    color: white;
+    padding: 0.3rem 0.8rem;
+    border-radius: 1rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    display: inline-block;
+}
+
+.btn-art-analyzed {
+    background: linear-gradient(45deg, #28a745, #20c997);
+    border-color: #28a745;
+}
+
+.btn-art-analyzed:hover {
+    background: linear-gradient(45deg, #218838, #1ea08b);
+    border-color: #218838;
+}
+
 /* Carousel Styles */
 .art-carousel {
     position: relative;
@@ -268,6 +299,72 @@
     opacity: 0;
     pointer-events: none;
 }
+
+/* AI Analysis Indicators */
+.analyzed-badge {
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.analyzed-badge i {
+    font-size: 0.9rem;
+}
+
+.btn-art-analyzed {
+    background: linear-gradient(45deg, #667eea, #764ba2) !important;
+    border: 1px solid rgba(102, 126, 234, 0.3) !important;
+    color: white !important;
+}
+
+.btn-art-analyzed:hover {
+    background: linear-gradient(45deg, #5a6fd8, #6c42a0) !important;
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+.card-info-overlay.analyzed-card {
+    border: 2px solid rgba(102, 126, 234, 0.3);
+    box-shadow: 0 0 20px rgba(102, 126, 234, 0.2);
+}
+
+.art-image-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #2c3e50, #34495e);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #ecf0f1;
+    font-size: 3rem;
+    text-align: center;
+}
+
+.art-image-placeholder p {
+    font-size: 1.2rem;
+    margin-top: 1rem;
+    color: #bdc3c7;
+}
+
+.gallery-stats {
+    margin-top: 1rem;
+    text-align: center;
+}
+
+.gallery-stats .badge {
+    font-size: 0.9rem;
+    padding: 0.5rem 1rem;
+    margin: 0 0.25rem;
+}
 </style>
 {% endblock %}
 
@@ -284,8 +381,7 @@
     <div class="gallery-counter">
         <span id="current-slide">1</span> / {{ total_cards }}
     </div>
-    
-    <!-- Gallery Header -->
+      <!-- Gallery Header -->
     <div class="gallery-header">
         <h1 class="gallery-title">
             <i class="bi bi-palette"></i> MTG Art Gallery
@@ -293,6 +389,16 @@
         <p class="gallery-subtitle">
             Discover the stunning artwork that brings Magic: The Gathering to life
         </p>
+        {% if analyzed_count %}
+            <div class="gallery-stats">
+                <span class="badge bg-primary me-2">
+                    <i class="bi bi-robot"></i> {{ analyzed_count }} AI-Analyzed Cards
+                </span>
+                <span class="badge bg-secondary">
+                    <i class="bi bi-images"></i> {{ total_cards }} Total Cards
+                </span>
+            </div>
+        {% endif %}
     </div>
     
     {% if gallery_cards %}        <!-- Art Carousel -->
@@ -304,33 +410,48 @@
                             <!-- Loading Spinner -->
                             <div class="loading-spinner d-none">
                                 <i class="bi bi-hourglass-split"></i>
-                            </div>
-                              <!-- Art Image -->
+                            </div>                            <!-- Art Image -->
                             <img src="{{ card.art_url|default:card.imageUris.art_crop }}" 
                                  alt="{{ card.name }} - Art by {{ card.artist|default:'Unknown Artist' }}" 
                                  class="art-image"
                                  loading="{% if forloop.first %}eager{% else %}lazy{% endif %}"
-                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                                 onerror="handleImageError(this);">
                             
                             <!-- Fallback if art_crop fails -->
                             <img src="{{ card.imageUris.large|default:card.imageUris.normal }}" 
                                  alt="{{ card.name }}" 
-                                 class="art-image"
-                                 style="display: none;">
+                                 class="art-image fallback-image"
+                                 style="display: none;"
+                                 onerror="handleFallbackError(this);">
+                            
+                            <!-- Final fallback placeholder -->
+                            <div class="art-image-placeholder" style="display: none;">
+                                <i class="bi bi-image"></i>
+                                <p>{{ card.name }}</p>
+                                <small>Image not available</small>
+                            </div>
                         </div>
-                        
-                        <!-- Card Info Overlay -->
+                          <!-- Card Info Overlay -->
                         <div class="card-info-overlay">
                             <div class="card-name">{{ card.name }}</div>
-                              {% if card.artist %}
+                            {% if card.is_analyzed %}
+                                <div class="analyzed-badge">
+                                    <i class="bi bi-robot"></i> AI Analyzed
+                                </div>
+                            {% endif %}
+                            {% if card.artist %}
                                 <div class="artist-info">
                                     <i class="bi bi-brush"></i> Art by {{ card.artist }}
                                 </div>
-                            {% endif %}
-                              <div class="card-actions">
+                            {% endif %}                              <div class="card-actions">
                                 <a href="{{ card.detail_url }}" class="btn-art">
                                     <i class="bi bi-eye"></i> View Details
                                 </a>
+                                {% if card.is_analyzed %}
+                                    <a href="{{ card.detail_url }}" class="btn-art btn-art-analyzed">
+                                        <i class="bi bi-robot"></i> AI Analysis
+                                    </a>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
@@ -369,6 +490,25 @@
 </div>
 
 <script>
+// Image error handlers
+function handleImageError(img) {
+    console.log('Primary image failed to load:', img.src);
+    img.style.display = 'none';
+    const fallback = img.nextElementSibling;
+    if (fallback && fallback.classList.contains('fallback-image')) {
+        fallback.style.display = 'block';
+    }
+}
+
+function handleFallbackError(img) {
+    console.log('Fallback image failed to load:', img.src);
+    img.style.display = 'none';
+    const placeholder = img.nextElementSibling;
+    if (placeholder && placeholder.classList.contains('art-image-placeholder')) {
+        placeholder.style.display = 'flex';
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     const carousel = document.getElementById('artCarousel');
     const currentSlideElement = document.getElementById('current-slide');

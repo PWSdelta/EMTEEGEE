@@ -21,5 +21,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('cards.urls_working')),  # Working version - all pages functional
     # path('', include('cards.urls')),  # Original URLs - has urlpatterns import issue
-    # path('api/swarm/', include('cards.api_urls')),  # Swarm API - temporarily disabled due to SwarmManager syntax issues
+    path('api/swarm/', include('cards.api_urls')),  # Swarm API - re-enabled after fixing SwarmManager issues
 ]
