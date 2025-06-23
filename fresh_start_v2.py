@@ -105,12 +105,11 @@ def fresh_start_analysis():
                 'last_reset': datetime.now(timezone.utc)
             }
         }
-        
-        # Configure Llama models based on hardware
+          # Configure Llama models based on hardware
         if 'DESKTOP-2G4707T' in hostname and ram_gb >= 100:
-            # Beast laptop: 128GB RAM → Llama 70B
+            # Beast laptop: 128GB RAM → Llama 3.3 70B (new efficient model!)
             reset_updates['$set'].update({
-                'capabilities.recommended_model': 'llama3.1:70b',
+                'capabilities.recommended_model': 'llama3.3:70b',
                 'capabilities.alternative_models': [],
                 'capabilities.model_family': 'llama',
                 'capabilities.model_size': '70b',
@@ -118,7 +117,7 @@ def fresh_start_analysis():
                 'capabilities.worker_type': 'beast_laptop',
                 'capabilities.analysis_style': 'comprehensive'
             })
-            print(f"   🦣 {worker_id}: Llama 3.1 70B (Deep Analysis)")
+            print(f"   🦣 {worker_id}: Llama 3.3 70B (405B-Level Performance!)")
             
         elif 'PWS-LP-1235711' in hostname and ram_gb < 20:
             # Lite laptop: 15GB RAM → Llama 3.2 3B
