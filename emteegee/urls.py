@@ -16,10 +16,17 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('cards.urls_working')),  # Working version - all pages functional
-    # path('', include('cards.urls')),  # Original URLs - has urlpatterns import issue
+    path('', include('cards.urls_working')),  # Working version with updated home view
+    # path('', include('cards.urls_working')),  # Working version - has urlpatterns import issue
     path('api/swarm/', include('cards.api_urls')),  # Swarm API - re-enabled after fixing SwarmManager issues
 ]
+
+# Serve static files during development
+if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.BASE_DIR / 'static')

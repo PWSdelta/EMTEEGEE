@@ -1,0 +1,1536 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load card_filters %}
+
+{% block title %}EMTEEGEE - Magic: The Gathering AI Analysis Platform{% endblock %}
+
+{% block extra_head %}
+<style>
+/* Hero Section */
+.hero-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 5rem 0;
+    margin-bottom: 4rem;
+    border-radius: 0 0 3rem 3rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.2"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+    opacity: 0.3;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+}
+
+.hero-title {
+    font-size: 4rem;
+    font-weight: 800;
+    margin-bottom: 1.5rem;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.hero-subtitle {
+    font-size: 1.5rem;
+    opacity: 0.9;
+    margin-bottom: 2rem;
+    font-weight: 300;
+}
+
+.hero-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 2rem;
+    margin-top: 3rem;
+}
+
+.hero-stat {
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(10px);
+    padding: 2rem;
+    border-radius: 1.5rem;
+    border: 1px solid rgba(255,255,255,0.3);
+    text-align: center;
+    transition: transform 0.3s ease;
+}
+
+.hero-stat:hover {
+    transform: translateY(-5px);
+}
+
+.hero-stat-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    display: block;
+}
+
+.hero-stat-label {
+    font-size: 1rem;
+    opacity: 0.8;
+    margin-top: 0.5rem;
+}
+
+/* Fully Analyzed Cards Section */
+.analyzed-cards-section {
+    margin: 4rem 0;
+}
+
+.section-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.section-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+}
+
+.section-subtitle {
+    font-size: 1.25rem;
+    color: #7f8c8d;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 2rem;
+    margin-top: 3rem;
+}
+
+.analyzed-card {
+    background: white;
+    border-radius: 1.5rem;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    position: relative;
+    border: 2px solid transparent;
+}
+
+.analyzed-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    border-color: #667eea;
+}
+
+.card-image-container {
+    position: relative;
+    aspect-ratio: 5/7;
+    overflow: hidden;
+    background: #f8f9fa;
+}
+
+.card-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.analyzed-card:hover .card-image {
+    transform: scale(1.05);
+}
+
+.card-image-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(45deg, #f8f9fa, #e9ecef);
+    color: #6c757d;
+    font-size: 3rem;
+}
+
+.analysis-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: #28a745;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 2rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.card-info {
+    padding: 1.5rem;
+}
+
+.card-name {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 0.75rem;
+    line-height: 1.3;
+}
+
+.card-type {
+    color: #7f8c8d;
+    font-size: 0.95rem;
+    margin-bottom: 1rem;
+}
+
+.card-stats {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.card-stat {
+    background: #f8f9fa;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    color: #495057;
+    font-weight: 600;
+}
+
+.rarity-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.rarity-badge.common { background: #6c757d; color: white; }
+.rarity-badge.uncommon { background: #c0c0c0; color: #333; }
+.rarity-badge.rare { background: #ffd700; color: #333; }
+.rarity-badge.mythic { background: #ff8c00; color: white; }
+
+/* Component Preview */
+.component-preview {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e9ecef;
+}
+
+.component-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.component-tag {
+    background: #e3f2fd;
+    color: #1976d2;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.component-count {
+    background: #667eea;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-left: auto;
+}
+
+/* View More Section */
+.view-more-section {
+    text-align: center;
+    margin: 4rem 0;
+    padding: 3rem;
+    background: #f8f9fa;
+    border-radius: 2rem;
+}
+
+.view-more-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+}
+
+.view-more-subtitle {
+    color: #7f8c8d;
+    margin-bottom: 2rem;
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.btn-hero {
+    padding: 1rem 2rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+    border-radius: 1rem;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-hero-primary {
+    background: #667eea;
+    color: white;
+    border: 2px solid #667eea;
+}
+
+.btn-hero-primary:hover {
+    background: #5a6fd8;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+    color: white;
+}
+
+.btn-hero-outline {
+    background: transparent;
+    color: #667eea;
+    border: 2px solid #667eea;
+}
+
+.btn-hero-outline:hover {
+    background: #667eea;
+    color: white;
+    transform: translateY(-2px);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .hero-title {
+        font-size: 2.5rem;
+    }
+    
+    .hero-stats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+    
+    .cards-grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .cards-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Loading Animation */
+.loading-shimmer {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+/* Card Link Overlay */
+.card-link {
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+    text-decoration: none;
+}
+
+.card-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(102, 126, 234, 0.9);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    gap: 0.5rem;
+}
+
+.analyzed-card:hover .card-overlay {
+    opacity: 1;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="container">
+        <div class="hero-content text-center">
+            <h1 class="hero-title">
+                🎴 EMTEEGEE
+            </h1>
+            <p class="hero-subtitle">
+                Comprehensive AI Analysis for Magic: The Gathering Cards
+            </p>
+            
+            <div class="hero-stats">
+                <div class="hero-stat">
+                    <span class="hero-stat-number">{{ card_count|default:"29,448" }}</span>
+                    <div class="hero-stat-label">Total Cards</div>
+                </div>
+                <div class="hero-stat">
+                    <span class="hero-stat-number">{{ analyzed_cards_count|default:"0" }}</span>
+                    <div class="hero-stat-label">Fully Analyzed</div>
+                </div>
+                <div class="hero-stat">
+                    <span class="hero-stat-number">20</span>
+                    <div class="hero-stat-label">Analysis Components</div>
+                </div>
+                <div class="hero-stat">
+                    <span class="hero-stat-number">{{ total_components|default:"0" }}</span>
+                    <div class="hero-stat-label">AI Insights</div>
+                </div>
+            </div>
+            
+            <div class="action-buttons" style="margin-top: 3rem;">
+                <a href="{% url 'cards:the_abyss' %}?analyzed=true" class="btn-hero btn-hero-primary">
+                    <i class="bi bi-robot"></i>
+                    Explore AI Analysis
+                </a>
+                <a href="{% url 'cards:the_abyss' %}" class="btn-hero btn-hero-outline">
+                    <i class="bi bi-search"></i>
+                    Search All Cards
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Fully Analyzed Cards Section -->
+{% if fully_analyzed_cards %}
+<section class="analyzed-cards-section">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="bi bi-brain"></i> Fully Analyzed Cards
+            </h2>
+            <p class="section-subtitle">
+                Each card features comprehensive AI analysis with 20 detailed components covering tactical insights, 
+                play strategies, format analysis, and much more.
+            </p>
+        </div>
+        
+        <div class="cards-grid">
+            {% for card in fully_analyzed_cards %}
+                <div class="analyzed-card">
+                    <div class="card-image-container">
+                        {% with card|card_image:'normal' as card_image_url %}
+                            {% if card_image_url %}
+                                <img src="{{ card_image_url }}" 
+                                     alt="{{ card.name }}" 
+                                     class="card-image"
+                                     loading="lazy">
+                            {% else %}
+                                <div class="card-image-placeholder">
+                                    <i class="bi bi-image"></i>
+                                </div>
+                            {% endif %}
+                        {% endwith %}
+                        
+                        <div class="analysis-badge">
+                            <i class="bi bi-cpu"></i> AI Analyzed
+                        </div>
+                        
+                        <a href="{% url 'cards:card_detail' card.uuid %}" class="card-link">
+                            <div class="card-overlay">
+                                <i class="bi bi-eye" style="font-size: 2rem;"></i>
+                                <span>View Analysis</span>
+                            </div>
+                        </a>
+                    </div>
+                    
+                    <div class="card-info">
+                        <h3 class="card-name">{{ card.name }}</h3>
+                        <div class="card-type">{{ card.type|default:"Unknown Type" }}</div>
+                        
+                        <div class="card-stats">
+                            {% if card.manaValue %}
+                                <div class="card-stat">CMC {{ card.manaValue }}</div>
+                            {% endif %}
+                            {% if card.rarity %}
+                                <span class="rarity-badge {{ card.rarity }}">{{ card.rarity|title }}</span>
+                            {% endif %}
+                            {% if card.edhrecRank %}
+                                <div class="card-stat">Rank #{{ card.edhrecRank|floatformat:0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="component-preview">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="component-tags">
+                                    <span class="component-tag">Tactical</span>
+                                    <span class="component-tag">Strategy</span>
+                                    <span class="component-tag">Combos</span>
+                                </div>
+                                <span class="component-count">{{ card.component_count|default:"20" }} Components</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- View More Section -->
+<section class="view-more-section">
+    <div class="container">
+        <h2 class="view-more-title">Discover More</h2>
+        <p class="view-more-subtitle">
+            Explore our complete database of Magic: The Gathering cards with advanced search and filtering options.
+        </p>
+        
+        <div class="action-buttons">
+            <a href="{% url 'cards:the_abyss' %}?analyzed=true" class="btn-hero btn-hero-primary">
+                <i class="bi bi-cpu"></i>
+                View All Analyzed Cards
+            </a>
+            <a href="{% url 'cards:the_abyss' %}" class="btn-hero btn-hero-outline">
+                <i class="bi bi-grid-3x3-gap"></i>
+                Browse Card Database
+            </a>
+        </div>
+        
+        <!-- Analysis Components Preview -->
+        <div style="margin-top: 3rem;">
+            <h3 style="color: #2c3e50; margin-bottom: 1.5rem;">20 Analysis Components Include:</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; text-align: left;">
+                <div>
+                    <strong>🎯 Strategic Analysis</strong>
+                    <ul style="margin: 0.5rem 0 0 1rem; color: #7f8c8d;">
+                        <li>Tactical Analysis</li>
+                        <li>Power Level Assessment</li>
+                        <li>Competitive Analysis</li>
+                        <li>Meta Positioning</li>
+                    </ul>
+                </div>
+                <div>
+                    <strong>💡 Practical Guides</strong>
+                    <ul style="margin: 0.5rem 0 0 1rem; color: #7f8c8d;">
+                        <li>Play Tips</li>
+                        <li>Combo Suggestions</li>
+                        <li>Format Analysis</li>
+                        <li>Deck Archetypes</li>
+                    </ul>
+                </div>
+                <div>
+                    <strong>📚 Educational Content</strong>
+                    <ul style="margin: 0.5rem 0 0 1rem; color: #7f8c8d;">
+                        <li>New Player Guide</li>
+                        <li>Rules Clarifications</li>
+                        <li>Budget Alternatives</li>
+                        <li>Historical Context</li>
+                    </ul>
+                </div>
+                <div>
+                    <strong>🎨 Thematic Analysis</strong>
+                    <ul style="margin: 0.5rem 0 0 1rem; color: #7f8c8d;">
+                        <li>Art & Flavor Analysis</li>
+                        <li>Design Philosophy</li>
+                        <li>Investment Outlook</li>
+                        <li>Advanced Interactions</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- No Cards Fallback -->
+{% if not fully_analyzed_cards %}
+<section class="analyzed-cards-section">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="bi bi-brain"></i> AI Analysis In Progress
+            </h2>
+            <p class="section-subtitle">
+                Our AI workers are currently analyzing Magic cards. Check back soon to see fully analyzed cards with 20 comprehensive components each!
+            </p>
+        </div>
+        
+        <div class="text-center">
+            <div style="font-size: 4rem; color: #667eea; margin: 2rem 0;">
+                <i class="bi bi-gear-fill" style="animation: spin 2s linear infinite;"></i>
+            </div>
+            <p style="color: #7f8c8d;">Analysis system active - cards will appear here as they're completed.</p>
+        </div>
+    </div>
+</section>
+
+<style>
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+</style>
+{% endif %}
+
+{% endblock %}
+                                <h3>4 AI Models</h3>
+                                <p>Specialized models for different analysis types</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="analysis-components-preview">
+                    <h4 class="components-title">20 Analysis Components Per Card:</h4>
+                    <div class="components-grid">
+                        <span class="component-tag strategic">Tactical Analysis</span>
+                        <span class="component-tag strategic">Power Level Assessment</span>
+                        <span class="component-tag strategic">Competitive Analysis</span>
+                        <span class="component-tag practical">Play Tips</span>
+                        <span class="component-tag practical">Combo Suggestions</span>
+                        <span class="component-tag practical">Format Analysis</span>
+                        <span class="component-tag educational">New Player Guide</span>
+                        <span class="component-tag educational">Rules Clarifications</span>
+                        <span class="component-tag thematic">Thematic Analysis</span>
+                        <span class="component-tag thematic">Art & Flavor</span>
+                        <span class="component-tag-more">+ 10 more components</span>
+                    </div>
+                </div>
+                  <div class="text-center mt-4">
+                    <a href="/abyss/?analyzed=true" class="btn btn-primary btn-lg me-3">
+                        <i class="bi bi-search"></i> Browse AI-Analyzed Cards
+                    </a>
+                    <a href="/abyss/" class="btn btn-outline-secondary btn-lg">
+                        <i class="bi bi-grid-3x3-gap"></i> All Cards Database
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Cards Section -->
+    {% if featured_cards %}
+    <section class="featured-section">        <div class="section-header">
+            <h2 class="section-title">
+                <i class="bi bi-stars"></i> Featured Analysis Samples
+            </h2>
+            <p class="section-subtitle">See examples of our comprehensive AI analysis in action</p>
+        </div>
+        <div class="row g-4">
+            {% for card in featured_cards %}
+                <div class="col-lg-4 col-md-6">
+                    <div class="featured-card-enhanced">
+                        <div class="card-image-enhanced">
+                            {% with card|card_image:'normal' as card_image_url %}
+                                {% if card_image_url %}
+                                    <img src="{{ card_image_url }}" alt="{{ card.name }}" class="featured-card-image-enhanced">
+                                {% else %}
+                                    <div class="featured-card-placeholder-enhanced">
+                                        <i class="bi bi-image"></i>
+                                    </div>
+                                {% endif %}
+                            {% endwith %}
+                        </div>
+                        <div class="featured-card-info-enhanced">
+                            <h3 class="card-name-enhanced">{{ card.name }}</h3>
+                            {% if card.rarity %}
+                                <span class="rarity-dot-enhanced {{ card.rarity }}"></span>
+                            {% endif %}
+                        </div>                        <a href="{% url 'cards:card_detail' card.uuid %}" class="featured-card-link-enhanced">      
+                            <div class="card-overlay-enhanced">
+                                <i class="bi bi-robot"></i>
+                                <span>View AI Analysis</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}    <!-- Recent Analysis Section -->
+    {% if recent_cards %}
+    <section class="recent-section">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="bi bi-clock-history"></i> Recently Analyzed
+            </h2>
+            <p class="section-subtitle">Latest cards to receive complete AI analysis</p>
+        </div>
+        <div class="row g-3">
+            {% for card in recent_cards %}
+                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+                    <div class="recent-card-enhanced">
+                        <div class="recent-card-image-enhanced">
+                            {% with card|card_image:'normal' as card_image_url %}
+                                {% if card_image_url %}
+                                    <img src="{{ card_image_url }}" alt="{{ card.name }}">
+                                {% else %}
+                                    <div class="recent-card-placeholder-enhanced">
+                                        <i class="bi bi-image"></i>
+                                    </div>
+                                {% endif %}
+                            {% endwith %}
+                        </div>
+                        <div class="recent-card-info-enhanced">
+                            <h4 class="recent-card-name-enhanced">{{ card.name }}</h4>
+                        </div>                        <a href="{% url 'cards:card_detail' card.uuid %}" class="recent-card-overlay-enhanced">     
+                            <div class="recent-overlay-content">
+                                <i class="bi bi-robot"></i>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- Features Section -->
+    <section class="features-section">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="bi bi-lightning"></i> Platform Features
+            </h2>
+            <p class="section-subtitle">Comprehensive AI-powered Magic: The Gathering analysis platform</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-robot"></i>
+                    </div>                    <h3 class="feature-title">20-Component AI Analysis</h3>
+                    <p class="feature-description">
+                        Each card receives comprehensive analysis across 20 different components including tactical analysis,
+                        play tips, combo suggestions, power level assessment, and strategic insights.
+                    </p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">                    <div class="feature-icon">
+                        <i class="bi bi-cpu-fill"></i>
+                    </div>
+                    <h3 class="feature-title">Multi-Model AI System</h3>
+                    <p class="feature-description">
+                        Powered by 4 specialized AI models (Llama 3.1, 3.2, 3.3, Mistral) each optimized 
+                        for different types of analysis - from quick tips to deep strategic breakdowns.
+                    </p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">                    <div class="feature-icon">
+                        <i class="bi bi-database-fill"></i>
+                    </div>
+                    <h3 class="feature-title">Complete MTG Database</h3>
+                    <p class="feature-description">
+                        Access comprehensive data on 29,448+ Magic cards imported from MTGJson with 
+                        images, oracle text, legalities, and complete card metadata.
+                    </p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">                    <div class="feature-icon">
+                        <i class="bi bi-puzzle"></i>
+                    </div>
+                    <h3 class="feature-title">Combo & Synergy Detection</h3>
+                    <p class="feature-description">
+                        Discover powerful card combinations with AI-generated combo suggestions,
+                        synergy analysis, and deck archetype recommendations.
+                    </p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-search"></i>
+                    </div>                    <h3 class="feature-title">Advanced Search & Discovery</h3>
+                    <p class="feature-description">
+                        Find cards by name, text, abilities, artist, set, or even search within 
+                        AI analysis content with powerful autocomplete and filtering.
+                    </p>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="feature-card">                    <div class="feature-icon">
+                        <i class="bi bi-mortarboard"></i>
+                    </div>
+                    <h3 class="feature-title">Educational Content</h3>
+                    <p class="feature-description">
+                        Perfect for new players with beginner guides, rules clarifications,
+                        budget alternatives, and comprehensive card explanations.
+                    </p>
+                </div>
+            </div>
+        </div>    </section>
+</div>
+
+<!-- Quick Search Modal -->
+<div class="modal fade" id="quickSearchModal" tabindex="-1" aria-labelledby="quickSearchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="quickSearchModalLabel">
+                    <i class="bi bi-search"></i> Quick Card Search
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>            <div class="modal-body">
+                <form id="quickSearchForm" action="/abyss/" method="get">
+                    <!-- Hidden field to default to analyzed cards -->
+                    <input type="hidden" name="analyzed" value="true" id="analyzedFilter">
+                    
+                    <div class="mb-3">
+                        <label for="cardNameSearch" class="form-label">Search Cards</label>
+                        <div class="position-relative">
+                            <input type="text" class="form-control form-control-lg" id="cardNameSearch" name="q"    
+                                   placeholder="Search by name, text, type, artist, set, or any card details..."    
+                                   autocomplete="off">
+                            <div class="autocomplete-dropdown" id="modal-autocomplete-dropdown"></div>
+                        </div>
+                        <div class="form-text">
+                            <i class="bi bi-lightbulb text-warning"></i>
+                            <strong>Pro tip:</strong> Search for anything - card names, abilities, flavor text, artists, sets, keywords, or even partial matches!
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="searchAnalyzedOnly" checked>
+                            <label class="form-check-label" for="searchAnalyzedOnly">
+                                <i class="bi bi-robot text-primary"></i> Search only AI-analyzed cards (198 cards with full analysis)
+                            </label>
+                        </div>
+                    </div><div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>Powerful Search:</strong> Try searches like "draw cards", "Lightning", "Urza", "enters the battlefield",
+                        "MH3", or even "Rebecca Guay" to find cards by artist.
+                    </div>                    <div class="alert alert-success">
+                        <i class="bi bi-robot"></i>
+                        <strong>Default:</strong> Searching our 198 AI-analyzed cards with comprehensive 20-component analysis. 
+                        <span class="text-muted">Toggle above to search all 29,448 cards.</span>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Cancel
+                </button>
+                <button type="submit" form="quickSearchForm" class="btn btn-primary">
+                    <i class="bi bi-search"></i> Search The Abyss
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Autocomplete functionality for Quick Search Modal
+document.addEventListener('DOMContentLoaded', function() {
+    const modalSearchInput = document.getElementById('cardNameSearch');
+    const modalDropdown = document.getElementById('modal-autocomplete-dropdown');
+    let modalCurrentRequest = null;
+    let modalSelectedIndex = -1;
+    let modalSuggestions = [];
+
+    // Debounce function
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+
+    // Show modal autocomplete suggestions
+    function showModalSuggestions(query) {
+        if (query.length < 2) {
+            hideModalDropdown();
+            return;
+        }
+
+        if (modalCurrentRequest) {
+            modalCurrentRequest.abort();
+        }
+
+        modalDropdown.innerHTML = '<div class="autocomplete-loading"><i class="bi bi-three-dots"></i> Searching...</div>';
+        modalDropdown.classList.add('show');
+
+        modalCurrentRequest = new AbortController();
+        fetch(`/api/autocomplete/?q=${encodeURIComponent(query)}`, {
+            signal: modalCurrentRequest.signal
+        })
+        .then(response => response.json())
+        .then(data => {
+            modalSuggestions = data.suggestions || [];
+            renderModalSuggestions(modalSuggestions);
+        })
+        .catch(error => {
+            if (error.name !== 'AbortError') {
+                console.error('Modal autocomplete error:', error);
+                hideModalDropdown();
+            }
+        })
+        .finally(() => {
+            modalCurrentRequest = null;
+        });
+    }
+
+    // Render modal suggestions
+    function renderModalSuggestions(suggestions) {
+        if (!suggestions.length) {
+            modalDropdown.innerHTML = '<div class="autocomplete-no-results">No suggestions found</div>';
+            modalDropdown.classList.add('show');
+            return;
+        }
+
+        let html = '';
+        suggestions.forEach((suggestion, index) => {
+            const uuid = suggestion.uuid ? `data-uuid="${escapeHtml(suggestion.uuid)}"` : '';
+            const suggestionType = suggestion.type || 'other';
+            html += `
+                <div class="autocomplete-item" data-index="${index}" data-text="${escapeHtml(suggestion.text)}" data-type="${suggestionType}" ${uuid}>
+                    <i class="bi ${suggestion.icon} autocomplete-icon"></i>
+                    <span class="autocomplete-text">${escapeHtml(suggestion.text)}</span>
+                    <span class="autocomplete-category">${escapeHtml(suggestion.category)}</span>
+                </div>
+            `;
+        });
+
+        modalDropdown.innerHTML = html;
+        modalDropdown.classList.add('show');
+        modalSelectedIndex = -1;
+
+        modalDropdown.querySelectorAll('.autocomplete-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const suggestionType = this.getAttribute('data-type');
+                const uuid = this.getAttribute('data-uuid');
+                const text = this.getAttribute('data-text');
+
+                hideModalDropdown();
+
+                // If it's a card suggestion with UUID, go directly to card detail
+                if (suggestionType === 'card' && uuid) {
+                    // Close modal first
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('quickSearchModal'));
+                    if (modal) modal.hide();
+                    // Navigate to card
+                    window.location.href = `/card/${uuid}/`;
+                } else {
+                    // For other suggestions, do a search in The Abyss
+                    modalSearchInput.value = text;
+                    document.getElementById('quickSearchForm').submit();
+                }
+            });
+        });
+    }
+
+    // Hide modal dropdown
+    function hideModalDropdown() {
+        modalDropdown.classList.remove('show');
+        modalDropdown.innerHTML = '';
+        modalSelectedIndex = -1;
+    }
+
+    // Escape HTML
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // Handle modal keyboard navigation
+    function handleModalKeyboardNavigation(e) {
+        const items = modalDropdown.querySelectorAll('.autocomplete-item');
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            modalSelectedIndex = Math.min(modalSelectedIndex + 1, items.length - 1);
+            updateModalSelection(items);
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            modalSelectedIndex = Math.max(modalSelectedIndex - 1, -1);
+            updateModalSelection(items);
+        } else if (e.key === 'Enter') {
+            if (modalSelectedIndex >= 0 && modalSelectedIndex < items.length) {
+                e.preventDefault();
+                const selectedItem = items[modalSelectedIndex];
+                const text = selectedItem.getAttribute('data-text');
+                modalSearchInput.value = text;
+                hideModalDropdown();
+                document.getElementById('quickSearchForm').submit();
+            }
+        } else if (e.key === 'Escape') {
+            hideModalDropdown();
+        }
+    }
+
+    // Update modal selection
+    function updateModalSelection(items) {
+        items.forEach((item, index) => {
+            item.classList.toggle('active', index === modalSelectedIndex);
+        });
+    }
+
+    // Debounced modal search
+    const debouncedModalSearch = debounce(showModalSuggestions, 300);
+
+    // Modal event listeners
+    if (modalSearchInput) {
+        modalSearchInput.addEventListener('input', function() {
+            const query = this.value.trim();
+            debouncedModalSearch(query);
+        });
+
+        modalSearchInput.addEventListener('keydown', handleModalKeyboardNavigation);
+
+        modalSearchInput.addEventListener('focus', function() {
+            const query = this.value.trim();
+            if (query.length >= 2) {
+                showModalSuggestions(query);
+            }
+        });
+    }
+
+    // Hide modal dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        if (modalSearchInput && modalDropdown &&
+            !modalSearchInput.contains(e.target) && !modalDropdown.contains(e.target)) {
+            hideModalDropdown();
+        }
+    });    // Clear modal autocomplete when modal is hidden
+    document.getElementById('quickSearchModal').addEventListener('hidden.bs.modal', function() {
+        hideModalDropdown();
+        if (modalSearchInput) {
+            modalSearchInput.value = '';
+        }
+    });
+
+    // Handle analyzed filter toggle
+    const searchAnalyzedOnly = document.getElementById('searchAnalyzedOnly');
+    const analyzedFilter = document.getElementById('analyzedFilter');
+    
+    if (searchAnalyzedOnly && analyzedFilter) {
+        searchAnalyzedOnly.addEventListener('change', function() {
+            if (this.checked) {
+                analyzedFilter.value = 'true';
+            } else {
+                analyzedFilter.value = '';
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
+<style>
+.hero-home-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 5rem 0;
+    margin-bottom: 3rem;
+    border-radius: 0 0 2rem 2rem;
+}
+
+.hero-home-title {
+    font-size: 3.5rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.brand-icon {
+    display: inline-block;
+    font-size: 3rem;
+    margin-right: 1rem;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+
+.hero-subtitle {
+    font-size: 1.5rem;
+    font-weight: 300;
+    margin-bottom: 1rem;
+    opacity: 0.9;
+}
+
+.hero-description {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    margin-bottom: 2rem;
+    opacity: 0.95;
+}
+
+.hero-stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.stat-card {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    text-align: center;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+.stat-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    opacity: 0.9;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    opacity: 0.8;
+    font-weight: 300;
+}
+
+.section-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.section-title {
+    font-size: 2.5rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+}
+
+.section-subtitle {
+    font-size: 1.2rem;
+    color: #7f8c8d;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.featured-section, .recent-section, .features-section, .analyzed-showcase-section {
+    margin: 4rem 0;
+}
+
+.analyzed-showcase-section {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 4rem 0;
+    border-radius: 2rem;
+    margin: 4rem 0;
+}
+
+.analyzed-cards-preview {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.analysis-stat-card {
+    background: white;
+    border-radius: 1rem;
+    padding: 2rem;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    height: 100%;
+}
+
+.analysis-stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.analysis-stat-icon {
+    width: 3rem;
+    height: 3rem;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    color: white;
+    font-size: 1.25rem;
+}
+
+.analysis-stat-content h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.analysis-stat-content p {
+    color: #7f8c8d;
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.analysis-components-preview {
+    background: white;
+    border-radius: 1rem;
+    padding: 2rem;
+    margin: 2rem 0;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+}
+
+.components-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.components-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    justify-content: center;
+}
+
+.component-tag {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border-radius: 1.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: white;
+    text-align: center;
+    transition: transform 0.3s ease;
+}
+
+.component-tag:hover {
+    transform: scale(1.05);
+}
+
+.component-tag.strategic {
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+}
+
+.component-tag.practical {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+}
+
+.component-tag.educational {
+    background: linear-gradient(135deg, #2ecc71, #27ae60);
+}
+
+.component-tag.thematic {
+    background: linear-gradient(135deg, #9b59b6, #8e44ad);
+}
+
+.component-tag-more {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border-radius: 1.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #7f8c8d;
+    background: #f8f9fa;
+    border: 2px dashed #dee2e6;
+    text-align: center;
+}
+
+.featured-section, .recent-section, .features-section {
+    margin: 4rem 0;
+}
+
+.featured-card-enhanced {
+    position: relative;
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.featured-card-enhanced:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.featured-card-image-enhanced {
+    width: 100%;
+    height: 300px;
+    object-fit: cover;
+}
+
+.featured-card-placeholder-enhanced {
+    width: 100%;
+    height: 300px;
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    color: #adb5bd;
+}
+
+.featured-card-info-enhanced {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(transparent, rgba(0,0,0,0.8));
+    color: white;
+    padding: 2rem 1.5rem 1.5rem;
+}
+
+.card-name-enhanced {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.card-overlay-enhanced {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(102, 126, 234, 0.9);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+.featured-card-enhanced:hover .card-overlay-enhanced {
+    opacity: 1;
+}
+
+.card-overlay-enhanced i {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.recent-card-enhanced {
+    position: relative;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+}
+
+.recent-card-enhanced:hover {
+    transform: scale(1.05);
+}
+
+.recent-card-image-enhanced img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+.recent-card-placeholder-enhanced {
+    width: 100%;
+    height: 200px;
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: #adb5bd;
+}
+
+.recent-card-info-enhanced {
+    padding: 0.75rem;
+    background: white;
+}
+
+.recent-card-name-enhanced {
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin: 0;
+    color: #2c3e50;
+    line-height: 1.3;
+}
+
+.recent-card-overlay-enhanced {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(118, 75, 162, 0.9);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.recent-card-enhanced:hover .recent-card-overlay-enhanced {
+    opacity: 1;
+}
+
+.recent-overlay-content i {
+    font-size: 1.5rem;
+}
+
+.feature-card {
+    background: white;
+    border-radius: 1rem;
+    padding: 2rem;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    height: 100%;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.feature-icon {
+    width: 4rem;
+    height: 4rem;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    color: white;
+    font-size: 1.5rem;
+}
+
+.feature-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+}
+
+.feature-description {
+    color: #7f8c8d;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border: none;
+    border-radius: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+.btn-outline-secondary {
+    border: 2px solid #6c757d;
+    color: #6c757d;
+    border-radius: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-secondary:hover {
+    background: #6c757d;
+    border-color: #6c757d;
+    color: white;
+    transform: translateY(-1px);
+}
+
+.btn-outline-primary {
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    border-radius: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-primary:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.5);
+    color: white;
+    transform: translateY(-2px);
+}
+
+.rarity-dot-enhanced {
+    display: inline-block;
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 50%;
+    margin-left: 0.5rem;
+}
+
+.rarity-dot-enhanced.common { background-color: #333; }
+.rarity-dot-enhanced.uncommon { background-color: #c0c0c0; }
+.rarity-dot-enhanced.rare { background-color: #ffd700; }
+.rarity-dot-enhanced.mythic { background-color: #ff6b35; }
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .hero-home-title {
+        font-size: 2.5rem;
+    }
+    
+    .hero-stats-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .section-title {
+        font-size: 2rem;
+    }
+    
+    .hero-home-section {
+        padding: 3rem 0;
+    }
+}
+</style>

@@ -10,8 +10,73 @@ from . import views as real_views  # Import the real views
 app_name = 'cards'
 
 def home(request):
-    """Use the real home view with template tag testing"""
-    return real_views.home(request)
+    """Simple home view with fully analyzed cards"""
+    from django.shortcuts import render
+    from cards.models import get_cards_collection
+    
+    try:
+        cards_collection = get_cards_collection()
+        
+        # Get fully analyzed cards with exactly 20 components
+        fully_analyzed_cards = list(cards_collection.aggregate([
+            {
+                '$match': {
+                    'analysis.components': {'$exists': True}
+                }
+            },
+            {
+                '$addFields': {
+                    'component_count': {
+                        '$cond': {
+                            'if': {'$eq': [{'$type': '$analysis.components'}, 'object']},
+                            'then': {'$size': {'$objectToArray': '$analysis.components'}},
+                            'else': 0
+                        }
+                    }
+                }
+            },
+            {
+                '$match': {
+                    'component_count': {'$eq': 20}  # Exactly 20 components = fully analyzed
+                }
+            },
+            {
+                '$sort': {
+                    'edhrecRank': 1  # Sort by popularity
+                }
+            },
+            {'$limit': 20}  # Show up to 20 cards
+        ]))
+        
+        # Calculate statistics
+        total_cards = cards_collection.count_documents({})
+        analyzed_cards_count = len(fully_analyzed_cards)
+        total_components = analyzed_cards_count * 20
+        avg_components = 20 if analyzed_cards_count > 0 else 0
+        
+        context = {
+            'fully_analyzed_cards': fully_analyzed_cards,
+            'statistics': {
+                'total_cards': f"{total_cards:,}",
+                'fully_analyzed': analyzed_cards_count,
+                'total_components': f"{total_components:,}",
+                'avg_components': avg_components,
+            }
+        }
+        
+    except Exception as e:
+        print(f"Error in home view: {e}")
+        context = {
+            'fully_analyzed_cards': [],
+            'statistics': {
+                'total_cards': "Error",
+                'fully_analyzed': 0,
+                'total_components': "0",
+                'avg_components': 0,
+            }
+        }
+    
+    return render(request, 'cards/home.html', context)
 
 def card_detail(request, card_uuid):
     """Simple card detail page"""
@@ -76,6 +141,7 @@ urlpatterns = [
     path('card/<str:card_uuid>/', card_detail, name='card_detail'),
     path('browse/', browse_cards, name='browse'),
     path('abyss/', the_abyss, name='the_abyss'),
+    path('card-list/', the_abyss, name='card_list'),  # Legacy compatibility
     
     # Art Gallery
     path('gallery/', art_gallery, name='art_gallery'),
