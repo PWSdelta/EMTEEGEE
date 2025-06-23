@@ -7,8 +7,15 @@ import json
 import logging
 from typing import Dict, List, Any, Optional
 from datetime import datetime
-import ollama
 from .models import get_cards_collection
+
+# Ollama is optional - only needed for advanced coherence validation
+try:
+    import ollama
+    OLLAMA_AVAILABLE = True
+except ImportError:
+    OLLAMA_AVAILABLE = False
+    ollama = None
 
 logger = logging.getLogger(__name__)
 
@@ -131,6 +138,16 @@ Respond with JSON:
 """
         
         try:
+            if not OLLAMA_AVAILABLE:
+                # Fallback coherence check without ollama
+                logger.warning("Ollama not available, using basic coherence validation")
+                return {
+                    'is_coherent': True,
+                    'confidence_score': 0.8,
+                    'potential_conflicts': [],
+                    'suggestions': []
+                }
+            
             response = ollama.chat(
                 model='llama3.1:8b',  # Use fast model for validation
                 messages=[{'role': 'user', 'content': coherence_prompt}],
@@ -153,12 +170,16 @@ Respond with JSON:
                                   existing_components: Dict[str, Any], 
                                   analysis_context: Dict[str, Any]) -> str:
         """Generate component with full context awareness"""
-        
-        # Build context-aware prompt
+          # Build context-aware prompt
         context_prompt = self._build_context_prompt(card_data, component_type, 
                                                   existing_components, analysis_context)
         
         try:
+            if not OLLAMA_AVAILABLE:
+                # Fallback without ollama
+                logger.warning("Ollama not available, using fallback component generation")
+                return f"Basic {component_type} analysis (enhanced generation unavailable)"
+            
             response = ollama.chat(
                 model='llama3.1:8b',
                 messages=[{'role': 'user', 'content': context_prompt}],

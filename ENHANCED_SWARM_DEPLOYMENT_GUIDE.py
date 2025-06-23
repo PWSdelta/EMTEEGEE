@@ -47,7 +47,18 @@ DEPLOYMENT STEPS:
    The enhanced system uses the same dependencies as the original swarm system.
    If you encounter import errors, ensure these are installed:
    
-   pip install pymongo django bson
+   pip install pymongo django bson ollama
+
+4.1 🗂️ CREATE REQUIRED LOG FILES
+    ------------------------------
+    The enhanced system expects certain log files to exist:
+    
+    # Create logs directory if it doesn't exist
+    mkdir -p logs
+    
+    # Create blank log files (they will be populated automatically)
+    touch logs/swarm.log
+    touch logs/enhanced_swarm.log
    
 5. 🔄 RESTART SERVICES
    --------------------
