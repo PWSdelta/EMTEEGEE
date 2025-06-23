@@ -87,7 +87,9 @@ class SwarmManager:
         # All systems can handle balanced components
         assigned.extend(self.BALANCED_COMPONENTS)
         
-        return list(set(assigned))  # Remove duplicates    def get_work(self, worker_id: str, max_tasks: int = 1) -> List[Dict[str, Any]]:
+        return list(set(assigned))  # Remove duplicates
+    
+    def get_work(self, worker_id: str, max_tasks: int = 1) -> List[Dict[str, Any]]:
         """Get work assignments for a specific worker with atomic task assignment"""
         # Clean up any stale locks first
         self.cleanup_stale_locks()
