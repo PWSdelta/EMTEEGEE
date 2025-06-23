@@ -60,7 +60,7 @@ def register_worker(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 def get_work(request):
-    """Get prioritized work assignments for a worker - SIMPLIFIED VERSION"""
+    """Get prioritized work assignments for a worker using priority cache for instant response"""
     try:
         data = json.loads(request.body)
         worker_id = data.get('worker_id')
@@ -69,39 +69,26 @@ def get_work(request):
         if not worker_id:
             return JsonResponse({'error': 'worker_id required'}, status=400)
         
-        logger.info(f"🔍 Simple work request from {worker_id}, max_tasks: {max_tasks}")
+        if enhanced_swarm is None:
+            return JsonResponse({'error': 'Enhanced SwarmManager not available'}, status=500)
         
-        # SIMPLIFIED: Just get basic unanalyzed cards
-        from django.conf import settings
-        from pymongo import MongoClient
+        if logger:
+            logger.info(f"🔍 Priority work request from {worker_id}, max_tasks: {max_tasks}")
         
-        client = MongoClient('mongodb://localhost:27017/')
-        db = client['emteegee']
-        cards_collection = db['cards_card']
+        # Use enhanced swarm manager's get_work method which uses priority cache
+        tasks = enhanced_swarm.get_work(worker_id, max_tasks)
         
-        # Find unanalyzed cards (simple query - no complex aggregation)
-        unanalyzed_cards = list(cards_collection.find({
-            'analysis_complete': {'$ne': True}
-        }).limit(max_tasks))
+        # Convert ObjectId fields to strings for JSON serialization
+        json_tasks = json.loads(json.dumps(tasks, cls=MongoJSONEncoder))
         
-        tasks = []
-        for card in unanalyzed_cards:
-            task = {
-                'task_id': str(card['_id']),
-                'card_name': card.get('name', 'Unknown'),
-                'card_id': str(card['_id']),
-                'components': ['pricing', 'legality'],  # Basic components only
-                'priority': 'normal'
-            }
-            tasks.append(task)
+        if logger:
+            logger.info(f"✅ Enhanced API returning {len(json_tasks)} priority tasks to {worker_id}")
         
-        logger.info(f"✅ Simple API returning {len(tasks)} tasks to {worker_id}")
-        
-        return JsonResponse({'tasks': tasks})
+        return JsonResponse({'tasks': json_tasks})
         
     except Exception as e:
         if logger:
-            logger.error(f"❌ Get work failed for {worker_id}: {str(e)}")
+            logger.error(f"❌ Enhanced get work failed for {worker_id}: {str(e)}")
         return JsonResponse({'error': str(e)}, status=500)
 
 @csrf_exempt
