@@ -179,7 +179,7 @@ class EnhancedUniversalWorker:
             'worker_id': self.worker_id,
             'capabilities': self.capabilities,
             'status': 'active',
-            'registered_at': datetime.now(timezone.UTC).isoformat()
+            'registered_at': datetime.now(timezone.utc).isoformat()
         }
         
         # Determine servers to try based on configuration
@@ -224,7 +224,7 @@ class EnhancedUniversalWorker:
                     logger.info(f"📝 Assigned components: {len(result.get('assigned_components', []))}")
                     # Update server URL to the working one
                     self.server_url = server_url
-                    self.last_heartbeat = datetime.now(timezone.UTC)
+                    self.last_heartbeat = datetime.now(timezone.utc)
                     return True
                 else:
                     logger.warning(f"⚠️  Registration failed: HTTP {response.status_code} - {response.text[:200]}")
@@ -257,7 +257,7 @@ class EnhancedUniversalWorker:
                 'status': 'active',
                 'active_tasks': len(self.active_tasks),
                 'completed_tasks': len(self.completed_tasks),
-                'last_heartbeat': datetime.now(timezone.UTC).isoformat()
+                'last_heartbeat': datetime.now(timezone.utc).isoformat()
             }
             
             response = requests.post(
@@ -267,7 +267,7 @@ class EnhancedUniversalWorker:
             )
             
             if response.status_code == 200:
-                self.last_heartbeat = datetime.now(timezone.UTC)
+                self.last_heartbeat = datetime.now(timezone.utc)
                 return True
             else:
                 logger.warning(f"⚠️  Heartbeat failed: {response.status_code}")
@@ -330,7 +330,7 @@ class EnhancedUniversalWorker:
                 'results': results,
                 'worker_type': self.worker_type,
                 'model_used': self.current_model,
-                'completed_at': datetime.now(timezone.UTC).isoformat(),
+                'completed_at': datetime.now(timezone.utc).isoformat(),
                 'processing_time': None  # Could add timing metrics
             }
             

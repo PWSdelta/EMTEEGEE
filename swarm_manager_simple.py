@@ -49,8 +49,7 @@ class SwarmManager:
         """Register a new worker node"""
         worker_info = {
             'worker_id': worker_id,
-            'capabilities': capabilities,
-            'registered_at': datetime.now(timezone.utc),
+            'capabilities': capabilities,            'registered_at': datetime.now(timezone.utc),
             'last_heartbeat': datetime.now(timezone.utc),
             'status': 'active',
             'tasks_completed': 0,
