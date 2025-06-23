@@ -52,10 +52,9 @@ class EnhancedUniversalWorker:
         
         self.server_url = server_url
         self.server_ip_url = 'http://64.23.130.187:8000'  # DigitalOcean server IP
-        
-        # Determine localhost fallback URL based on common Django ports
-        if 'localhost:8001' in server_url or '127.0.0.1:8001' in server_url:
-            self.fallback_url = 'http://localhost:8001'
+          # Determine localhost fallback URL based on common Django ports
+        if 'localhost:8000' in server_url or '127.0.0.1:8000' in server_url:
+            self.fallback_url = 'http://localhost:8000'
         else:
             self.fallback_url = 'http://localhost:8000'
         self.hostname = socket.gethostname()

@@ -134,11 +134,22 @@ TESTING COMMANDS:
 
 After deployment, run these tests:
 
-# Test API availability
+# Test API availability on production (port 8000)
 curl https://mtgabyss.com/api/enhanced_swarm/status
+
+# For local testing (port 8000 - standard Django)
+curl http://localhost:8000/api/enhanced_swarm/status
 
 # Test worker registration (from worker machine)
 python universal_worker_enhanced.py https://mtgabyss.com
+
+# For local worker testing
+python universal_worker_enhanced.py http://localhost:8000
+
+⚠️ PORT CONFIGURATION:
+- Production server: Standard port (80/443 via nginx)
+- Local development: Port 8000 (Django default)
+- Port 8001 was used during development/testing only
 
 TROUBLESHOOTING:
 ===============
@@ -162,6 +173,15 @@ TROUBLESHOOTING:
    - Ensure MongoDB is running
    - Check connection settings
    - Verify network access
+
+⚠️ PORT CONFIGURATION NOTE:
+===========================
+During development/testing, some scripts may reference port 8001.
+For production deployment:
+- Production server: Uses standard HTTP/HTTPS ports via nginx
+- Local development: Use port 8000 (Django default)
+- Worker registration: Will auto-detect correct port
+- API endpoints work on any port Django is running on
 
 SUPPORT:
 ========
