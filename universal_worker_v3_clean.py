@@ -728,7 +728,7 @@ Provide detailed insights and practical recommendations.
 Be thorough and specific in your analysis."""
     
     def run(self):
-        """Enhanced main worker loop with better state management"""
+        """Enhanced main worker loop with better state management and failed task cleanup"""
         logger.info(f"🚀 Starting {self.worker_type} worker v3.0 - Enhanced Swarm Integration")
         logger.info(f"🎯 Model: {self.current_model}")
         logger.info(f"⚙️  Max tasks: {self.max_tasks}, Poll interval: {self.poll_interval}s")
@@ -746,17 +746,28 @@ Be thorough and specific in your analysis."""
         self.running = True
         consecutive_empty_polls = 0
         last_heartbeat = time.time()
+        cleanup_counter = 0  # ADD: Counter for cleanup
+        
+        # Track task start times for cleanup
+        if not hasattr(self, 'task_start_times'):
+            self.task_start_times = {}
         
         logger.info("✅ Worker started successfully - entering main loop")
         
         while self.running:
             try:
                 current_time = time.time()
+                cleanup_counter += 1  # ADD: Increment cleanup counter
                 
                 # Send heartbeat every 30 seconds
                 if current_time - last_heartbeat > 30:
                     self.send_heartbeat()
                     last_heartbeat = current_time
+                
+                # ADD: Clean up stale tasks every 10 iterations (prevent capacity deadlock)
+                if cleanup_counter >= 10:
+                    self.cleanup_failed_tasks()
+                    cleanup_counter = 0
                 
                 # Get work only if we have available slots
                 available_slots = self.max_tasks - len(self.active_tasks)
@@ -772,7 +783,21 @@ Be thorough and specific in your analysis."""
                         for task in tasks:
                             if not self.running:
                                 break
-                            self.process_task(task)
+                            
+                            # ADD: Track task start time
+                            task_id = task.get('task_id')
+                            if task_id:
+                                self.task_start_times[task_id] = current_time
+                            
+                            # Process the task
+                            success = self.process_task(task)
+                            if not success:
+                                # ADD: Remove failed task from active queue immediately
+                                if task_id and task_id in self.active_tasks:
+                                    self.active_tasks.remove(task_id)
+                                    if task_id in self.task_start_times:
+                                        del self.task_start_times[task_id]
+                                    logger.warning(f"🧹 Removed failed task {task_id} from active queue immediately")
                     else:
                         consecutive_empty_polls += 1
                         if consecutive_empty_polls % 20 == 1:  # Log every 20th empty poll
@@ -791,72 +816,30 @@ Be thorough and specific in your analysis."""
                 time.sleep(10)  # Wait before retrying
         
         logger.info(f"👋 Worker stopped - Completed {len(self.completed_tasks)} tasks")
-
-def run_worker_loop(self):
-    """Enhanced worker loop with failed task cleanup"""
-    try:
-        iteration = 0
-        failed_task_cleanup_counter = 0
+    
+    def cleanup_failed_tasks(self):
+        """Remove tasks that have been active too long (likely failed submissions)"""
+        if not hasattr(self, 'task_start_times'):
+            self.task_start_times = {}
         
-        while True:
-            iteration += 1
-            failed_task_cleanup_counter += 1
-            
-            # Send heartbeat
-            if not self.send_heartbeat():
-                logger.warning("⚠️  Heartbeat failed - continuing")
-            
-            # Every 10 iterations, clean up failed tasks
-            if failed_task_cleanup_counter >= 10:
-                self.cleanup_failed_tasks()
-                failed_task_cleanup_counter = 0
-            
-            # Check if we can take more work
-            if len(self.active_tasks) < self.max_tasks:
-                new_tasks = self.get_work()
-                
-                for task in new_tasks:
-                    if self.process_task(task):
-                        logger.info(f"✅ Task completed successfully")
-                    else:
-                        logger.error(f"❌ Task processing failed")
-                        # Remove failed task from active queue
-                        task_id = task.get('task_id')
-                        if task_id in self.active_tasks:
-                            self.active_tasks.remove(task_id)
-                            logger.info(f"🧹 Removed failed task {task_id} from active queue")
-            else:
-                logger.info(f"🔄 Worker at capacity - Active: {len(self.active_tasks)}/{self.max_tasks}")
-            
-            time.sleep(self.poll_interval)
-            
-    except KeyboardInterrupt:
-        logger.info("👋 Worker shutdown requested")
-    except Exception as e:
-        logger.error(f"💥 Worker loop error: {e}")
-
-def cleanup_failed_tasks(self):
-    """Remove tasks that have been active too long (likely failed)"""
-    if not hasattr(self, 'task_start_times'):
-        self.task_start_times = {}
-    
-    current_time = time.time()
-    stale_tasks = []
-    
-    for task_id in list(self.active_tasks):
-        # If task has been active for more than 30 minutes, consider it stale
-        start_time = self.task_start_times.get(task_id, current_time)
-        if current_time - start_time > 1800:  # 30 minutes
-            stale_tasks.append(task_id)
-    
-    for task_id in stale_tasks:
-        self.active_tasks.remove(task_id)
-        if task_id in self.task_start_times:
-            del self.task_start_times[task_id]
-        logger.warning(f"🧹 Cleaned up stale task: {task_id}")
-    
-    if stale_tasks:
-        logger.info(f"🧹 Cleaned up {len(stale_tasks)} stale tasks")
+        current_time = time.time()
+        stale_tasks = []
+        
+        for task_id in list(self.active_tasks):
+            # If task has been active for more than 20 minutes, consider it stale (submission likely failed)
+            start_time = self.task_start_times.get(task_id, current_time)
+            if current_time - start_time > 1200:  # 20 minutes (reduced from 30)
+                stale_tasks.append(task_id)
+        
+        for task_id in stale_tasks:
+            self.active_tasks.remove(task_id)
+            if task_id in self.task_start_times:
+                del self.task_start_times[task_id]
+            logger.warning(f"🧹 Cleaned up stale task (likely failed submission): {task_id}")
+        
+        if stale_tasks:
+            logger.info(f"🧹 Cleaned up {len(stale_tasks)} stale tasks - worker no longer at capacity")
+            logger.info(f"📊 Current status - Active: {len(self.active_tasks)}/{self.max_tasks}, Completed: {len(self.completed_tasks)}")
 
 def main():
     """Main entry point with enhanced argument parsing"""
