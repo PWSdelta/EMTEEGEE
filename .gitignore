@@ -64,3 +64,5 @@ scryfall_import.log
 data/swarm_cache/
 *.pid
 swarm_tasks.json
+
+zzz.txt
