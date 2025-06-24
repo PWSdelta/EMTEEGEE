@@ -897,26 +897,26 @@
                     </div>
                 {% endif %}
                 
-                {% if card.legalities %}
+                <!-- {% if card.legalities %}
                     <div class="col-12 mb-3">
                         <strong>Format Legalities:</strong>
                         <div class="mt-2">
                             {% for format, legality in card.legalities.items %}
                                 {% if legality != 'not_legal' %}
-                                    <span class="badge badge-{% if legality == 'legal' %}success{% elif legality == 'restricted' %}warning{% else %}danger{% endif %} mr-1 mb-1">
+                                    <span class="badge badge-{% if legality == 'Legal' %}success{% elif legality == 'Restricted' %}warning{% else %}Danger{% endif %} mr-1 mb-1">
                                         {{ format|title }}: {{ legality|title }}
                                     </span>
                                 {% endif %}
                             {% endfor %}
                         </div>
                     </div>
-                {% endif %}
+                {% endif %} -->
             </div>
             
-            {% if card.oracleText %}
+            {% if card.text %}
                 <div class="mt-4">
                     <h4>Oracle Text</h4>
-                    <div class="oracle-text">{{ card.printedText|linebreaks }}</div>
+                    <div class="oracle-text">{{ card.text|linebreaks }}</div>
                 </div>
             {% endif %}
 
