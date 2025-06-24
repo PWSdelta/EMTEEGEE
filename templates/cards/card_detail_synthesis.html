@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load card_filters %}
 
 {% block title %}{{ card.name }} - EMTEEGEE{% endblock %}
 
@@ -143,12 +144,51 @@
         text-transform: uppercase;
         letter-spacing: 0.05em;
     }
-    
-    .complete-analysis-content {
-        font-size: 1.1rem;
-        line-height: 1.8;
+      .complete-analysis-content {
+        font-size: 1rem;
+        line-height: 1.7;
         color: #374151;
-        white-space: pre-line;
+        white-space: pre-wrap;
+        padding: 2rem;
+        background: #fefefe;
+        border-radius: 12px;
+        border: 1px solid #e5e7eb;
+    }
+    
+    .complete-analysis-content h1, .complete-analysis-content h2, 
+    .complete-analysis-content h3, .complete-analysis-content h4,
+    .complete-analysis-content h5, .complete-analysis-content h6 {
+        margin-top: 1.5rem;
+        margin-bottom: 0.75rem;
+        font-weight: 700;
+        color: #1f2937;
+    }
+    
+    .complete-analysis-content h1 { font-size: 1.5rem; }
+    .complete-analysis-content h2 { font-size: 1.3rem; }
+    .complete-analysis-content h3 { font-size: 1.1rem; }
+    
+    .complete-analysis-content ul, .complete-analysis-content ol {
+        margin: 1rem 0;
+        padding-left: 2rem;
+    }
+    
+    .complete-analysis-content li {
+        margin-bottom: 0.5rem;
+    }
+    
+    .complete-analysis-content p {
+        margin-bottom: 1rem;
+    }
+    
+    .complete-analysis-content strong {
+        font-weight: 700;
+        color: #1f2937;
+    }
+    
+    .complete-analysis-content em {
+        font-style: italic;
+        color: #4b5563;
     }
     
     .synthesis-metadata {
@@ -251,19 +291,141 @@
         padding-bottom: 0;
         border-bottom: none;
     }
-    
-    .component-name {
+      .component-name {
         font-weight: 600;
         color: #667eea;
         font-size: 0.9rem;
         text-transform: capitalize;
+    }
+    
+    .component-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
         margin-bottom: 0.5rem;
     }
     
-    .component-content {
+    .expand-component {
+        background: none;
+        border: none;
+        color: #9ca3af;
+        cursor: pointer;
+        padding: 0.25rem;
+        border-radius: 4px;
+        transition: all 0.2s ease;
+    }
+    
+    .expand-component:hover {
+        background: #f3f4f6;
+        color: #667eea;
+    }
+    
+    .expand-component.expanded {
+        color: #667eea;
+        transform: rotate(45deg);
+    }.component-content {
         font-size: 0.9rem;
         color: #4b5563;
-        line-height: 1.5;
+        line-height: 1.6;
+        white-space: pre-wrap;
+        max-height: 300px;
+        overflow-y: auto;
+        padding: 0.75rem;
+        background: #f8fafc;
+        border-radius: 6px;
+        border: 1px solid #e2e8f0;
+    }
+    
+    .component-content.expanded {
+        max-height: none;
+    }
+    
+    .component-content h1, .component-content h2, .component-content h3,
+    .component-content h4, .component-content h5, .component-content h6 {
+        margin-top: 1rem;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+    }
+    
+    .component-content h1 { font-size: 1.1rem; }
+    .component-content h2 { font-size: 1.05rem; }
+    .component-content h3 { font-size: 1rem; }
+    
+    .component-content ul, .component-content ol {
+        margin: 0.5rem 0;
+        padding-left: 1.5rem;
+    }
+    
+    .component-content li {
+        margin-bottom: 0.25rem;
+    }
+    
+    .component-content p {
+        margin-bottom: 0.75rem;
+    }
+    
+    .component-content strong {
+        font-weight: 600;
+        color: #374151;
+    }
+    
+    .component-content em {
+        font-style: italic;
+        color: #6b7280;
+    }
+      .component-content code {
+        background: #e5e7eb;
+        padding: 0.125rem 0.25rem;
+        border-radius: 3px;
+        font-family: 'Courier New', monospace;
+        font-size: 0.85rem;
+    }
+      .component-content blockquote {
+        border-left: 4px solid #667eea;
+        color: #6b7280;
+        font-style: italic;
+        padding: 0.5rem 1rem;
+        margin: 0.5rem 0;
+    }
+    
+    .component-content .card-link {
+        color: #667eea;
+        text-decoration: none;
+        font-weight: 600;
+        padding: 0.125rem 0.25rem;
+        border-radius: 3px;
+        background: rgba(102, 126, 234, 0.1);
+        transition: all 0.2s ease;
+    }
+    
+    .component-content .card-link:hover {
+        background: rgba(102, 126, 234, 0.2);
+        text-decoration: none;
+    }
+      .complete-analysis-content blockquote {
+        border-left: 4px solid #667eea;
+        color: #6b7280;
+        font-style: italic;
+        background: rgba(102, 126, 234, 0.05);
+        border-radius: 0 8px 8px 0;
+        padding: 1rem 1.5rem;
+        margin: 1rem 0;
+    }
+    
+    .complete-analysis-content .card-link {
+        color: #667eea;
+        text-decoration: none;
+        font-weight: 700;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        background: rgba(102, 126, 234, 0.1);
+        transition: all 0.2s ease;
+    }
+    
+    .complete-analysis-content .card-link:hover {
+        background: rgba(102, 126, 234, 0.2);
+        text-decoration: none;
+        transform: translateY(-1px);
     }
     
     .component-meta {
@@ -465,7 +627,7 @@
                 <span class="synthesis-badge">AI Synthesized</span>
             </div>
             
-            <div class="complete-analysis-content">{{ complete_analysis }}</div>
+            <div class="complete-analysis-content">{{ complete_analysis|markdown_to_html }}</div>
             
             <div class="synthesis-metadata">
                 {% if synthesis_metadata.generated_at %}
@@ -514,12 +676,16 @@
                     <div class="component-category">
                         <div class="category-header">
                             <i class="bi bi-bullseye"></i> Strategic Analysis
-                        </div>                        <div class="category-components">
-                            {% for comp_type, comp_data in enhanced_components.items %}
+                        </div>                        <div class="category-components">                            {% for comp_type, comp_data in enhanced_components.items %}
                                 {% if comp_type in 'tactical_analysis,power_level_assessment,meta_position,competitive_viability,deckbuilding_analysis' %}
                                     <div class="component-item">
-                                        <div class="component-name">{{ comp_type|title|replace:"_"," " }}</div>
-                                        <div class="component-content">{{ comp_data.content|truncatewords:50 }}</div>
+                                        <div class="component-header">
+                                            <div class="component-name">{{ comp_type|title|replace:"_"," " }}</div>
+                                            <button class="expand-component" onclick="toggleComponent(this)" title="Expand/Collapse">
+                                                <i class="bi bi-arrows-expand"></i>
+                                            </button>
+                                        </div>
+                                        <div class="component-content">{{ comp_data.content|markdown_to_html }}</div>
                                         <div class="component-meta">
                                             <div class="coherence-score {% if comp_data.coherence_score >= 0.8 %}coherence-high{% elif comp_data.coherence_score >= 0.6 %}coherence-medium{% else %}coherence-low{% endif %}">
                                                 <i class="bi bi-star-fill"></i>
@@ -542,7 +708,7 @@
                                 {% if comp_type in 'play_tips,combo_suggestions,synergy_analysis,optimization_suggestions,budget_considerations' %}
                                     <div class="component-item">
                                         <div class="component-name">{{ comp_type|title|replace:"_"," " }}</div>
-                                        <div class="component-content">{{ comp_data.content|truncatewords:50 }}</div>
+                                        <div class="component-content">{{ comp_data.content|markdown_to_html }}</div>
                                         <div class="component-meta">
                                             <div class="coherence-score {% if comp_data.coherence_score >= 0.8 %}coherence-high{% elif comp_data.coherence_score >= 0.6 %}coherence-medium{% else %}coherence-low{% endif %}">
                                                 <i class="bi bi-star-fill"></i>
@@ -565,7 +731,7 @@
                                 {% if comp_type in 'new_player_guide,rules_clarifications,format_analysis,historical_significance,design_philosophy' %}
                                     <div class="component-item">
                                         <div class="component-name">{{ comp_type|title|replace:"_"," " }}</div>
-                                        <div class="component-content">{{ comp_data.content|truncatewords:50 }}</div>
+                                        <div class="component-content">{{ comp_data.content|markdown_to_html }}</div>
                                         <div class="component-meta">
                                             <div class="coherence-score {% if comp_data.coherence_score >= 0.8 %}coherence-high{% elif comp_data.coherence_score >= 0.6 %}coherence-medium{% else %}coherence-low{% endif %}">
                                                 <i class="bi bi-star-fill"></i>
@@ -588,7 +754,7 @@
                                 {% if comp_type in 'thematic_analysis,art_flavor_analysis,lore_connections,creative_inspiration,community_perception' %}
                                     <div class="component-item">
                                         <div class="component-name">{{ comp_type|title|replace:"_"," " }}</div>
-                                        <div class="component-content">{{ comp_data.content|truncatewords:50 }}</div>
+                                        <div class="component-content">{{ comp_data.content|markdown_to_html }}</div>
                                         <div class="component-meta">
                                             <div class="coherence-score {% if comp_data.coherence_score >= 0.8 %}coherence-high{% elif comp_data.coherence_score >= 0.6 %}coherence-medium{% else %}coherence-low{% endif %}">
                                                 <i class="bi bi-star-fill"></i>
@@ -627,6 +793,25 @@ function toggleComponents() {
         content.classList.add('expanded');
         toggleText.textContent = 'Hide Details';
         toggleIcon.className = 'bi bi-chevron-up';
+    }
+}
+
+function toggleComponent(button) {
+    const componentContent = button.closest('.component-item').querySelector('.component-content');
+    const icon = button.querySelector('i');
+    
+    if (componentContent.classList.contains('expanded')) {
+        componentContent.classList.remove('expanded');
+        componentContent.style.maxHeight = '300px';
+        icon.className = 'bi bi-arrows-expand';
+        button.classList.remove('expanded');
+        button.title = 'Expand';
+    } else {
+        componentContent.classList.add('expanded');
+        componentContent.style.maxHeight = 'none';
+        icon.className = 'bi bi-arrows-collapse';
+        button.classList.add('expanded');
+        button.title = 'Collapse';
     }
 }
 
