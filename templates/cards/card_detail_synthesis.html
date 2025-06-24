@@ -323,21 +323,33 @@
     .expand-component.expanded {
         color: #667eea;
         transform: rotate(45deg);
-    }.component-content {
+    }    .component-content {
         font-size: 0.9rem;
         color: #4b5563;
         line-height: 1.6;
         white-space: pre-wrap;
-        max-height: 300px;
+        max-height: 200px;
         overflow-y: auto;
         padding: 0.75rem;
         background: #f8fafc;
         border-radius: 6px;
         border: 1px solid #e2e8f0;
+        position: relative;
     }
     
     .component-content.expanded {
         max-height: none;
+    }
+    
+    .component-content.collapsed::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 40px;
+        background: linear-gradient(transparent, #f8fafc);
+        pointer-events: none;
     }
     
     .component-content h1, .component-content h2, .component-content h3,
@@ -680,8 +692,7 @@
                                 {% if comp_type in 'tactical_analysis,power_level_assessment,meta_position,competitive_viability,deckbuilding_analysis' %}
                                     <div class="component-item">
                                         <div class="component-header">
-                                            <div class="component-name">{{ comp_type|title|replace:"_"," " }}</div>
-                                            <button class="expand-component" onclick="toggleComponent(this)" title="Expand/Collapse">
+                                            <div class="component-name">{{ comp_type|title|replace:"_"," " }}</div>                                            <button class="expand-component" onclick="toggleComponent(this)" title="Expand to read full content">
                                                 <i class="bi bi-arrows-expand"></i>
                                             </button>
                                         </div>
@@ -802,16 +813,18 @@ function toggleComponent(button) {
     
     if (componentContent.classList.contains('expanded')) {
         componentContent.classList.remove('expanded');
-        componentContent.style.maxHeight = '300px';
+        componentContent.classList.add('collapsed');
+        componentContent.style.maxHeight = '200px';
         icon.className = 'bi bi-arrows-expand';
         button.classList.remove('expanded');
-        button.title = 'Expand';
+        button.title = 'Expand to read full content';
     } else {
         componentContent.classList.add('expanded');
+        componentContent.classList.remove('collapsed');
         componentContent.style.maxHeight = 'none';
         icon.className = 'bi bi-arrows-collapse';
         button.classList.add('expanded');
-        button.title = 'Collapse';
+        button.title = 'Collapse content';
     }
 }
 
