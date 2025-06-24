@@ -1,3 +1,4 @@
+# Create performance_monitor.py
 #!/usr/bin/env python3
 """
 Enhanced Swarm Performance Monitor
@@ -82,12 +83,38 @@ class PerformanceMonitor:
             worker_id = worker['worker_id']
             worker_tasks = [t for t in recent_tasks if t.get('assigned_to') == worker_id]
             
+            # Fix timezone handling for last_heartbeat
+            last_heartbeat = worker['last_heartbeat']
+            if last_heartbeat.tzinfo is None:
+                last_heartbeat = last_heartbeat.replace(tzinfo=timezone.utc)
+            
+            # Calculate time difference safely
+            now = datetime.now(timezone.utc)
+            time_diff_seconds = (now - last_heartbeat).total_seconds()
+            
+            # Determine worker status
+            if time_diff_seconds < 300:  # 5 minutes
+                worker_status = 'active'
+            elif time_diff_seconds < 1800:  # 30 minutes
+                worker_status = 'stale'
+            else:
+                worker_status = 'offline'
+            
             if worker_tasks:
                 # Calculate average task time
                 execution_times = []
                 for task in worker_tasks:
                     if 'created_at' in task and 'completed_at' in task:
-                        duration = (task['completed_at'] - task['created_at']).total_seconds()
+                        # Handle timezone for task timestamps too
+                        created_at = task['created_at']
+                        completed_at = task['completed_at']
+                        
+                        if created_at.tzinfo is None:
+                            created_at = created_at.replace(tzinfo=timezone.utc)
+                        if completed_at.tzinfo is None:
+                            completed_at = completed_at.replace(tzinfo=timezone.utc)
+                        
+                        duration = (completed_at - created_at).total_seconds()
                         execution_times.append(duration)
                 
                 avg_task_time = sum(execution_times) / len(execution_times) if execution_times else 0
@@ -97,30 +124,42 @@ class PerformanceMonitor:
                     'tasks_completed_last_hour': tasks_per_hour,
                     'average_task_time_seconds': round(avg_task_time, 2),
                     'tasks_per_hour_rate': round(tasks_per_hour, 2),
-                    'last_heartbeat': worker['last_heartbeat'],
+                    'last_heartbeat': last_heartbeat,
                     'total_tasks_completed': worker.get('tasks_completed', 0),
                     'capabilities': worker.get('capabilities', {}),
-                    'status': 'active' if (datetime.now(timezone.utc) - worker['last_heartbeat']).seconds < 300 else 'stale'
+                    'status': worker_status
                 }
             else:
                 worker_stats[worker_id] = {
                     'tasks_completed_last_hour': 0,
                     'average_task_time_seconds': 0,
                     'tasks_per_hour_rate': 0,
-                    'last_heartbeat': worker['last_heartbeat'],
+                    'last_heartbeat': last_heartbeat,
                     'total_tasks_completed': worker.get('tasks_completed', 0),
                     'capabilities': worker.get('capabilities', {}),
-                    'status': 'idle'
+                    'status': worker_status
                 }
+        
+        # Calculate system average task time with timezone fixes
+        system_execution_times = []
+        for task in recent_tasks:
+            if 'created_at' in task and 'completed_at' in task:
+                created_at = task['created_at']
+                completed_at = task['completed_at']
+                
+                if created_at.tzinfo is None:
+                    created_at = created_at.replace(tzinfo=timezone.utc)
+                if completed_at.tzinfo is None:
+                    completed_at = completed_at.replace(tzinfo=timezone.utc)
+                
+                duration = (completed_at - created_at).total_seconds()
+                system_execution_times.append(duration)
         
         return {
             'active_workers': len(active_workers),
             'worker_details': worker_stats,
             'total_tasks_last_hour': len(recent_tasks),
-            'average_system_task_time': round(sum(
-                (t['completed_at'] - t['created_at']).total_seconds() 
-                for t in recent_tasks if 'created_at' in t and 'completed_at' in t
-            ) / len(recent_tasks), 2) if recent_tasks else 0
+            'average_system_task_time': round(sum(system_execution_times) / len(system_execution_times), 2) if system_execution_times else 0
         }
     
     def _get_task_completion_metrics(self) -> Dict[str, Any]:
@@ -354,12 +393,11 @@ class PerformanceMonitor:
                 
                 # Also log to swarm logger
                 metrics = self.collect_real_time_metrics()
-                metrics_summary = {
+                enhanced_swarm_logger.info(f"Performance metrics collected: {json.dumps({
                     'active_workers': metrics['worker_performance']['active_workers'],
                     'tasks_per_hour': metrics['throughput']['last_hour']['cards_per_hour'],
                     'completion_percentage': metrics['analysis_progress']['total_progress']['completion_percentage']
-                }
-                enhanced_swarm_logger.info(f"Performance metrics collected: {json.dumps(metrics_summary, default=str)}")
+                }, default=str)}")
                 
                 # Wait for next iteration
                 time.sleep(interval_seconds)
