@@ -333,32 +333,43 @@ class EnhancedUniversalWorker:
     def submit_results(self, task_id: str, card_id: str, results: Dict[str, str]) -> bool:
         """Submit analysis results with enhanced tracking for new swarm system"""
         try:
-            # Validate required parameters
-            if not card_id:
-                logger.error(f"❌ Cannot submit results for task {task_id}: missing card_id")
-                return False
+            # Debug: Log what we're about to submit
+            logger.info(f"🔍 DEBUG - Preparing submission:")
+            logger.info(f"  - worker_id: {self.worker_id}")
+            logger.info(f"  - task_id: {task_id}")
+            logger.info(f"  - card_id: {card_id}")
+            logger.info(f"  - results keys: {list(results.keys()) if results else 'None'}")
             
+            if not card_id:
+                logger.error(f"❌ Missing card_id for task {task_id}")
+                return False
+                
             # Format results for the new enhanced swarm manager
             submission_data = {
                 'worker_id': self.worker_id,
                 'task_id': task_id,
-                'card_id': card_id,  # Include card_id as required by the API
+                'card_id': card_id,
                 'results': {
-                    'components': results,  # Wrap in components structure
+                    'components': results,
                     'model_info': {
                         'model_name': self.current_model,
                         'worker_type': self.worker_type,
                         'specialization': self.specialization
                     },
-                    'execution_time': 0  # Could add timing metrics later
+                    'execution_time': 0
                 }
             }
+            
+            # Debug: Log the exact payload
+            logger.info(f"🔍 DEBUG - Submission payload keys: {list(submission_data.keys())}")
+            logger.info(f"🔍 DEBUG - Results structure: {type(submission_data['results'])}")
             
             response = requests.post(
                 f"{self.server_url}/api/enhanced_swarm/submit_results",
                 json=submission_data,
                 timeout=60
             )
+            
             if response.status_code == 200:
                 # Remove from active tasks and add to completed
                 if task_id in self.active_tasks:
@@ -374,8 +385,7 @@ class EnhancedUniversalWorker:
                 
         except Exception as e:
             logger.error(f"❌ Result submission error: {e}")
-            return False
-    
+            return False    
     def process_task(self, task: Dict[str, Any]) -> bool:
         """Process a single analysis task with enhanced error handling"""
         task_id = task.get('task_id', 'unknown')
@@ -781,6 +791,72 @@ Be thorough and specific in your analysis."""
                 time.sleep(10)  # Wait before retrying
         
         logger.info(f"👋 Worker stopped - Completed {len(self.completed_tasks)} tasks")
+
+def run_worker_loop(self):
+    """Enhanced worker loop with failed task cleanup"""
+    try:
+        iteration = 0
+        failed_task_cleanup_counter = 0
+        
+        while True:
+            iteration += 1
+            failed_task_cleanup_counter += 1
+            
+            # Send heartbeat
+            if not self.send_heartbeat():
+                logger.warning("⚠️  Heartbeat failed - continuing")
+            
+            # Every 10 iterations, clean up failed tasks
+            if failed_task_cleanup_counter >= 10:
+                self.cleanup_failed_tasks()
+                failed_task_cleanup_counter = 0
+            
+            # Check if we can take more work
+            if len(self.active_tasks) < self.max_tasks:
+                new_tasks = self.get_work()
+                
+                for task in new_tasks:
+                    if self.process_task(task):
+                        logger.info(f"✅ Task completed successfully")
+                    else:
+                        logger.error(f"❌ Task processing failed")
+                        # Remove failed task from active queue
+                        task_id = task.get('task_id')
+                        if task_id in self.active_tasks:
+                            self.active_tasks.remove(task_id)
+                            logger.info(f"🧹 Removed failed task {task_id} from active queue")
+            else:
+                logger.info(f"🔄 Worker at capacity - Active: {len(self.active_tasks)}/{self.max_tasks}")
+            
+            time.sleep(self.poll_interval)
+            
+    except KeyboardInterrupt:
+        logger.info("👋 Worker shutdown requested")
+    except Exception as e:
+        logger.error(f"💥 Worker loop error: {e}")
+
+def cleanup_failed_tasks(self):
+    """Remove tasks that have been active too long (likely failed)"""
+    if not hasattr(self, 'task_start_times'):
+        self.task_start_times = {}
+    
+    current_time = time.time()
+    stale_tasks = []
+    
+    for task_id in list(self.active_tasks):
+        # If task has been active for more than 30 minutes, consider it stale
+        start_time = self.task_start_times.get(task_id, current_time)
+        if current_time - start_time > 1800:  # 30 minutes
+            stale_tasks.append(task_id)
+    
+    for task_id in stale_tasks:
+        self.active_tasks.remove(task_id)
+        if task_id in self.task_start_times:
+            del self.task_start_times[task_id]
+        logger.warning(f"🧹 Cleaned up stale task: {task_id}")
+    
+    if stale_tasks:
+        logger.info(f"🧹 Cleaned up {len(stale_tasks)} stale tasks")
 
 def main():
     """Main entry point with enhanced argument parsing"""
