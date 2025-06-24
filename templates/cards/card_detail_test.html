@@ -1,47 +1,842 @@
 {% extends 'base.html' %}
+{% load static %}
+{% load card_filters %}
 
-{% block title %}Test Card Detail - EMTEEGEE{% endblock %}
+{% block title %}{{ card.name }} - EMTEEGEE{% endblock %}
+
+{% block extra_css %}
+<style>
+    .card-detail-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+    
+    /* Breadcrumb navigation */
+    .breadcrumb-nav {
+        background: transparent;
+        padding: 0;
+        margin-bottom: 2rem;
+    }
+    
+    .breadcrumb {
+        background: none;
+        padding: 0.75rem 0;
+        margin: 0;
+        font-size: 0.9rem;
+    }
+    
+    .breadcrumb-item a {
+        color: #667eea;
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+    
+    .breadcrumb-item a:hover {
+        color: #764ba2;
+        text-decoration: underline;
+    }
+    
+    .breadcrumb-item.active {
+        color: #666;
+    }
+    
+    .breadcrumb-item + .breadcrumb-item::before {
+        content: "›";
+        color: #999;
+        margin: 0 0.5rem;
+    }
+    
+    .card-hero {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 3rem 0;
+        border-radius: 16px;
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    
+    .card-hero h1 {
+        font-size: 3rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+    
+    .card-content-grid {
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        gap: 3rem;
+        margin-bottom: 3rem;
+    }
+    
+    .card-image-section {
+        text-align: center;
+    }
+    
+    .card-detail-image {
+        max-width: 100%;
+        height: auto;
+        border-radius: 16px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    
+    .card-info-section {
+        background: white;
+        padding: 2rem;
+        border-radius: 16px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    }
+    
+    .back-button {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 8px;
+        text-decoration: none;
+        display: inline-block;
+        margin-bottom: 2rem;
+        transition: all 0.3s ease;
+    }
+    
+    .back-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        color: white;
+        text-decoration: none;
+    }
+    
+    /* Complete Analysis Section - Primary Feature */
+    .complete-analysis-section {
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        border: 2px solid #667eea;
+        border-radius: 16px;
+        padding: 2rem;
+        margin-bottom: 3rem;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    }
+    
+    .complete-analysis-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1.5rem;
+    }
+    
+    .complete-analysis-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #667eea;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .synthesis-badge {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+      .complete-analysis-content {
+        font-size: 1rem;
+        line-height: 1.7;
+        color: #374151;
+        white-space: pre-wrap;
+        padding: 2rem;
+        background: #fefefe;
+        border-radius: 12px;
+        border: 1px solid #e5e7eb;
+    }
+    
+    .complete-analysis-content h1, .complete-analysis-content h2, 
+    .complete-analysis-content h3, .complete-analysis-content h4,
+    .complete-analysis-content h5, .complete-analysis-content h6 {
+        margin-top: 1.5rem;
+        margin-bottom: 0.75rem;
+        font-weight: 700;
+        color: #1f2937;
+    }
+    
+    .complete-analysis-content h1 { font-size: 1.5rem; }
+    .complete-analysis-content h2 { font-size: 1.3rem; }
+    .complete-analysis-content h3 { font-size: 1.1rem; }
+    
+    .complete-analysis-content ul, .complete-analysis-content ol {
+        margin: 1rem 0;
+        padding-left: 2rem;
+    }
+    
+    .complete-analysis-content li {
+        margin-bottom: 0.5rem;
+    }
+    
+    .complete-analysis-content p {
+        margin-bottom: 1rem;
+    }
+    
+    .complete-analysis-content strong {
+        font-weight: 700;
+        color: #1f2937;
+    }
+    
+    .complete-analysis-content em {
+        font-style: italic;
+        color: #4b5563;
+    }
+    
+    .synthesis-metadata {
+        margin-top: 1.5rem;
+        padding-top: 1rem;
+        border-top: 1px solid #e5e7eb;
+        font-size: 0.85rem;
+        color: #6b7280;
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+    
+    .synthesis-metadata-item {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+    
+    /* Component Breakdown Section */
+    .component-breakdown {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    
+    .component-breakdown-header {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 12px 12px 0 0;
+        display: flex;
+        justify-content: between;
+        align-items: center;
+    }
+    
+    .component-breakdown-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 0;
+    }
+    
+    .toggle-components {
+        background: rgba(255,255,255,0.2);
+        border: none;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        margin-left: auto;
+    }
+    
+    .toggle-components:hover {
+        background: rgba(255,255,255,0.3);
+    }
+    
+    .components-grid {
+        padding: 2rem;
+        display: none; /* Initially collapsed */
+    }
+    
+    .components-grid.expanded {
+        display: block;
+    }
+    
+    .component-categories {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+    }
+    
+    .component-category {
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    
+    .category-header {
+        background: #f9fafb;
+        padding: 1rem;
+        border-bottom: 1px solid #e5e7eb;
+        font-weight: 600;
+        color: #374151;
+    }
+    
+    .category-components {
+        padding: 1rem;
+    }
+    
+    .component-item {
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #f3f4f6;
+    }
+    
+    .component-item:last-child {
+        margin-bottom: 0;
+        padding-bottom: 0;
+        border-bottom: none;
+    }
+      .component-name {
+        font-weight: 600;
+        color: #667eea;
+        font-size: 0.9rem;
+        text-transform: capitalize;
+    }
+    
+    .component-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+    
+    .expand-component {
+        background: none;
+        border: none;
+        color: #9ca3af;
+        cursor: pointer;
+        padding: 0.25rem;
+        border-radius: 4px;
+        transition: all 0.2s ease;
+    }
+    
+    .expand-component:hover {
+        background: #f3f4f6;
+        color: #667eea;
+    }
+    
+    .expand-component.expanded {
+        color: #667eea;
+        transform: rotate(45deg);
+    }    .component-content {
+        font-size: 0.9rem;
+        color: #4b5563;
+        line-height: 1.6;
+        white-space: pre-wrap;
+        max-height: 200px;
+        overflow-y: auto;
+        padding: 0.75rem;
+        background: #f8fafc;
+        border-radius: 6px;
+        border: 1px solid #e2e8f0;
+        position: relative;
+    }
+    
+    .component-content.expanded {
+        max-height: none;
+    }
+    
+    .component-content.collapsed::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 40px;
+        background: linear-gradient(transparent, #f8fafc);
+        pointer-events: none;
+    }
+    
+    .component-content h1, .component-content h2, .component-content h3,
+    .component-content h4, .component-content h5, .component-content h6 {
+        margin-top: 1rem;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+    }
+    
+    .component-content h1 { font-size: 1.1rem; }
+    .component-content h2 { font-size: 1.05rem; }
+    .component-content h3 { font-size: 1rem; }
+    
+    .component-content ul, .component-content ol {
+        margin: 0.5rem 0;
+        padding-left: 1.5rem;
+    }
+    
+    .component-content li {
+        margin-bottom: 0.25rem;
+    }
+    
+    .component-content p {
+        margin-bottom: 0.75rem;
+    }
+    
+    .component-content strong {
+        font-weight: 600;
+        color: #374151;
+    }
+    
+    .component-content em {
+        font-style: italic;
+        color: #6b7280;
+    }
+      .component-content code {
+        background: #e5e7eb;
+        padding: 0.125rem 0.25rem;
+        border-radius: 3px;
+        font-family: 'Courier New', monospace;
+        font-size: 0.85rem;
+    }
+      .component-content blockquote {
+        border-left: 4px solid #667eea;
+        color: #6b7280;
+        font-style: italic;
+        padding: 0.5rem 1rem;
+        margin: 0.5rem 0;
+    }
+    
+    .component-content .card-link {
+        color: #667eea;
+        text-decoration: none;
+        font-weight: 600;
+        padding: 0.125rem 0.25rem;
+        border-radius: 3px;
+        background: rgba(102, 126, 234, 0.1);
+        transition: all 0.2s ease;
+    }
+    
+    .component-content .card-link:hover {
+        background: rgba(102, 126, 234, 0.2);
+        text-decoration: none;
+    }
+      .complete-analysis-content blockquote {
+        border-left: 4px solid #667eea;
+        color: #6b7280;
+        font-style: italic;
+        background: rgba(102, 126, 234, 0.05);
+        border-radius: 0 8px 8px 0;
+        padding: 1rem 1.5rem;
+        margin: 1rem 0;
+    }
+    
+    .complete-analysis-content .card-link {
+        color: #667eea;
+        text-decoration: none;
+        font-weight: 700;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        background: rgba(102, 126, 234, 0.1);
+        transition: all 0.2s ease;
+    }
+    
+    .complete-analysis-content .card-link:hover {
+        background: rgba(102, 126, 234, 0.2);
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
+    
+    .component-meta {
+        margin-top: 0.5rem;
+        font-size: 0.75rem;
+        color: #9ca3af;
+        display: flex;
+        gap: 1rem;
+    }
+    
+    .coherence-score {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+    
+    .coherence-high { color: #059669; }
+    .coherence-medium { color: #d97706; }
+    .coherence-low { color: #dc2626; }
+    
+    /* No synthesis fallback */
+    .no-synthesis-message {
+        background: #fef3c7;
+        border: 1px solid #f59e0b;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    
+    .no-synthesis-message h3 {
+        color: #92400e;
+        margin-bottom: 0.5rem;
+    }
+    
+    .no-synthesis-message p {
+        color: #b45309;
+        margin: 0;
+    }
+    
+    /* Progress indicator */
+    .analysis-progress {
+        background: #f3f4f6;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .progress-bar {
+        background: #e5e7eb;
+        border-radius: 4px;
+        height: 8px;
+        overflow: hidden;
+    }
+    
+    .progress-fill {
+        background: linear-gradient(90deg, #10b981, #059669);
+        height: 100%;
+        transition: width 0.3s ease;
+    }
+    
+    .progress-text {
+        font-size: 0.9rem;
+        color: #6b7280;
+        margin-top: 0.5rem;
+    }
+    
+    /* Responsive design */
+    @media (max-width: 768px) {
+        .card-content-grid {
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+        
+        .card-hero h1 {
+            font-size: 2rem;
+        }
+        
+        .component-categories {
+            grid-template-columns: 1fr;
+        }
+        
+        .complete-analysis-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <h1>Card Detail Test Page</h1>
+<div class="card-detail-container">
+    <!-- Breadcrumb Navigation -->
+    <nav class="breadcrumb-nav" aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'cards:home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'cards:the_abyss' %}">Cards</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ card.name }}</li>
+        </ol>
+    </nav>
     
-    {% if card %}
-        <div class="card">
-            <div class="card-body">
-                <h2>{{ card.name }}</h2>
-                <p><strong>Type:</strong> {{ card.type|default:"Unknown" }}</p>
-                <p><strong>UUID:</strong> {{ card.uuid }}</p>
-                
-                {% if card.imageUris.normal %}
-                    <img src="{{ card.imageUris.normal }}" alt="{{ card.name }}" style="max-width: 300px;" class="img-fluid">
+    <!-- Back Button -->
+    <a href="{% url 'cards:home' %}" class="back-button">← Back to Home</a>
+    
+    <!-- Card Hero Section -->
+    <div class="card-hero">
+        <h1>{{ card.name }}</h1>
+        {% if card.type %}
+            <p class="lead">{{ card.type }}</p>
+        {% endif %}
+    </div>
+    
+    <!-- Main Content Grid -->
+    <div class="card-content-grid">
+        <!-- Card Image Section -->
+        <div class="card-image-section">
+            {% if card.imageUris.large %}
+                <img src="{{ card.imageUris.large }}" alt="{{ card.name }}" class="card-detail-image">
+            {% elif card.imageUris.normal %}
+                <img src="{{ card.imageUris.normal }}" alt="{{ card.name }}" class="card-detail-image">
+            {% else %}
+                <div class="card-detail-image" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; display: flex; align-items: center; justify-content: center; min-height: 400px; font-size: 1.5rem; font-weight: bold;">
+                    {{ card.name }}
+                </div>
+            {% endif %}
+            
+            <!-- Analysis Progress -->
+            <div class="analysis-progress">
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: {{ completion_percentage }}%"></div>
+                </div>
+                <div class="progress-text">
+                    Analysis: {{ completion_percentage|floatformat:0 }}% complete
+                    ({{ enhanced_components|length }}/20 components)
+                </div>
+            </div>
+        </div>
+        
+        <!-- Card Info Section -->
+        <div class="card-info-section">
+            <h2>Card Information</h2>
+            
+            <div class="row">
+                {% if card.rarity %}
+                    <div class="col-md-6 mb-3">
+                        <strong>Rarity:</strong> {{ card.rarity|title }}
+                    </div>
                 {% endif %}
                 
-                {% if card.analysis %}
-                    <h3>Analysis</h3>
-                    <p>Components: {{ card.analysis.components|length|default:0 }}</p>
-                    
-                    {% if card.analysis.components %}
-                        <ul>
-                        {% for comp_type, content in card.analysis.components.items %}
-                            <li><strong>{{ comp_type }}:</strong> {{ content|truncatewords:10 }}</li>
-                        {% endfor %}
-                        </ul>
-                    {% endif %}
-                {% else %}
-                    <p>No analysis data available.</p>
+                {% if card.artist %}
+                    <div class="col-md-6 mb-3">
+                        <strong>Artist:</strong> {{ card.artist }}
+                    </div>
                 {% endif %}
+                
+                {% if card.edhrecRank %}
+                    <div class="col-md-6 mb-3">
+                        <strong>EDHREC Rank:</strong> #{{ card.edhrecRank }}
+                    </div>
+                {% endif %}
+            </div>
+
+            {% if card.flavorText %}
+                <!-- <div class="mt-4">
+                    <div class="card-text-box"><i>{{ card.flavorText }}</i></div>
+                </div> -->
+
+                <blockquote class="blockquote text-end">
+                <p class="mb-0"><i>{{ card.flavorText }}</i></p>
+                </blockquote>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Complete Analysis Section (Primary Display) -->
+    {% if has_complete_analysis %}
+        <div class="complete-analysis-section">
+            <div class="complete-analysis-header">
+                <h2 class="complete-analysis-title">
+                    <i class="bi bi-lightbulb-fill"></i>
+                    Complete Analysis
+                </h2>
+                <span class="synthesis-badge">AI Synthesized</span>
+            </div>
+            
+            <div class="complete-analysis-content">{{ complete_analysis|markdown_to_html }}</div>
+            
+            <div class="synthesis-metadata">
+                {% if synthesis_metadata.generated_at %}
+                    <div class="synthesis-metadata-item">
+                        <i class="bi bi-clock"></i>
+                        Generated {{ synthesis_metadata.generated_at|date:"M j, Y" }}
+                    </div>
+                {% endif %}
+                {% if synthesis_metadata.generated_by %}
+                    <div class="synthesis-metadata-item">
+                        <i class="bi bi-cpu"></i>
+                        {{ synthesis_metadata.generated_by }}
+                    </div>
+                {% endif %}
+                <div class="synthesis-metadata-item">
+                    <i class="bi bi-puzzle"></i>
+                    Synthesized from {{ enhanced_components|length }} components
+                </div>
             </div>
         </div>
     {% else %}
-        <div class="alert alert-warning">
-            <h3>No Card Data</h3>
-            <p>Card data was not provided to this template.</p>
+        <!-- No Complete Analysis Yet -->
+        <div class="no-synthesis-message">
+            <h3><i class="bi bi-hourglass-split"></i> Analysis in Progress</h3>
+            <p>Complete analysis will be available once all {{ enhanced_components|length }}/20 components are finished and synthesized by our AI system.</p>
         </div>
     {% endif %}
     
-    <div class="mt-3">
-        <a href="{% url 'cards:home' %}" class="btn btn-primary">← Back to Home</a>
+    <!-- Component Breakdown Section (Expandable) -->
+    <div class="component-breakdown">
+        <div class="component-breakdown-header">
+            <h2 class="component-breakdown-title">
+                <i class="bi bi-list-ul"></i>
+                Component Analysis Details
+            </h2>
+            <button class="toggle-components" onclick="toggleComponents()">
+                <span id="toggle-text">Show Details</span>
+                <i class="bi bi-chevron-down" id="toggle-icon"></i>
+            </button>
+        </div>
+        
+        <div class="components-grid" id="components-content">
+            {% if enhanced_components %}
+                <div class="component-categories">
+                    <!-- Strategic Category -->
+                    <div class="component-category">
+                        <div class="category-header">
+                            <i class="bi bi-bullseye"></i> Strategic Analysis
+                        </div>                        <div class="category-components">                            {% for comp_type, comp_data in enhanced_components.items %}
+                                {% if comp_type in 'tactical_analysis,power_level_assessment,meta_position,competitive_viability,deckbuilding_analysis' %}
+                                    <div class="component-item">
+                                        <div class="component-header">
+                                            <div class="component-name">{{ comp_type|title|replace:"_ " }}</div>                                            <button class="expand-component" onclick="toggleComponent(this)" title="Expand to read full content">
+                                                <i class="bi bi-arrows-expand"></i>
+                                            </button>
+                                        </div>
+                                        <div class="component-content">{{ comp_data.content|markdown_to_html }}</div>
+                                        <div class="component-meta">
+                                            <div class="coherence-score {% if comp_data.coherence_score >= 0.8 %}coherence-high{% elif comp_data.coherence_score >= 0.6 %}coherence-medium{% else %}coherence-low{% endif %}">
+                                                <i class="bi bi-star-fill"></i>
+                                                {{ comp_data.coherence_score|floatformat:1 }}
+                                            </div>
+                                            <div>by {{ comp_data.generated_by|default:"Unknown" }}</div>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <!-- Practical Category -->
+                    <div class="component-category">
+                        <div class="category-header">
+                            <i class="bi bi-tools"></i> Practical Guidance
+                        </div>                        <div class="category-components">
+                            {% for comp_type, comp_data in enhanced_components.items %}
+                                {% if comp_type in 'play_tips,combo_suggestions,synergy_analysis,optimization_suggestions,budget_considerations' %}
+                                    <div class="component-item">
+                                        <div class="component-name">{{ comp_type|title|replace:"_ " }}</div>
+                                        <div class="component-content">{{ comp_data.content|markdown_to_html }}</div>
+                                        <div class="component-meta">
+                                            <div class="coherence-score {% if comp_data.coherence_score >= 0.8 %}coherence-high{% elif comp_data.coherence_score >= 0.6 %}coherence-medium{% else %}coherence-low{% endif %}">
+                                                <i class="bi bi-star-fill"></i>
+                                                {{ comp_data.coherence_score|floatformat:1 }}
+                                            </div>
+                                            <div>by {{ comp_data.generated_by|default:"Unknown" }}</div>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <!-- Educational Category -->
+                    <div class="component-category">
+                        <div class="category-header">
+                            <i class="bi bi-book"></i> Educational Content
+                        </div>                        <div class="category-components">
+                            {% for comp_type, comp_data in enhanced_components.items %}
+                                {% if comp_type in 'new_player_guide,rules_clarifications,format_analysis,historical_significance,design_philosophy' %}
+                                    <div class="component-item">
+                                        <div class="component-name">{{ comp_type|title|replace:"_ " }}</div>
+                                        <div class="component-content">{{ comp_data.content|markdown_to_html }}</div>
+                                        <div class="component-meta">
+                                            <div class="coherence-score {% if comp_data.coherence_score >= 0.8 %}coherence-high{% elif comp_data.coherence_score >= 0.6 %}coherence-medium{% else %}coherence-low{% endif %}">
+                                                <i class="bi bi-star-fill"></i>
+                                                {{ comp_data.coherence_score|floatformat:1 }}
+                                            </div>
+                                            <div>by {{ comp_data.generated_by|default:"Unknown" }}</div>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <!-- Thematic Category -->
+                    <div class="component-category">
+                        <div class="category-header">
+                            <i class="bi bi-palette"></i> Thematic & Creative
+                        </div>                        <div class="category-components">
+                            {% for comp_type, comp_data in enhanced_components.items %}
+                                {% if comp_type in 'thematic_analysis,art_flavor_analysis,lore_connections,creative_inspiration,community_perception' %}
+                                    <div class="component-item">
+                                        <div class="component-name">{{ comp_type|title|replace:"_ " }}</div>
+                                        <div class="component-content">{{ comp_data.content|markdown_to_html }}</div>
+                                        <div class="component-meta">
+                                            <div class="coherence-score {% if comp_data.coherence_score >= 0.8 %}coherence-high{% elif comp_data.coherence_score >= 0.6 %}coherence-medium{% else %}coherence-low{% endif %}">
+                                                <i class="bi bi-star-fill"></i>
+                                                {{ comp_data.coherence_score|floatformat:1 }}
+                                            </div>
+                                            <div>by {{ comp_data.generated_by|default:"Unknown" }}</div>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="text-center p-4">
+                    <p class="text-muted">No component analysis available yet.</p>
+                </div>
+            {% endif %}
+        </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleComponents() {
+    const content = document.getElementById('components-content');
+    const toggleText = document.getElementById('toggle-text');
+    const toggleIcon = document.getElementById('toggle-icon');
+    
+    if (content.classList.contains('expanded')) {
+        content.classList.remove('expanded');
+        toggleText.textContent = 'Show Details';
+        toggleIcon.className = 'bi bi-chevron-down';
+    } else {
+        content.classList.add('expanded');
+        toggleText.textContent = 'Hide Details';
+        toggleIcon.className = 'bi bi-chevron-up';
+    }
+}
+
+function toggleComponent(button) {
+    const componentContent = button.closest('.component-item').querySelector('.component-content');
+    const icon = button.querySelector('i');
+    
+    if (componentContent.classList.contains('expanded')) {
+        componentContent.classList.remove('expanded');
+        componentContent.classList.add('collapsed');
+        componentContent.style.maxHeight = '200px';
+        icon.className = 'bi bi-arrows-expand';
+        button.classList.remove('expanded');
+        button.title = 'Expand to read full content';
+    } else {
+        componentContent.classList.add('expanded');
+        componentContent.classList.remove('collapsed');
+        componentContent.style.maxHeight = 'none';
+        icon.className = 'bi bi-arrows-collapse';
+        button.classList.add('expanded');
+        button.title = 'Collapse content';
+    }
+}
+
+// Add smooth scrolling and animations
+document.addEventListener('DOMContentLoaded', function() {
+    // Animate progress bar on load
+    const progressFill = document.querySelector('.progress-fill');
+    if (progressFill) {
+        const targetWidth = progressFill.style.width;
+        progressFill.style.width = '0%';
+        setTimeout(() => {
+            progressFill.style.width = targetWidth;
+        }, 500);
+    }
+    
+    // Add fade-in animation to synthesis content
+    const synthesisContent = document.querySelector('.complete-analysis-content');
+    if (synthesisContent) {
+        synthesisContent.style.opacity = '0';
+        synthesisContent.style.transform = 'translateY(20px)';
+        synthesisContent.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        
+        setTimeout(() => {
+            synthesisContent.style.opacity = '1';
+            synthesisContent.style.transform = 'translateY(0)';
+        }, 200);
+    }
+});
+</script>
 {% endblock %}
