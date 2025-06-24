@@ -41,9 +41,22 @@
         text-align: center;
         transition: transform 0.2s ease;
     }
-    
-    .stat-card:hover {
+      .stat-card:hover {
         transform: translateY(-5px);
+    }
+    
+    .stat-card.highlight {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+        box-shadow: 0 8px 32px rgba(16, 185, 129, 0.3);
+    }
+    
+    .stat-card.highlight .stat-number {
+        color: white;
+    }
+    
+    .stat-card.highlight .stat-label {
+        color: rgba(255, 255, 255, 0.9);
     }
     
     .stat-number {
@@ -261,8 +274,7 @@
             <div class="stat-card">
                 <div class="stat-number">{{ statistics.in_process|default:"0" }}</div>
                 <div class="stat-label">In Process</div>
-            </div>
-            <div class="stat-card">
+            </div>            <div class="stat-card highlight">
                 <div class="stat-number">{{ statistics.analyzed_today|default:"0" }}</div>
                 <div class="stat-label">Analyzed Today</div>
             </div>

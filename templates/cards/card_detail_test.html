@@ -282,9 +282,12 @@
     .toggle-components:hover {
         background: rgba(255,255,255,0.3);
     }
-      .components-grid {
+
+    .components-grid {
+        display: block; /* Changed from none to block */
         padding: 2rem;
-        display: none; /* Initially collapsed */
+        background: #f8fafc;
+        border-radius: 0 0 12px 12px;
     }
     
     .components-grid.expanded {
@@ -781,13 +784,13 @@
     <nav class="breadcrumb-nav" aria-label="breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{% url 'cards:home' %}">Home</a></li>
-            <li class="breadcrumb-item"><a href="{% url 'cards:the_abyss' %}">Cards</a></li>
+            <!-- <li class="breadcrumb-item"><a href="{% url 'cards:the_abyss' %}">Cards</a></li> -->
             <li class="breadcrumb-item active" aria-current="page">{{ card.name }}</li>
         </ol>
     </nav>
     
     <!-- Back Button -->
-    <a href="{% url 'cards:home' %}" class="back-button">← Back to Home</a>
+    <a href="{% url 'cards:home' %}" class="back-button">← Back Home</a>
     
     <!-- Card Hero Section -->
     <div class="card-hero">
@@ -913,13 +916,12 @@
             {% if card.oracleText %}
                 <div class="mt-4">
                     <h4>Oracle Text</h4>
-                    <div class="oracle-text">{{ card.oracleText|linebreaks }}</div>
+                    <div class="oracle-text">{{ card.printedText|linebreaks }}</div>
                 </div>
             {% endif %}
 
             {% if card.flavorText %}
                 <div class="mt-4">
-                    <h4>Flavor Text</h4>
                     <blockquote class="blockquote text-end">
                         <p class="mb-0"><i>{{ card.flavorText }}</i></p>
                     </blockquote>
@@ -972,15 +974,15 @@
         <div class="component-breakdown-header">
             <h2 class="component-breakdown-title">
                 <i class="bi bi-book-open"></i>
-                Complete Component Analysis
+                Complete Card Analysis
                 {% if analysis.components %}
                     <small>({{ analysis.components|length }} components combined)</small>
                 {% endif %}
             </h2>
-            <button class="toggle-components" onclick="toggleComponents()">
-                <span id="toggle-text">Show Analysis</span>
+            <!-- <button class="toggle-components" onclick="toggleComponents()">
+                <span id="toggle-text">Hide Analysis</span>
                 <i class="bi bi-chevron-down" id="toggle-icon"></i>
-            </button>
+            </button> -->
         </div>
         
         <div class="components-grid" id="components-content">

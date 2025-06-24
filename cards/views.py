@@ -16,6 +16,7 @@ from .models import get_cards_collection
 from .analysis_manager import analysis_manager
 from .ollama_client import ALL_COMPONENT_TYPES
 from .job_queue import job_queue
+from .utils import get_home_page_stats, get_recent_cards_with_analysis
 
 # Import enhanced swarm components
 try:
@@ -112,31 +113,11 @@ class HomeView(TemplateView):
                     }
             else:
                 # Fallback to basic analysis manager
-                progress = analysis_manager.get_analysis_progress()            # Get cards with at least 1 component for homepage display (temporarily)
-            fully_analyzed_cards = list(cards_collection.aggregate([
-                {
-                    '$match': {
-                        'analysis.components': {'$exists': True},
-                        '$expr': {
-                            '$gt': [{'$size': {'$objectToArray': '$analysis.components'}}, 0]
-                        }
-                    }
-                },
-                {
-                    '$addFields': {
-                        'component_count': {
-                            '$size': {'$objectToArray': '$analysis.components'}
-                        }
-                    }
-                },
-                {
-                    '$sort': {
-                        'component_count': -1,  # Cards with most components first
-                        'edhrecRank': 1  # Then by popularity
-                    }
-                },
-                {'$limit': 32}  # Show up to 32 cards
-            ]))
+                progress = analysis_manager.get_analysis_progress()            # Get cards with at least 1 component for homepage display (increased to 60)
+            fully_analyzed_cards = get_recent_cards_with_analysis(limit=60)
+            
+            # Get home page statistics using our utility function
+            stats = get_home_page_stats()
             
             # Get some featured cards with high EDHREC rank
             featured_cards = list(cards_collection.aggregate([
@@ -164,50 +145,16 @@ class HomeView(TemplateView):
                     '$sort': {'analysis.analysis_completed_at': -1}
                 },
                 {'$limit': 12}
-            ]))            # Analysis statistics
-            total_cards = cards_collection.count_documents({})
+            ]))            # Analysis statistics - use our utility function
+            total_cards = stats['total_cards']
+            fully_analyzed_count = stats['fully_analyzed']
+            in_process_count = stats['in_process']
+            analyzed_today = stats['analyzed_today']
             
-            # Get the actual count of fully analyzed cards (exactly 20 components)
-            fully_analyzed_count = cards_collection.count_documents({
-                'analysis.components': {'$exists': True},
-                '$expr': {
-                    '$eq': [
-                        {'$size': {'$objectToArray': '$analysis.components'}},
-                        20
-                    ]
-                }
-            })
-            
-            # Get count of cards currently being processed (1-19 components)
-            in_process_count = cards_collection.count_documents({
-                'analysis.components': {'$exists': True},
-                '$expr': {
-                    '$and': [
-                        {'$gt': [{'$size': {'$objectToArray': '$analysis.components'}}, 0]},
-                        {'$lt': [{'$size': {'$objectToArray': '$analysis.components'}}, 20]}
-                    ]
-                }
-            })
-            
-            # Get count of cards with any components (for display purposes)
-            cards_with_components = cards_collection.count_documents({
-                'analysis.components': {'$exists': True},
-                '$expr': {
-                    '$gt': [{'$size': {'$objectToArray': '$analysis.components'}}, 0]
-                }
-            })
-            
-            # Get enhanced metrics - workers active, analysis speed, etc.
-            enhanced_metrics = 0
-            try:
-                # Count cards analyzed in last 24 hours
-                from datetime import datetime, timedelta
-                recent_cutoff = datetime.now() - timedelta(hours=24)
-                enhanced_metrics = cards_collection.count_documents({
-                    'analysis.analysis_completed_at': {'$gte': recent_cutoff}
-                })
-            except Exception:
-                enhanced_metrics = 0            
+            # Additional calculations for backward compatibility
+            cards_with_components = in_process_count + fully_analyzed_count
+              # Get enhanced metrics - workers active, analysis speed, etc.
+            # (analyzed_today is now calculated in get_home_page_stats)
             total_components = fully_analyzed_count * 20  # Each fully analyzed card has exactly 20 components
             avg_components = 20 if fully_analyzed_count > 0 else 0
             
@@ -248,13 +195,14 @@ class HomeView(TemplateView):
                 synthesis_stats = {                    'cards_with_synthesis': 0,
                     'synthesis_completion_rate': 0.0
                 }
-            
             context.update({
-                'fully_analyzed_cards': fully_analyzed_cards,                'statistics': {
+                'fully_analyzed_cards': fully_analyzed_cards,
+                'stats': stats,  # Add our new stats object
+                'statistics': {
                     'total_cards': f"{total_cards:,}",
                     'fully_analyzed': fully_analyzed_count,
                     'in_process': in_process_count,
-                    'analyzed_today': enhanced_metrics,
+                    'analyzed_today': analyzed_today,
                     'total_components': f"{total_components:,}",
                     'avg_components': avg_components,
                 },
@@ -266,9 +214,17 @@ class HomeView(TemplateView):
             
         except Exception as e:
             logger.error(f"Error in home view: {e}")
-            messages.error(self.request, "Error loading home page")
+            messages.error(self.request, "Error loading home page")            
             context.update({
-                'fully_analyzed_cards': [],                'statistics': {
+                'fully_analyzed_cards': [],
+                'stats': {
+                    'total_cards': 0,
+                    'fully_analyzed': 0,
+                    'in_process': 0,
+
+                    'analyzed_today': 0
+                },
+                'statistics': {
                     'total_cards': "Error loading",
                     'fully_analyzed': 0,
                     'partial_analysis': 0,
