@@ -1,4 +1,3 @@
-# Create performance_monitor.py
 #!/usr/bin/env python3
 """
 Enhanced Swarm Performance Monitor
