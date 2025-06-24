@@ -124,8 +124,7 @@
         justify-content: space-between;
         align-items: center;
         margin-bottom: 1rem;
-    }
-      .completion-badge {
+    }    .completion-badge {
         background: linear-gradient(135deg, #28a745, #20c997);
         color: white;
         padding: 0.5rem 1.25rem;
@@ -135,6 +134,21 @@
         box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
         text-transform: uppercase;
         letter-spacing: 0.5px;
+    }
+    
+    .completion-badge.fully-analyzed {
+        background: linear-gradient(135deg, #10b981, #059669);
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+    }
+    
+    .completion-badge.in-progress {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+    }
+    
+    .completion-badge.starting {
+        background: linear-gradient(135deg, #6366f1, #4f46e5);
+        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
     }
     
     .component-count {
@@ -245,24 +259,26 @@
                 <div class="stat-label">Fully Analyzed</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number">{{ statistics.partial_analysis|default:"0" }}</div>
-                <div class="stat-label">Partial Analysis</div>
+                <div class="stat-number">{{ statistics.in_process|default:"0" }}</div>
+                <div class="stat-label">In Process</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number">{{ statistics.with_synthesis|default:"0" }}</div>
-                <div class="stat-label">With Synthesis</div>
+                <div class="stat-number">{{ statistics.analyzed_today|default:"0" }}</div>
+                <div class="stat-label">Analyzed Today</div>
             </div>
         </div>
         {% endif %}
     </div>
 </div>
 
-<div class="container">
-    <h1 class="section-title">Recently Analyzed Cards</h1>
+<div class="container">    <h1 class="section-title">Cards with AI Analysis</h1>
     
-    {% if fully_analyzed_cards %}        <div class="cards-grid">            {% for card in fully_analyzed_cards %}                <a href="{% url 'cards:card_detail' card.uuid %}" 
+    {% if fully_analyzed_cards %}
+        <div class="cards-grid">
+            {% for card in fully_analyzed_cards %}
+                <a href="{% url 'cards:card_detail' card.uuid %}" 
                    class="card-item" 
-                   aria-label="View details for {{ card.name }}"
+                   aria-label="View analysis for {{ card.name }}"
                    style="text-decoration: none; color: inherit; position: relative;">
                     {% if card.imageUris.normal %}
                         <img src="{{ card.imageUris.normal }}" alt="{{ card.name }}" class="card-image" loading="lazy">
@@ -274,8 +290,15 @@
                     
                     <div class="card-content">
                         <h3 class="card-name">{{ card.name }}</h3>
-                          <div class="card-stats">
-                            <span class="completion-badge">Analyzed</span>
+                        
+                        <div class="card-stats">
+                            {% if card.component_count == 20 %}
+                                <span class="completion-badge fully-analyzed">Fully Analyzed</span>
+                            {% elif card.component_count >= 10 %}
+                                <span class="completion-badge in-progress">{{ card.component_count }}/20 Components</span>
+                            {% else %}
+                                <span class="completion-badge starting">{{ card.component_count }}/20 Components</span>
+                            {% endif %}
                         </div>
                     </div>
                 </a>
