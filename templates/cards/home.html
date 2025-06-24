@@ -228,8 +228,7 @@
     <div class="container">
         <h1 class="hero-title">EMTEEGEE</h1>
         <p class="hero-subtitle">AI-Powered Magic: The Gathering Card Analysis</p>
-        
-        {% if statistics %}
+          {% if statistics %}
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-number">{{ statistics.total_cards }}</div>
@@ -240,12 +239,12 @@
                 <div class="stat-label">Fully Analyzed</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number">{{ statistics.total_components }}</div>
-                <div class="stat-label">AI Components</div>
+                <div class="stat-number">{{ synthesis_stats.cards_with_synthesis|default:"0" }}</div>
+                <div class="stat-label">Complete Analysis</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number">{{ statistics.avg_components }}</div>
-                <div class="stat-label">Avg Components</div>
+                <div class="stat-number">{{ synthesis_stats.synthesis_completion_rate|floatformat:0|default:"0" }}%</div>
+                <div class="stat-label">Synthesis Rate</div>
             </div>
         </div>
         {% endif %}

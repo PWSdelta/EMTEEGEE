@@ -1,0 +1,583 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Enhanced Search - EMTEEGEE{% endblock %}
+
+{% block extra_css %}
+<style>
+    .search-hero {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 4rem 0;
+        margin-bottom: 3rem;
+        text-align: center;
+    }
+    
+    .search-hero h1 {
+        font-size: 3rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+    }
+    
+    .search-hero p {
+        font-size: 1.25rem;
+        opacity: 0.9;
+        margin-bottom: 2rem;
+    }
+    
+    .enhanced-search-container {
+        max-width: 800px;
+        margin: 0 auto;
+        position: relative;
+    }
+    
+    .enhanced-search-input {
+        width: 100%;
+        padding: 1.25rem 2rem;
+        font-size: 1.25rem;
+        border: none;
+        border-radius: 50px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        background: white;
+        transition: all 0.3s ease;
+    }
+    
+    .enhanced-search-input:focus {
+        outline: none;
+        box-shadow: 0 12px 48px rgba(0,0,0,0.2);
+        transform: translateY(-2px);
+    }
+    
+    .search-suggestions {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 12px 48px rgba(0,0,0,0.2);
+        margin-top: 0.5rem;
+        max-height: 400px;
+        overflow-y: auto;
+        z-index: 1000;
+        display: none;
+    }
+    
+    .search-suggestions.show {
+        display: block;
+        animation: fadeInUp 0.3s ease;
+    }
+    
+    .suggestion-category {
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .suggestion-category:last-child {
+        border-bottom: none;
+    }
+    
+    .suggestion-category-header {
+        padding: 0.75rem 1.5rem;
+        background: #f8f9fa;
+        font-weight: 600;
+        color: #667eea;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    
+    .suggestion-item {
+        padding: 1rem 1.5rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transition: all 0.2s ease;
+        border-bottom: 1px solid #f8f9fa;
+    }
+    
+    .suggestion-item:hover,
+    .suggestion-item.active {
+        background: #667eea;
+        color: white;
+    }
+    
+    .suggestion-item:last-child {
+        border-bottom: none;
+    }
+    
+    .suggestion-icon {
+        font-size: 1.25rem;
+        width: 24px;
+        text-align: center;
+    }
+    
+    .suggestion-content {
+        flex: 1;
+    }
+    
+    .suggestion-title {
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
+    
+    .suggestion-subtitle {
+        font-size: 0.85rem;
+        opacity: 0.7;
+    }
+    
+    .search-filters {
+        margin: 3rem 0;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 1rem;
+    }
+    
+    .filter-chip {
+        background: white;
+        border: 2px solid #e5e7eb;
+        border-radius: 25px;
+        padding: 0.5rem 1.25rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-weight: 500;
+    }
+    
+    .filter-chip:hover,
+    .filter-chip.active {
+        background: #667eea;
+        color: white;
+        border-color: #667eea;
+        transform: translateY(-1px);
+    }
+    
+    .search-stats {
+        text-align: center;
+        margin: 2rem 0;
+        color: #6b7280;
+    }
+    
+    .quick-search-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin: 3rem 0;
+    }
+    
+    .quick-search-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .quick-search-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    
+    .quick-search-icon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        color: #667eea;
+    }
+    
+    .quick-search-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #374151;
+    }
+    
+    .quick-search-description {
+        font-size: 0.9rem;
+        color: #6b7280;
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .search-hero h1 {
+            font-size: 2rem;
+        }
+        
+        .enhanced-search-input {
+            font-size: 1rem;
+            padding: 1rem 1.5rem;
+        }
+        
+        .search-filters {
+            justify-content: flex-start;
+            overflow-x: auto;
+            padding-bottom: 1rem;
+        }
+        
+        .filter-chip {
+            white-space: nowrap;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="search-hero">
+    <div class="container">
+        <h1><i class="bi bi-search"></i> Enhanced Search</h1>
+        <p>Discover Magic cards with intelligent search and AI-powered analysis</p>
+        
+        <div class="enhanced-search-container">
+            <input type="text" 
+                   id="enhanced-search-input" 
+                   class="enhanced-search-input"
+                   placeholder="Search for cards, types, abilities, or themes..."
+                   autocomplete="off">
+            
+            <div id="search-suggestions" class="search-suggestions">
+                <!-- Dynamic suggestions will be inserted here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Search Filters -->
+    <div class="search-filters">
+        <div class="filter-chip active" data-filter="all">
+            <i class="bi bi-grid-3x3-gap"></i> All Cards
+        </div>
+        <div class="filter-chip" data-filter="creatures">
+            <i class="bi bi-shield"></i> Creatures
+        </div>
+        <div class="filter-chip" data-filter="spells">
+            <i class="bi bi-lightning"></i> Spells
+        </div>
+        <div class="filter-chip" data-filter="artifacts">
+            <i class="bi bi-gear"></i> Artifacts
+        </div>
+        <div class="filter-chip" data-filter="planeswalkers">
+            <i class="bi bi-star"></i> Planeswalkers
+        </div>
+        <div class="filter-chip" data-filter="expensive">
+            <i class="bi bi-currency-dollar"></i> High Value
+        </div>
+        <div class="filter-chip" data-filter="edhrec">
+            <i class="bi bi-trophy"></i> EDHREC Popular
+        </div>
+    </div>
+    
+    <!-- Search Stats -->
+    <div class="search-stats">
+        <p>🔍 Search through <strong>{{ total_cards|default:"thousands of" }}</strong> analyzed Magic cards</p>
+    </div>
+    
+    <!-- Quick Search Categories -->
+    <div class="quick-search-grid">
+        <div class="quick-search-card" onclick="quickSearch('lightning bolt')">
+            <div class="quick-search-icon">⚡</div>
+            <div class="quick-search-title">Iconic Spells</div>
+            <div class="quick-search-description">Lightning Bolt, Counterspell, and other classics</div>
+        </div>
+        
+        <div class="quick-search-card" onclick="quickSearch('commander popular')">
+            <div class="quick-search-icon">👑</div>
+            <div class="quick-search-title">Commander Staples</div>
+            <div class="quick-search-description">Top cards for Commander format</div>
+        </div>
+        
+        <div class="quick-search-card" onclick="quickSearch('competitive modern')">
+            <div class="quick-search-icon">🏆</div>
+            <div class="quick-search-title">Competitive Play</div>
+            <div class="quick-search-description">Tournament-level cards and strategies</div>
+        </div>
+        
+        <div class="quick-search-card" onclick="quickSearch('budget deck')">
+            <div class="quick-search-icon">💰</div>
+            <div class="quick-search-title">Budget Options</div>
+            <div class="quick-search-description">Powerful cards that won't break the bank</div>
+        </div>
+        
+        <div class="quick-search-card" onclick="quickSearch('new player')">
+            <div class="quick-search-icon">🎓</div>
+            <div class="quick-search-title">Beginner Friendly</div>
+            <div class="quick-search-description">Great cards for learning Magic</div>
+        </div>
+        
+        <div class="quick-search-card" onclick="quickSearch('combo synergy')">
+            <div class="quick-search-icon">🔗</div>
+            <div class="quick-search-title">Combo Pieces</div>
+            <div class="quick-search-description">Cards that work great together</div>
+        </div>
+    </div>
+    
+    <!-- Results will be loaded here via AJAX -->
+    <div id="search-results" class="mt-5">
+        <!-- Dynamic search results -->
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let searchTimeout;
+let currentRequest;
+let selectedIndex = -1;
+
+const searchInput = document.getElementById('enhanced-search-input');
+const suggestionsContainer = document.getElementById('search-suggestions');
+const resultsContainer = document.getElementById('search-results');
+
+// Initialize enhanced search
+document.addEventListener('DOMContentLoaded', function() {
+    initializeFilters();
+    initializeSearch();
+});
+
+function initializeFilters() {
+    const filterChips = document.querySelectorAll('.filter-chip');
+    
+    filterChips.forEach(chip => {
+        chip.addEventListener('click', function() {
+            // Update active state
+            filterChips.forEach(c => c.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Trigger search with current query and new filter
+            const query = searchInput.value.trim();
+            const filter = this.dataset.filter;
+            
+            if (query) {
+                performEnhancedSearch(query, filter);
+            }
+        });
+    });
+}
+
+function initializeSearch() {
+    searchInput.addEventListener('input', function() {
+        const query = this.value.trim();
+        
+        clearTimeout(searchTimeout);
+        selectedIndex = -1;
+        
+        if (query.length >= 2) {
+            searchTimeout = setTimeout(() => {
+                showEnhancedSuggestions(query);
+            }, 300);
+        } else {
+            hideSuggestions();
+        }
+    });
+    
+    searchInput.addEventListener('keydown', handleKeyboardNavigation);
+    searchInput.addEventListener('focus', function() {
+        const query = this.value.trim();
+        if (query.length >= 2) {
+            showEnhancedSuggestions(query);
+        }
+    });
+    
+    // Hide suggestions when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!searchInput.contains(e.target) && !suggestionsContainer.contains(e.target)) {
+            hideSuggestions();
+        }
+    });
+}
+
+function showEnhancedSuggestions(query) {
+    // Cancel previous request
+    if (currentRequest) {
+        currentRequest.abort();
+    }
+    
+    // Show loading state
+    suggestionsContainer.innerHTML = `
+        <div class="suggestion-item">
+            <div class="suggestion-icon"><i class="bi bi-three-dots"></i></div>
+            <div class="suggestion-content">
+                <div class="suggestion-title">Searching...</div>
+            </div>
+        </div>
+    `;
+    suggestionsContainer.classList.add('show');
+    
+    // Make API request
+    currentRequest = new AbortController();
+    fetch(`/api/enhanced_search_suggestions/?q=${encodeURIComponent(query)}`, {
+        signal: currentRequest.signal
+    })
+    .then(response => response.json())
+    .then(data => {
+        renderEnhancedSuggestions(data.suggestions || []);
+    })
+    .catch(error => {
+        if (error.name !== 'AbortError') {
+            console.error('Enhanced search error:', error);
+            hideSuggestions();
+        }
+    })
+    .finally(() => {
+        currentRequest = null;
+    });
+}
+
+function renderEnhancedSuggestions(suggestions) {
+    if (!suggestions.length) {
+        suggestionsContainer.innerHTML = `
+            <div class="suggestion-item">
+                <div class="suggestion-icon">❌</div>
+                <div class="suggestion-content">
+                    <div class="suggestion-title">No suggestions found</div>
+                    <div class="suggestion-subtitle">Try a different search term</div>
+                </div>
+            </div>
+        `;
+        return;
+    }
+    
+    // Group suggestions by category
+    const grouped = suggestions.reduce((acc, suggestion) => {
+        const category = suggestion.category || 'Other';
+        if (!acc[category]) {
+            acc[category] = [];
+        }
+        acc[category].push(suggestion);
+        return acc;
+    }, {});
+    
+    let html = '';
+    
+    Object.entries(grouped).forEach(([category, items]) => {
+        html += `<div class="suggestion-category">`;
+        html += `<div class="suggestion-category-header">${escapeHtml(category)}</div>`;
+        
+        items.forEach((suggestion, index) => {
+            const globalIndex = Object.values(grouped).flat().indexOf(suggestion);
+            html += `
+                <div class="suggestion-item" 
+                     data-index="${globalIndex}" 
+                     data-query="${escapeHtml(suggestion.query || suggestion.text)}"
+                     data-uuid="${suggestion.uuid || ''}"
+                     onclick="selectSuggestion(this)">
+                    <div class="suggestion-icon">${suggestion.icon || '🔍'}</div>
+                    <div class="suggestion-content">
+                        <div class="suggestion-title">${escapeHtml(suggestion.text)}</div>
+                        ${suggestion.subtitle ? `<div class="suggestion-subtitle">${escapeHtml(suggestion.subtitle)}</div>` : ''}
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += `</div>`;
+    });
+    
+    suggestionsContainer.innerHTML = html;
+    suggestionsContainer.classList.add('show');
+}
+
+function selectSuggestion(element) {
+    const query = element.dataset.query;
+    const uuid = element.dataset.uuid;
+    
+    hideSuggestions();
+    
+    if (uuid) {
+        // Direct card link
+        window.location.href = `/card/${uuid}/`;
+    } else {
+        // Perform search
+        searchInput.value = query;
+        const activeFilter = document.querySelector('.filter-chip.active').dataset.filter;
+        performEnhancedSearch(query, activeFilter);
+    }
+}
+
+function handleKeyboardNavigation(e) {
+    const suggestions = suggestionsContainer.querySelectorAll('.suggestion-item');
+    
+    if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        selectedIndex = Math.min(selectedIndex + 1, suggestions.length - 1);
+        updateSelectionHighlight(suggestions);
+    } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        selectedIndex = Math.max(selectedIndex - 1, -1);
+        updateSelectionHighlight(suggestions);
+    } else if (e.key === 'Enter') {
+        if (selectedIndex >= 0 && selectedIndex < suggestions.length) {
+            e.preventDefault();
+            selectSuggestion(suggestions[selectedIndex]);
+        } else {
+            // Perform search with current input
+            const query = searchInput.value.trim();
+            if (query) {
+                const activeFilter = document.querySelector('.filter-chip.active').dataset.filter;
+                performEnhancedSearch(query, activeFilter);
+            }
+        }
+    } else if (e.key === 'Escape') {
+        hideSuggestions();
+    }
+}
+
+function updateSelectionHighlight(suggestions) {
+    suggestions.forEach((item, index) => {
+        item.classList.toggle('active', index === selectedIndex);
+    });
+}
+
+function hideSuggestions() {
+    suggestionsContainer.classList.remove('show');
+    selectedIndex = -1;
+}
+
+function performEnhancedSearch(query, filter = 'all') {
+    hideSuggestions();
+    
+    // Show loading state in results
+    resultsContainer.innerHTML = `
+        <div class="text-center p-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Searching...</span>
+            </div>
+            <p class="mt-3">Searching for "${query}"...</p>
+        </div>
+    `;
+    
+    // Build search URL
+    const params = new URLSearchParams({
+        q: query,
+        filter: filter,
+        enhanced: 'true'
+    });
+    
+    // Redirect to The Abyss with search parameters
+    window.location.href = `/abyss/?${params.toString()}`;
+}
+
+function quickSearch(query) {
+    searchInput.value = query;
+    const activeFilter = document.querySelector('.filter-chip.active').dataset.filter;
+    performEnhancedSearch(query, activeFilter);
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+</script>
+{% endblock %}

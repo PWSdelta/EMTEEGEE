@@ -10,6 +10,47 @@ from django.utils.safestring import mark_safe
 register = template.Library()
 
 @register.filter
+def get_item(dictionary, key):
+    """Get an item from a dictionary."""
+    if isinstance(dictionary, dict):
+        return dictionary.get(key)
+    return None
+
+@register.filter
+def replace(value, arg):
+    """Replace characters in a string."""
+    if len(arg.split(',')) == 2:
+        old, new = arg.split(',')
+        return value.replace(old, new)
+    return value
+
+@register.filter
+def split(value, arg):
+    """Split a string by delimiter."""
+    return value.split(arg)
+
+@register.filter
+def get_content(comp_data):
+    """Get content from component data."""
+    if isinstance(comp_data, dict):
+        return comp_data.get('content', '')
+    return str(comp_data)
+
+@register.filter
+def get_coherence_score(comp_data):
+    """Get coherence score from component data."""
+    if isinstance(comp_data, dict):
+        return comp_data.get('coherence_score', 0.0)
+    return 0.0
+
+@register.filter
+def get_generated_by(comp_data):
+    """Get generated_by from component data."""
+    if isinstance(comp_data, dict):
+        return comp_data.get('generated_by', 'Unknown')
+    return 'Unknown'
+
+@register.filter
 def markdown_to_html(value):
     """
     Convert markdown text to HTML with card name linking.

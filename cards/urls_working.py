@@ -6,6 +6,7 @@ from django.urls import path
 from django.http import HttpResponse
 from django.shortcuts import render
 from . import views as real_views  # Import the real views
+from .views import enhanced_search  # Import enhanced_search directly
 
 app_name = 'cards'
 
@@ -185,8 +186,8 @@ def browse_cards(request):
 urlpatterns = [
     # Public views
     path('', home, name='home'),
-    path('card/<str:card_uuid>/', card_detail, name='card_detail'),
-    path('browse/', browse_cards, name='browse'),
+    path('card/<str:card_uuid>/', card_detail, name='card_detail'),    path('browse/', browse_cards, name='browse'),
+    path('search/', enhanced_search, name='enhanced_search'),
     path('abyss/', the_abyss, name='the_abyss'),
     path('card-list/', the_abyss, name='card_list'),  # Legacy compatibility
       # Art Gallery
