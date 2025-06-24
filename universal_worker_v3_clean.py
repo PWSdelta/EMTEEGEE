@@ -60,21 +60,21 @@ class EnhancedUniversalWorker:
         
         # Configure models based on hardware
         if self.worker_type == 'desktop':
-            self.preferred_models = ['qwen2.5:7b', 'llama3.2:3b']
-            self.current_model = 'qwen2.5:7b'
+            self.preferred_models = ['llama3.1:8b']
+            self.current_model = 'llama3.1:8b'            
             self.specialization = 'fast_gpu_analysis'
             self.max_tasks = 2  # Reduced for better tracking
             self.poll_interval = 3  # Faster polling for GPU worker
         elif self.worker_type == 'laptop_lite':
             # Laptop Lite: Lightweight models for mid-range hardware
-            self.preferred_models = ['llama3.2:3b', 'llama3.2:1b', 'qwen2.5:3b']
+            self.preferred_models = ['llama3.2:3b']
             self.current_model = 'llama3.2:3b'
             self.specialization = 'lightweight_analysis'
             self.max_tasks = 2  # Can handle multiple small tasks
             self.poll_interval = 4  # Moderate polling
         else:  # laptop
-            self.preferred_models = ['mixtral:8x7b', 'llama3.3:70b']
-            self.current_model = 'mixtral:8x7b'
+            self.preferred_models = ['llama3.3:70b', 'llama3.3:70b']
+            self.current_model = 'llama3.3:70b'
             self.specialization = 'deep_cpu_analysis'
             self.max_tasks = 1  # Single task for deep analysis
             self.poll_interval = 5  # Slower polling for CPU worker
@@ -128,7 +128,7 @@ class EnhancedUniversalWorker:
             'version': '3.0.0'  # Enhanced swarm integration version
         }
         
-        logger.info(f"🔍 Detected: {worker_type.title()} ({cpu_cores} cores, {ram_gb}GB RAM)")
+        logger.info(f"Detected: {worker_type.title()} ({cpu_cores} cores, {ram_gb}GB RAM)")
         
         return capabilities
     
@@ -140,7 +140,6 @@ class EnhancedUniversalWorker:
             return 'lightweight_analysis'
         else:
             return 'fast_gpu_analysis'
-    
     def _test_ollama_connection(self) -> bool:
         """Test Ollama connection and model availability"""
         try:
@@ -149,15 +148,16 @@ class EnhancedUniversalWorker:
             
             # Check if any preferred model is available
             model_available = any(model in available_models for model in self.preferred_models)
+            
             if not model_available:
-                logger.warning(f"⚠️  Preferred models {self.preferred_models} not found")
+                logger.warning(f"Preferred models {self.preferred_models} not found")
                 logger.info(f"Available models: {available_models}")
                 # Use first available model as fallback
                 if available_models:
                     self.current_model = available_models[0]
-                    logger.info(f"🔄 Using fallback model: {self.current_model}")
+                    logger.info(f"Using fallback model: {self.current_model}")
                 else:
-                    logger.error("❌ No models available in Ollama")
+                    logger.error("No models available in Ollama")
                     return False
             else:
                 # Use the first available preferred model
@@ -228,7 +228,6 @@ class EnhancedUniversalWorker:
                     json=registration_data,
                     timeout=30
                 )
-                
                 if response.status_code == 200:
                     result = response.json()
                     logger.info(f"✅ Registered successfully with {server_url}")
@@ -302,7 +301,8 @@ class EnhancedUniversalWorker:
                 'worker_type': self.worker_type,
                 'specialization': self.specialization,
                 'active_task_ids': list(self.active_tasks),  # Exclude tasks we're already working on
-                'completed_task_ids': list(self.completed_tasks)  # Exclude completed tasks
+                'completed_task_ids': list(self.completed_tasks),  # Exclude completed tasks
+                'random_assignment': True  # Explicitly request random assignment, no EDHREC priority
             }
             
             response = requests.post(
@@ -310,7 +310,6 @@ class EnhancedUniversalWorker:
                 json=request_data,
                 timeout=30
             )
-            
             if response.status_code == 200:
                 result = response.json()
                 tasks = result.get('tasks', [])
@@ -331,13 +330,19 @@ class EnhancedUniversalWorker:
             logger.error(f"❌ Work request error: {e}")
             return []
     
-    def submit_results(self, task_id: str, results: Dict[str, str]) -> bool:
+    def submit_results(self, task_id: str, card_id: str, results: Dict[str, str]) -> bool:
         """Submit analysis results with enhanced tracking for new swarm system"""
         try:
+            # Validate required parameters
+            if not card_id:
+                logger.error(f"❌ Cannot submit results for task {task_id}: missing card_id")
+                return False
+            
             # Format results for the new enhanced swarm manager
             submission_data = {
                 'worker_id': self.worker_id,
                 'task_id': task_id,
+                'card_id': card_id,  # Include card_id as required by the API
                 'results': {
                     'components': results,  # Wrap in components structure
                     'model_info': {
@@ -354,14 +359,13 @@ class EnhancedUniversalWorker:
                 json=submission_data,
                 timeout=60
             )
-            
             if response.status_code == 200:
                 # Remove from active tasks and add to completed
                 if task_id in self.active_tasks:
                     self.active_tasks.remove(task_id)
                 self.completed_tasks.add(task_id)
                 
-                logger.info(f"✅ Submitted results for task {task_id}")
+                logger.info(f"✅ Submitted results for task {task_id} (card: {card_id})")
                 logger.info(f"📊 Active: {len(self.active_tasks)}, Completed: {len(self.completed_tasks)}")
                 return True
             else:
@@ -381,9 +385,19 @@ class EnhancedUniversalWorker:
             card_data = task.get('card_data', {})
             components = task.get('components', [])
             
+            # Extract card ID from various possible sources
+            card_id = (
+                task.get('card_id') or 
+                task.get('card_uuid') or 
+                card_data.get('uuid') or 
+                card_data.get('_id') or
+                card_data.get('id')
+            )
+            
             card_name = card_data.get('name', 'Unknown')
             logger.info(f"🔄 Processing {self.worker_type} analysis: {card_name} (Task: {task_id})")
             logger.info(f"📝 Components: {', '.join(components)}")
+            logger.info(f"🆔 Card ID: {card_id}")
             
             # Generate analysis
             results = self.generate_analysis(card_data, components)
@@ -393,8 +407,8 @@ class EnhancedUniversalWorker:
                 logger.error(f"❌ No valid analysis generated for {card_name}")
                 return False
             
-            # Submit results
-            success = self.submit_results(task_id, results)
+            # Submit results with card_id
+            success = self.submit_results(task_id, card_id, results)
             
             processing_time = time.time() - start_time
             logger.info(f"⏱️  Task {task_id} completed in {processing_time:.1f}s")
