@@ -487,10 +487,201 @@
         align-items: center;
         gap: 0.25rem;
     }
-    
-    .coherence-high { color: #059669; }
+      .coherence-high { color: #059669; }
     .coherence-medium { color: #d97706; }
     .coherence-low { color: #dc2626; }
+    
+    /* Combined Analysis Article Styling */
+    .combined-analysis-article {
+        max-width: 900px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+    
+    .article-header {
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        padding: 3rem 2rem 2rem;
+        text-align: center;
+        border-bottom: 3px solid #667eea;
+    }
+    
+    .article-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 0.5rem;
+    }
+    
+    .article-subtitle {
+        font-size: 1.1rem;
+        color: #6b7280;
+        margin: 0;
+        font-style: italic;
+    }
+    
+    .article-content {
+        padding: 3rem;
+        line-height: 1.8;
+        font-size: 1rem;
+        color: #374151;
+    }
+    
+    .component-section {
+        margin-bottom: 3rem;
+        padding-bottom: 2rem;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .component-section:last-of-type {
+        border-bottom: none;
+        margin-bottom: 2rem;
+    }
+    
+    .component-section h2 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #667eea;
+        margin-top: 0;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .component-section h2::before {
+        content: "▸";
+        color: #667eea;
+        font-size: 1.2rem;
+    }
+    
+    .component-article-content {
+        margin-bottom: 1rem;
+    }
+    
+    .component-article-content h1, .component-article-content h2, 
+    .component-article-content h3, .component-article-content h4 {
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+        font-weight: 600;
+        color: #1f2937;
+    }
+    
+    .component-article-content h1 { font-size: 1.4rem; }
+    .component-article-content h2 { font-size: 1.25rem; }
+    .component-article-content h3 { font-size: 1.1rem; }
+    .component-article-content h4 { font-size: 1rem; }
+    
+    .component-article-content p {
+        margin-bottom: 1.2rem;
+        text-align: justify;
+    }
+    
+    .component-article-content ul, .component-article-content ol {
+        margin: 1.2rem 0;
+        padding-left: 2rem;
+    }
+    
+    .component-article-content li {
+        margin-bottom: 0.5rem;
+    }
+    
+    .component-article-content blockquote {
+        border-left: 4px solid #667eea;
+        background: rgba(102, 126, 234, 0.05);
+        color: #4b5563;
+        font-style: italic;
+        padding: 1rem 1.5rem;
+        margin: 1.5rem 0;
+        border-radius: 0 8px 8px 0;
+    }
+    
+    .component-article-content strong {
+        font-weight: 700;
+        color: #1f2937;
+    }
+    
+    .component-article-content em {
+        font-style: italic;
+        color: #4b5563;
+    }
+    
+    .component-article-content code {
+        background: #f1f5f9;
+        border: 1px solid #e2e8f0;
+        padding: 0.2rem 0.4rem;
+        border-radius: 4px;
+        font-family: 'Courier New', monospace;
+        font-size: 0.9rem;
+        color: #374151;
+    }
+    
+    .component-attribution {
+        margin-top: 0.5rem;
+        padding-top: 0.5rem;
+        border-top: 1px solid #f3f4f6;
+        font-size: 0.8rem;
+        color: #9ca3af;
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+    }
+    
+    .quality-score {
+        padding: 0.2rem 0.5rem;
+        border-radius: 12px;
+        font-weight: 500;
+    }
+    
+    .quality-score.high {
+        background: #d1fae5;
+        color: #065f46;
+    }
+    
+    .quality-score.medium {
+        background: #fed7aa;
+        color: #9a3412;
+    }
+    
+    .quality-score.low {
+        background: #fecaca;
+        color: #991b1b;
+    }
+    
+    .generator {
+        font-style: italic;
+    }
+    
+    .article-footer {
+        margin-top: 3rem;
+        padding-top: 2rem;
+        border-top: 2px solid #e5e7eb;
+        background: #f8fafc;
+        padding: 2rem;
+        border-radius: 8px;
+    }
+    
+    .article-footer p {
+        margin-bottom: 1rem;
+        font-weight: 500;
+        color: #374151;
+    }
+    
+    .analysis-metadata {
+        display: flex;
+        gap: 2rem;
+        font-size: 0.9rem;
+        color: #6b7280;
+        flex-wrap: wrap;
+    }
+    
+    .analysis-metadata span {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
     
     /* No synthesis fallback */
     .no-synthesis-message {
@@ -537,8 +728,7 @@
         font-size: 0.9rem;
         color: #6b7280;
         margin-top: 0.5rem;
-    }
-      /* Responsive design */
+    }    /* Responsive design */
     @media (max-width: 768px) {
         .card-content-grid {
             grid-template-columns: 1fr;
@@ -563,6 +753,23 @@
             flex-direction: column;
             align-items: flex-start;
             gap: 1rem;
+        }
+        
+        .article-header {
+            padding: 2rem 1rem 1.5rem;
+        }
+        
+        .article-header h1 {
+            font-size: 2rem;
+        }
+        
+        .article-content {
+            padding: 2rem 1.5rem;
+        }
+        
+        .analysis-metadata {
+            flex-direction: column;
+            gap: 0.5rem;
         }
     }
 </style>
@@ -757,72 +964,82 @@
         <!-- No Complete Analysis Yet -->
         <!-- <div class="no-synthesis-message">
             <h3><i class="bi bi-hourglass-split"></i> Analysis in Progress</h3>
-            <p>Complete analysis will be available once all {{ analysis.components|length }}/20 components are finished and synthesized by our AI system.</p>
+            <p>Complete analysis will be available once all {{ enhanced_components|length }}/20 components are finished and synthesized by our AI system.</p>
         </div> -->
     {% endif %}
-    
-    <!-- Component Breakdown Section (Expandable) -->
-    <div class="component-breakdown">        <div class="component-breakdown-header">
+      <!-- Component Breakdown Section (Expandable) -->
+    <div class="component-breakdown">
+        <div class="component-breakdown-header">
             <h2 class="component-breakdown-title">
-                <i class="bi bi-list-ul"></i>
-                Component Analysis Details
+                <i class="bi bi-book-open"></i>
+                Complete Component Analysis
                 {% if analysis.components %}
-                    <small>({{ analysis.components|length }} components available)</small>
+                    <small>({{ analysis.components|length }} components combined)</small>
                 {% endif %}
             </h2>
             <button class="toggle-components" onclick="toggleComponents()">
-                <span id="toggle-text">Show Details</span>
+                <span id="toggle-text">Show Analysis</span>
                 <i class="bi bi-chevron-down" id="toggle-icon"></i>
             </button>
         </div>
-          <div class="components-grid" id="components-content">
+        
+        <div class="components-grid" id="components-content">
             {% if analysis.components %}
-                <!-- All Components Section -->
-                <div class="all-components-section">
-                    <div class="components-list">                        {% for comp_type, comp_data in analysis.components.items %}
-                            <div class="component-item">
-                                <div class="component-header">
-                                    <div class="component-name">{{ comp_type|title|replace:"_ " }}</div>
-                                    <button class="expand-component" onclick="toggleComponent(this)" title="Expand to read full content">
-                                        <i class="bi bi-arrows-expand"></i>
-                                    </button>
-                                </div>                                <div class="component-content collapsed">
+                <!-- Combined Components Article -->
+                <div class="combined-analysis-article">
+                    <div class="article-header">
+                        <h1>Complete Analysis: {{ card.name }}</h1>
+                        <p class="article-subtitle">Comprehensive analysis combining {{ analysis.components|length }} analytical components</p>
+                    </div>
+                    
+                    <div class="article-content">
+                        {% for comp_type, comp_data in analysis.components.items %}
+                            <section class="component-section">
+                                <h2>{{ comp_type|title|replace:"_ " }}</h2>
+                                
+                                <div class="component-article-content">
                                     {% if comp_data.content %}
                                         {{ comp_data.content|markdown_to_html }}
                                     {% elif comp_data %}
-                                        <!-- Handle case where comp_data might be a string or other format -->
                                         {% if comp_data|length > 50 %}
                                             {{ comp_data|markdown_to_html }}
                                         {% else %}
-                                            <p><em>{{ comp_data }}</em></p>
+                                            <p>{{ comp_data }}</p>
                                         {% endif %}
                                     {% else %}
-                                        <p><em>No content available for this component yet.</em></p>
-                                    {% endif %}
-                                </div><div class="component-meta">
-                                    {% if comp_data.coherence_score %}
-                                        <div class="coherence-score {% if comp_data.coherence_score >= 0.8 %}coherence-high{% elif comp_data.coherence_score >= 0.6 %}coherence-medium{% else %}coherence-low{% endif %}">
-                                            <i class="bi bi-star-fill"></i>
-                                            {{ comp_data.coherence_score|floatformat:1 }}
-                                        </div>
-                                    {% endif %}
-                                    {% if comp_data.generated_by %}
-                                        <div>by {{ comp_data.generated_by }}</div>
-                                    {% endif %}
-                                    {% if comp_data.generated_at %}
-                                        <div>{{ comp_data.generated_at|date:"M j, Y" }}</div>
-                                    {% endif %}
-                                    {% if comp_data.worker_type %}
-                                        <div class="worker-type">{{ comp_data.worker_type }}</div>
+                                        <p><em>Analysis for this component is still being processed.</em></p>
                                     {% endif %}
                                 </div>
-                            </div>
+                                
+                                {% if comp_data.coherence_score or comp_data.generated_by %}
+                                    <div class="component-attribution">
+                                        {% if comp_data.coherence_score %}
+                                            <span class="quality-score {% if comp_data.coherence_score >= 0.8 %}high{% elif comp_data.coherence_score >= 0.6 %}medium{% else %}low{% endif %}">
+                                                Quality: {{ comp_data.coherence_score|floatformat:1 }}/1.0
+                                            </span>
+                                        {% endif %}
+                                        {% if comp_data.generated_by %}
+                                            <span class="generator">{{ comp_data.generated_by }}</span>
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+                            </section>
                         {% endfor %}
+                        
+                        <footer class="article-footer">
+                            <p><strong>Analysis Complete:</strong> This comprehensive analysis combines insights from {{ analysis.components|length }} different analytical perspectives to provide a complete understanding of {{ card.name }}.</p>
+                            <div class="analysis-metadata">
+                                <span><i class="bi bi-calendar"></i> Generated: {{ "now"|date:"F j, Y" }}</span>
+                                <span><i class="bi bi-cpu"></i> Components: {{ analysis.components|length }}/20</span>
+                                <span><i class="bi bi-check-circle"></i> Status: Complete</span>
+                            </div>
+                        </footer>
                     </div>
-                </div>            {% else %}
+                </div>
+            {% else %}
                 <div class="text-center p-4">
                     <p class="text-muted">No component analysis available yet.</p>
-                    <p class="text-muted"><small>Components will appear here as they are generated by the analysis workers.</small></p>
+                    <p class="text-muted"><small>The complete analysis will appear here once components are generated.</small></p>
                 </div>
             {% endif %}
         </div>
