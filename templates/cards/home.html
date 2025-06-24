@@ -71,8 +71,7 @@
         grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
         gap: 2rem;
         margin-bottom: 3rem;
-    }
-      .card-item {
+    }    .card-item {
         background: white;
         border-radius: 16px;
         overflow: hidden;
@@ -81,12 +80,20 @@
         position: relative;
         cursor: pointer;
         border: 2px solid transparent;
+        display: block;
+        text-decoration: none !important;
+        color: inherit !important;
     }
     
     .card-item:hover {
         transform: translateY(-12px) scale(1.02);
         box-shadow: 0 20px 60px rgba(102, 126, 234, 0.3);
         border-color: rgba(102, 126, 234, 0.5);
+        text-decoration: none !important;
+    }
+    
+    .card-item:hover .card-image {
+        transform: scale(1.05);
     }
       .card-image {
         width: 100%;
@@ -253,10 +260,10 @@
 <div class="container">
     <h1 class="section-title">Recently Analyzed Cards</h1>
     
-    {% if fully_analyzed_cards %}        <div class="cards-grid">            {% for card in fully_analyzed_cards %}
-                <a href="{% url 'cards:card_detail' card.uuid %}" class="card-item" 
+    {% if fully_analyzed_cards %}        <div class="cards-grid">            {% for card in fully_analyzed_cards %}                <a href="{% url 'cards:card_detail' card.uuid %}" 
+                   class="card-item" 
                    aria-label="View details for {{ card.name }}"
-                   style="text-decoration: none; color: inherit;">
+                   style="text-decoration: none; color: inherit; position: relative;">
                     {% if card.imageUris.normal %}
                         <img src="{{ card.imageUris.normal }}" alt="{{ card.name }}" class="card-image" loading="lazy">
                     {% else %}
