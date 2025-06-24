@@ -68,7 +68,8 @@ class EnhancedUniversalWorker:
             self.current_model = 'llama3.2:3b'
             self.specialization = 'efficient_analysis'
             self.max_tasks = 2  # Can handle multiple small tasks
-            self.poll_interval = 4  # Moderate polling        else:  # laptop
+            self.poll_interval = 4  # Moderate polling        
+        else:
             # Beast Laptop: Deep analysis with massive models
             self.preferred_models = ['llama3.3:70b']
             self.current_model = 'llama3.3:70b'
