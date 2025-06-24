@@ -393,11 +393,12 @@ class PerformanceMonitor:
                 
                 # Also log to swarm logger
                 metrics = self.collect_real_time_metrics()
-                enhanced_swarm_logger.info(f"Performance metrics collected: {json.dumps({
+                metrics_summary = {
                     'active_workers': metrics['worker_performance']['active_workers'],
                     'tasks_per_hour': metrics['throughput']['last_hour']['cards_per_hour'],
                     'completion_percentage': metrics['analysis_progress']['total_progress']['completion_percentage']
-                }, default=str)}")
+                }
+                enhanced_swarm_logger.info(f"Performance metrics collected: {json.dumps(metrics_summary, default=str)}")
                 
                 # Wait for next iteration
                 time.sleep(interval_seconds)
