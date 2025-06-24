@@ -59,7 +59,6 @@ def register_worker(request):
 
 @csrf_exempt
 @require_http_methods(["POST"])
-@csrf_exempt
 def get_work(request):
     """Get work assignments for workers - ALWAYS RANDOM"""
     if request.method != 'POST':
@@ -75,55 +74,21 @@ def get_work(request):
         # ALWAYS use random assignment - ignore any priority parameters
         tasks = enhanced_swarm.get_work(worker_id)
         
-        return JsonResponse({
-            'tasks': tasks,
-            'assignment_type': 'RANDOM',  # Make it clear this is random
-            'count': len(tasks)
-        })
-        
-    except Exception as e:
-        logger.error(f"Get work error: {e}")
-        return JsonResponse({'error': str(e)}, status=500)
-    """Get work assignments for a worker - supports both priority and random assignment"""
-    try:
-        data = json.loads(request.body)
-        worker_id = data.get('worker_id')
-        max_tasks = data.get('max_tasks', 1)
-        random_assignment = data.get('random_assignment', False)
-        
-        if not worker_id:
-            return JsonResponse({'error': 'worker_id required'}, status=400)
-        
-        if enhanced_swarm is None:
-            return JsonResponse({'error': 'Enhanced SwarmManager not available'}, status=500)
-        
-        # if random_assignment:
-        if 1 == 1:
-            if logger:
-                logger.info(f"🎲 Random work request from {worker_id}, max_tasks: {max_tasks}")
-            
-            # Use the simplified random assignment method
-            tasks = enhanced_swarm.get_work(worker_id)
-            
-        else:
-            if logger:
-                logger.info(f"🔍 Priority work request from {worker_id}, max_tasks: {max_tasks}")
-            
-            # Use enhanced swarm manager's get_priority_work_batch method which uses priority cache
-            tasks = enhanced_swarm.get_priority_work_batch(worker_id, max_tasks)
-        
         # Convert ObjectId fields to strings for JSON serialization
         json_tasks = json.loads(json.dumps(tasks, cls=MongoJSONEncoder))
         
-        assignment_type = "random" if random_assignment else "priority"
         if logger:
-            logger.info(f"✅ Enhanced API returning {len(json_tasks)} {assignment_type} tasks to {worker_id}")
+            logger.info(f"✅ API returning {len(json_tasks)} RANDOM tasks to {worker_id}")
         
-        return JsonResponse({'tasks': json_tasks})
+        return JsonResponse({
+            'tasks': json_tasks,
+            'assignment_type': 'RANDOM',  # Make it clear this is random
+            'count': len(json_tasks)
+        })
         
     except Exception as e:
         if logger:
-            logger.error(f"❌ Enhanced get work failed for {worker_id}: {str(e)}")
+            logger.error(f"❌ Get work error: {e}")
         return JsonResponse({'error': str(e)}, status=500)
 
 @csrf_exempt

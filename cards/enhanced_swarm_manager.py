@@ -591,7 +591,7 @@ class EnhancedSwarmManager:
                 'tasks': {'pending': 0, 'completed': 0},
                 'cards': {'total': 0, 'analyzed': 0, 'completion_rate': '0%'}
             }
-    
+
     def get_work(self, worker_id: str) -> List[Dict[str, Any]]:
         """Get work assignments - TRUE RANDOM card selection (NO EDHREC PRIORITY)"""
         try:
@@ -610,8 +610,7 @@ class EnhancedSwarmManager:
                 self.BALANCED_COMPONENTS
             )
     
-            # CRITICAL FIX: Use MongoDB $sample for TRUE RANDOM selection
-            # NO EDHREC RANKING, NO SORTING, JUST RANDOM!
+            # Use MongoDB $sample for TRUE RANDOM selection
             pipeline = [
                 {
                     '$match': {
@@ -646,8 +645,11 @@ class EnhancedSwarmManager:
             card_name = card.get('name', 'Unknown')
             card_id = str(card['_id'])
             
-            # Create task
-            task_id = str(uuid4())
+            # FIXED: Generate simple task ID without uuid4
+            import time
+            import random
+            task_id = f"task_{int(time.time())}_{random.randint(1000, 9999)}"
+            
             task = {
                 'task_id': task_id,
                 'card_id': card_id,
@@ -670,14 +672,14 @@ class EnhancedSwarmManager:
             self.tasks.insert_one(task)
             
             enhanced_swarm_logger.info(f"RANDOM ASSIGNMENT: {card_name} -> {worker_id}")
-            enhanced_swarm_logger.info(f"Card ID: {card_id}")
+            enhanced_swarm_logger.info(f"Task ID: {task_id}, Card ID: {card_id}")
             
             return [task]
             
         except Exception as e:
             enhanced_swarm_logger.error(f"Error getting work: {e}")
             return []
-    
+            
 
     def submit_task_result(self, task_id: str, worker_id: str, card_id: str, results: Dict[str, Any]) -> bool:
         """Submit task results with robust card lookup"""

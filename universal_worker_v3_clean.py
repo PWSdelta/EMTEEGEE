@@ -396,7 +396,7 @@ class EnhancedUniversalWorker:
             
             card_name = card_data.get('name', 'Unknown')
             logger.info(f"🔄 Processing {self.worker_type} analysis: {card_name} (Task: {task_id})")
-            logger.info(f"📝 Components: {', '.join(components)}")
+            # logger.info(f"📝 Components: {', '.join(components)}")
             logger.info(f"🆔 Card ID: {card_id}")
             
             # Generate analysis
