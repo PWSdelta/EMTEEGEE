@@ -20,7 +20,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
-    path('admin/', admin.site.urls),    path('', include('cards.urls_working')),  # Using working version temporarily while debugging
+    path('abyss/', admin.site.urls),    path('', include('cards.urls_working')),  # Using working version temporarily while debugging
     # path('', include('cards.urls')),  # Main cards.urls has circular importhas import issues    path('api/swarm/', include('cards.api_urls')),  # Original Swarm API - v1.0
     path('api/enhanced_swarm/', include('cards.enhanced_api_urls')),  # Enhanced Swarm API - v2.0
     # path('api/simple_swarm/', include('cards.simple_api_urls')),  # SIMPLE Swarm API - DISABLED (needs MongoDB)

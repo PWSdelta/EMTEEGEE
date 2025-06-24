@@ -36,24 +36,29 @@
                     aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <div class="collapse navbar-collapse" id="navbarNav">                <ul class="navbar-nav me-auto">
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'cards:enhanced_search' %}">
-                            <i class="bi bi-search-heart"></i> Smart Search
+                            <i class="bi bi-search-heart"></i> Search
                         </a>
                     </li>
+                    <!-- The Abyss is a placeholder for the main card browsing page.
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'cards:the_abyss' %}">
                             <i class="bi bi-search"></i> The Abyss
                         </a>
-                    </li>
-                    <li class="nav-item">
+                    </li>-->
+
+                    <!-- <li class="nav-item">
                         <a class="nav-link" href="{% url 'cards:the_abyss' %}?collection=edhrec">
                             <i class="bi bi-trophy"></i> EDHREC Top
                         </a>
-                    </li>                    <li class="nav-item">
+                    </li> -->
+                         
+                    <li class="nav-item">
                         <a class="nav-link" href="{% url 'cards:art_gallery' %}">
-                            <i class="bi bi-palette"></i> Gallery
+                            <i class="bi bi-palette"></i> Card Art
                         </a>
                     </li>
                 </ul>
@@ -120,24 +125,24 @@
             <div class="row">
                 <div class="col-md-6">
                     <h5>EMTEEGEE</h5>
-                    <p class="text-muted">Django-powered Magic: The Gathering card analysis and deck building platform.</p>
+                    <p>AI-powered Magic: The Gathering card analysis and deck building platform.</p>
                 </div>
                 <div class="col-md-6">
                     <div class="row">
                         <div class="col-md-6">
                             <h6>Cards</h6>
                             <ul class="list-unstyled">
-                                <li><a href="{% url 'cards:the_abyss' %}" class="text-muted">Browse Cards</a></li>
+                                <!-- <li><a href="{% url 'cards:the_abyss' %}" class="text-muted">Browse Cards</a></li>
                                 <li><a href="{% url 'cards:the_abyss' %}" class="text-muted">Search</a></li>
-                                <li><a href="#" onclick="alert('Random card feature coming soon!')" class="text-muted">Random Card</a></li>
+                                <li><a href="#" onclick="alert('Random card feature coming soon!')" class="text-muted">Random Card</a></li> -->
                             </ul>
                         </div>
                         <div class="col-md-6">
-                            <h6>Decks</h6>
+                            <!-- <h6>Decks</h6>
                             <ul class="list-unstyled">
                                 <li><a href="#" onclick="alert('Deck browsing coming soon!')" class="text-muted">Browse Decks</a></li>
                                 <li><a href="#" onclick="alert('Random deck feature coming soon!')" class="text-muted">Random Deck</a></li>
-                            </ul>
+                            </ul> -->
                         </div>
                     </div>
                 </div>
@@ -145,11 +150,10 @@
             <hr class="my-4">
             <div class="row align-items-center">
                 <div class="col-md-6">
-                    <p class="mb-0 text-muted">&copy; 2025 EMTEEGEE. All rights reserved.</p>
+                    <p class="mb-0 text-muted">&copy; 2025 MTGAbyss. All rights reserved.</p>
                 </div>
                 <div class="col-md-6 text-end">
                     <small class="text-muted">
-                        Powered by <a href="https://mtgjson.com/" class="text-muted">MTGJson</a> data
                     </small>
                 </div>
             </div>

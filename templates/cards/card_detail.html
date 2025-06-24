@@ -1,0 +1,185 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ card.name }} - Price & Analysis{% endblock %}
+
+{% block extra_css %}
+<style>    .card-detail-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+    
+    /* Breadcrumb navigation */
+    .breadcrumb-nav {
+        background: transparent;
+        padding: 0;
+        margin-bottom: 2rem;
+    }
+    
+    .breadcrumb {
+        background: none;
+        padding: 0.75rem 0;
+        margin: 0;
+        font-size: 0.9rem;
+    }
+    
+    .breadcrumb-item a {
+        color: #667eea;
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+    
+    .breadcrumb-item a:hover {
+        color: #764ba2;
+        text-decoration: underline;
+    }
+    
+    .breadcrumb-item.active {
+        color: #666;
+    }
+    
+    .breadcrumb-item + .breadcrumb-item::before {
+        content: "›";
+        color: #999;
+        margin: 0 0.5rem;
+    }
+    
+    .card-hero {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 3rem 0;
+        border-radius: 16px;
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    
+    .card-hero h1 {
+        font-size: 3rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+    
+    .card-content-grid {
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        gap: 3rem;
+        margin-bottom: 3rem;
+    }
+    
+    .card-image-section {
+        text-align: center;
+    }
+    
+    .card-detail-image {
+        max-width: 100%;
+        height: auto;
+        border-radius: 16px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    
+    .card-info-section {
+        background: white;
+        padding: 2rem;
+        border-radius: 16px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    }
+    
+    .back-button {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 8px;
+        text-decoration: none;
+        display: inline-block;
+        margin-bottom: 2rem;
+        transition: all 0.3s ease;
+    }
+    
+    .back-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        color: white;
+        text-decoration: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card-detail-container">
+    {% if error %}
+        <div class="alert alert-danger">
+            <h3>Error</h3>
+            <p>{{ error }}</p>
+            <a href="{% url 'cards:home' %}" class="btn btn-primary">← Back to Home</a>
+        </div>
+    {% elif card %}
+    <!-- Breadcrumb Navigation -->
+    <nav aria-label="breadcrumb" class="breadcrumb-nav">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="{% url 'cards:home' %}">
+                    <i class="bi bi-house-fill"></i> Home
+                </a>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="{% url 'cards:the_abyss' %}">
+                    <i class="bi bi-compass"></i> The Abyss
+                </a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">
+                {{ card.name }}
+            </li>
+        </ol>
+    </nav>
+    
+    <a href="{% url 'cards:home' %}" class="back-button">← Back to Home</a>
+    
+    <div class="card-hero">
+        <h1>{{ card.name }}</h1>
+        {% if card.type %}
+            <p class="lead">{{ card.type }}</p>
+        {% endif %}
+    </div>
+    
+    <div class="card-content-grid">
+        <div class="card-image-section">
+            {% if card.imageUris.large %}
+                <img src="{{ card.imageUris.large }}" alt="{{ card.name }}" class="card-detail-image">
+            {% elif card.imageUris.normal %}
+                <img src="{{ card.imageUris.normal }}" alt="{{ card.name }}" class="card-detail-image">
+            {% else %}
+                <div class="card-detail-image" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; display: flex; align-items: center; justify-content: center; min-height: 400px; font-size: 1.5rem; font-weight: bold;">
+                    {{ card.name }}
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="card-info-section">
+            <h2>{{ card.name }} At a Glance</h2>
+            
+            {% if card.flavor_text %}
+                <p><strong>Flavor Text:</strong><br>
+                {{ card.flavor_text }}</p>
+            {% endif %}
+            
+            {% if card.rarity %}
+                <p><strong>Rarity:</strong> {{ card.rarity }}</p>
+            {% endif %}            
+            
+            {% if card.artist %}
+                <p><strong>Artist:</strong> {{ card.artist }}</p>
+            {% endif %}
+        </div>
+    </div>
+    {% else %}
+        <div class="alert alert-warning">
+            <h3>Card Not Found</h3>
+            <p>The requested card could not be found.</p>
+            <a href="{% url 'cards:home' %}" class="btn btn-primary">← Back to Home</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
