@@ -655,9 +655,9 @@ class EnhancedSwarmManager:
                     'power': card.get('power'),
                     'toughness': card.get('toughness'),
                     'edhrecRank': card.get('edhrecRank')
-                }
-            }
-              # Store the assignment
+                }            }
+            
+            # Store the assignment
             self.tasks.insert_one(task)
             
             enhanced_swarm_logger.info(f"✅ RANDOM assignment: {card_name} with {len(all_components)} components to {worker_id}")
