@@ -80,13 +80,49 @@
         border-radius: 16px;
         box-shadow: 0 20px 60px rgba(0,0,0,0.3);
     }
-    
-    .card-info-section {
+      .card-info-section {
         background: white;
         padding: 2rem;
         border-radius: 16px;
         box-shadow: 0 8px 32px rgba(0,0,0,0.1);
     }
+    
+    /* Enhanced card info styling */
+    .oracle-text {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 1rem;
+        font-family: 'Courier New', monospace;
+        font-size: 0.9rem;
+        line-height: 1.6;
+        color: #374151;
+    }
+    
+    .color-symbol {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        text-align: center;
+        line-height: 20px;
+        font-size: 12px;
+        font-weight: bold;
+        color: white;
+        margin-right: 4px;
+    }
+    
+    .color-w { background-color: #fffbd5; color: #333; }
+    .color-u { background-color: #0e68c6; }
+    .color-b { background-color: #150b00; }
+    .color-r { background-color: #d3202a; }
+    .color-g { background-color: #00733e; }
+    .color-c { background-color: #a8a8a8; }
+    
+    .badge-mythic { background-color: #bf4800; }
+    .badge-rare { background-color: #cfb53b; }
+    .badge-uncommon { background-color: #5e5e5e; }
+    .badge-common { background-color: #1e1e1e; }
     
     .back-button {
         background: linear-gradient(135deg, #667eea, #764ba2);
@@ -246,8 +282,7 @@
     .toggle-components:hover {
         background: rgba(255,255,255,0.3);
     }
-    
-    .components-grid {
+      .components-grid {
         padding: 2rem;
         display: none; /* Initially collapsed */
     }
@@ -256,63 +291,53 @@
         display: block;
     }
     
-    .component-categories {
+    /* Simplified component layout */
+    .all-components-section {
+        max-width: 100%;
+    }
+    
+    .components-list {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 2rem;
-    }
-    
-    .component-category {
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
-        overflow: hidden;
-    }
-    
-    .category-header {
-        background: #f9fafb;
-        padding: 1rem;
-        border-bottom: 1px solid #e5e7eb;
-        font-weight: 600;
-        color: #374151;
-    }
-    
-    .category-components {
-        padding: 1rem;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 1.5rem;
     }
     
     .component-item {
-        margin-bottom: 1rem;
-        padding-bottom: 1rem;
-        border-bottom: 1px solid #f3f4f6;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transition: all 0.2s ease;
     }
     
-    .component-item:last-child {
-        margin-bottom: 0;
-        padding-bottom: 0;
-        border-bottom: none;
-    }
-      .component-name {
-        font-weight: 600;
-        color: #667eea;
-        font-size: 0.9rem;
-        text-transform: capitalize;
+    .component-item:hover {
+        box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        transform: translateY(-2px);
     }
     
     .component-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 0.5rem;
+        margin-bottom: 1rem;
     }
     
-    .expand-component {
+    .component-name {
+        font-weight: 700;
+        color: #667eea;
+        font-size: 1.1rem;
+        text-transform: capitalize;
+    }
+      .expand-component {
         background: none;
         border: none;
         color: #9ca3af;
         cursor: pointer;
-        padding: 0.25rem;
-        border-radius: 4px;
+        padding: 0.5rem;
+        border-radius: 8px;
         transition: all 0.2s ease;
+        font-size: 1.1rem;
     }
     
     .expand-component:hover {
@@ -323,7 +348,7 @@
     .expand-component.expanded {
         color: #667eea;
         transform: rotate(45deg);
-    }    .component-content {
+    }.component-content {
         font-size: 0.9rem;
         color: #4b5563;
         line-height: 1.6;
@@ -439,13 +464,22 @@
         text-decoration: none;
         transform: translateY(-1px);
     }
-    
-    .component-meta {
+      .component-meta {
         margin-top: 0.5rem;
         font-size: 0.75rem;
         color: #9ca3af;
         display: flex;
         gap: 1rem;
+        flex-wrap: wrap;
+    }
+    
+    .worker-type {
+        background: #e0e7ff;
+        color: #3730a3;
+        padding: 0.125rem 0.5rem;
+        border-radius: 12px;
+        font-size: 0.7rem;
+        font-weight: 500;
     }
     
     .coherence-score {
@@ -504,8 +538,7 @@
         color: #6b7280;
         margin-top: 0.5rem;
     }
-    
-    /* Responsive design */
+      /* Responsive design */
     @media (max-width: 768px) {
         .card-content-grid {
             grid-template-columns: 1fr;
@@ -516,11 +549,17 @@
             font-size: 2rem;
         }
         
-        .component-categories {
+        .components-list {
             grid-template-columns: 1fr;
         }
         
         .complete-analysis-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+        
+        .component-breakdown-header {
             flex-direction: column;
             align-items: flex-start;
             gap: 1rem;
@@ -564,27 +603,30 @@
                     {{ card.name }}
                 </div>
             {% endif %}
-            
-            <!-- Analysis Progress -->
+              <!-- Analysis Progress -->
             <div class="analysis-progress">
                 <div class="progress-bar">
                     <div class="progress-fill" style="width: {{ completion_percentage }}%"></div>
                 </div>
                 <div class="progress-text">
-                    Analysis: {{ completion_percentage|floatformat:0 }}% complete
-                    ({{ enhanced_components|length }}/20 components)
+                    {% if has_complete_analysis %}
+                        Analysis: Complete ({{ analysis.components|length }}/20 components)
+                    {% else %}
+                        Analysis: {{ completion_percentage|floatformat:0 }}% complete
+                        ({{ analysis.components|length }}/20 components)
+                    {% endif %}
                 </div>
             </div>
         </div>
-        
-        <!-- Card Info Section -->
+          <!-- Card Info Section -->
         <div class="card-info-section">
             <h2>Card Information</h2>
             
             <div class="row">
                 {% if card.rarity %}
                     <div class="col-md-6 mb-3">
-                        <strong>Rarity:</strong> {{ card.rarity|title }}
+                        <strong>Rarity:</strong> 
+                        <span class="badge badge-{{ card.rarity|lower }}">{{ card.rarity|title }}</span>
                     </div>
                 {% endif %}
                 
@@ -596,19 +638,85 @@
                 
                 {% if card.edhrecRank %}
                     <div class="col-md-6 mb-3">
-                        <strong>EDHREC Rank:</strong> #{{ card.edhrecRank }}
+                        <strong>EDHREC Rank:</strong> 
+                        <span class="text-primary font-weight-bold">#{{ card.edhrecRank }}</span>
+                    </div>
+                {% endif %}
+                
+                {% if card.set %}
+                    <div class="col-md-6 mb-3">
+                        <strong>Set:</strong> {{ card.set|upper }}
+                    </div>
+                {% endif %}
+                
+                {% if card.cmc %}
+                    <div class="col-md-6 mb-3">
+                        <strong>Mana Value:</strong> {{ card.cmc }}
+                    </div>
+                {% endif %}
+                
+                {% if card.colors %}
+                    <div class="col-md-6 mb-3">
+                        <strong>Colors:</strong> 
+                        {% for color in card.colors %}
+                            <span class="color-symbol color-{{ color|lower }}">{{ color }}</span>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                
+                {% if card.colorIdentity %}
+                    <div class="col-md-6 mb-3">
+                        <strong>Color Identity:</strong> 
+                        {% for color in card.colorIdentity %}
+                            <span class="color-symbol color-{{ color|lower }}">{{ color }}</span>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                
+                {% if card.power and card.toughness %}
+                    <div class="col-md-6 mb-3">
+                        <strong>Power/Toughness:</strong> 
+                        <span class="badge badge-secondary">{{ card.power }}/{{ card.toughness }}</span>
+                    </div>
+                {% endif %}
+                
+                {% if card.loyalty %}
+                    <div class="col-md-6 mb-3">
+                        <strong>Loyalty:</strong> 
+                        <span class="badge badge-info">{{ card.loyalty }}</span>
+                    </div>
+                {% endif %}
+                
+                {% if card.legalities %}
+                    <div class="col-12 mb-3">
+                        <strong>Format Legalities:</strong>
+                        <div class="mt-2">
+                            {% for format, legality in card.legalities.items %}
+                                {% if legality != 'not_legal' %}
+                                    <span class="badge badge-{% if legality == 'legal' %}success{% elif legality == 'restricted' %}warning{% else %}danger{% endif %} mr-1 mb-1">
+                                        {{ format|title }}: {{ legality|title }}
+                                    </span>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
                     </div>
                 {% endif %}
             </div>
+            
+            {% if card.oracleText %}
+                <div class="mt-4">
+                    <h4>Oracle Text</h4>
+                    <div class="oracle-text">{{ card.oracleText|linebreaks }}</div>
+                </div>
+            {% endif %}
 
             {% if card.flavorText %}
-                <!-- <div class="mt-4">
-                    <div class="card-text-box"><i>{{ card.flavorText }}</i></div>
-                </div> -->
-
-                <blockquote class="blockquote text-end">
-                <p class="mb-0"><i>{{ card.flavorText }}</i></p>
-                </blockquote>
+                <div class="mt-4">
+                    <h4>Flavor Text</h4>
+                    <blockquote class="blockquote text-end">
+                        <p class="mb-0"><i>{{ card.flavorText }}</i></p>
+                    </blockquote>
+                </div>
             {% endif %}
         </div>
     </div>
@@ -641,132 +749,80 @@
                 {% endif %}
                 <div class="synthesis-metadata-item">
                     <i class="bi bi-puzzle"></i>
-                    Synthesized from {{ enhanced_components|length }} components
+                    Synthesized from {{ analysis.components|length }} components
                 </div>
             </div>
         </div>
     {% else %}
         <!-- No Complete Analysis Yet -->
-        <div class="no-synthesis-message">
+        <!-- <div class="no-synthesis-message">
             <h3><i class="bi bi-hourglass-split"></i> Analysis in Progress</h3>
-            <p>Complete analysis will be available once all {{ enhanced_components|length }}/20 components are finished and synthesized by our AI system.</p>
-        </div>
+            <p>Complete analysis will be available once all {{ analysis.components|length }}/20 components are finished and synthesized by our AI system.</p>
+        </div> -->
     {% endif %}
     
     <!-- Component Breakdown Section (Expandable) -->
-    <div class="component-breakdown">
-        <div class="component-breakdown-header">
+    <div class="component-breakdown">        <div class="component-breakdown-header">
             <h2 class="component-breakdown-title">
                 <i class="bi bi-list-ul"></i>
                 Component Analysis Details
+                {% if analysis.components %}
+                    <small>({{ analysis.components|length }} components available)</small>
+                {% endif %}
             </h2>
             <button class="toggle-components" onclick="toggleComponents()">
                 <span id="toggle-text">Show Details</span>
                 <i class="bi bi-chevron-down" id="toggle-icon"></i>
             </button>
         </div>
-        
-        <div class="components-grid" id="components-content">
-            {% if enhanced_components %}
-                <div class="component-categories">
-                    <!-- Strategic Category -->
-                    <div class="component-category">
-                        <div class="category-header">
-                            <i class="bi bi-bullseye"></i> Strategic Analysis
-                        </div>                        <div class="category-components">                            {% for comp_type, comp_data in enhanced_components.items %}
-                                {% if comp_type in 'tactical_analysis,power_level_assessment,meta_position,competitive_viability,deckbuilding_analysis' %}
-                                    <div class="component-item">
-                                        <div class="component-header">
-                                            <div class="component-name">{{ comp_type|title|replace:"_ " }}</div>                                            <button class="expand-component" onclick="toggleComponent(this)" title="Expand to read full content">
-                                                <i class="bi bi-arrows-expand"></i>
-                                            </button>
+          <div class="components-grid" id="components-content">
+            {% if analysis.components %}
+                <!-- All Components Section -->
+                <div class="all-components-section">
+                    <div class="components-list">                        {% for comp_type, comp_data in analysis.components.items %}
+                            <div class="component-item">
+                                <div class="component-header">
+                                    <div class="component-name">{{ comp_type|title|replace:"_ " }}</div>
+                                    <button class="expand-component" onclick="toggleComponent(this)" title="Expand to read full content">
+                                        <i class="bi bi-arrows-expand"></i>
+                                    </button>
+                                </div>                                <div class="component-content collapsed">
+                                    {% if comp_data.content %}
+                                        {{ comp_data.content|markdown_to_html }}
+                                    {% elif comp_data %}
+                                        <!-- Handle case where comp_data might be a string or other format -->
+                                        {% if comp_data|length > 50 %}
+                                            {{ comp_data|markdown_to_html }}
+                                        {% else %}
+                                            <p><em>{{ comp_data }}</em></p>
+                                        {% endif %}
+                                    {% else %}
+                                        <p><em>No content available for this component yet.</em></p>
+                                    {% endif %}
+                                </div><div class="component-meta">
+                                    {% if comp_data.coherence_score %}
+                                        <div class="coherence-score {% if comp_data.coherence_score >= 0.8 %}coherence-high{% elif comp_data.coherence_score >= 0.6 %}coherence-medium{% else %}coherence-low{% endif %}">
+                                            <i class="bi bi-star-fill"></i>
+                                            {{ comp_data.coherence_score|floatformat:1 }}
                                         </div>
-                                        <div class="component-content">{{ comp_data.content|markdown_to_html }}</div>
-                                        <div class="component-meta">
-                                            <div class="coherence-score {% if comp_data.coherence_score >= 0.8 %}coherence-high{% elif comp_data.coherence_score >= 0.6 %}coherence-medium{% else %}coherence-low{% endif %}">
-                                                <i class="bi bi-star-fill"></i>
-                                                {{ comp_data.coherence_score|floatformat:1 }}
-                                            </div>
-                                            <div>by {{ comp_data.generated_by|default:"Unknown" }}</div>
-                                        </div>
-                                    </div>
-                                {% endif %}
-                            {% endfor %}
-                        </div>
+                                    {% endif %}
+                                    {% if comp_data.generated_by %}
+                                        <div>by {{ comp_data.generated_by }}</div>
+                                    {% endif %}
+                                    {% if comp_data.generated_at %}
+                                        <div>{{ comp_data.generated_at|date:"M j, Y" }}</div>
+                                    {% endif %}
+                                    {% if comp_data.worker_type %}
+                                        <div class="worker-type">{{ comp_data.worker_type }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
                     </div>
-                    
-                    <!-- Practical Category -->
-                    <div class="component-category">
-                        <div class="category-header">
-                            <i class="bi bi-tools"></i> Practical Guidance
-                        </div>                        <div class="category-components">
-                            {% for comp_type, comp_data in enhanced_components.items %}
-                                {% if comp_type in 'play_tips,combo_suggestions,synergy_analysis,optimization_suggestions,budget_considerations' %}
-                                    <div class="component-item">
-                                        <div class="component-name">{{ comp_type|title|replace:"_ " }}</div>
-                                        <div class="component-content">{{ comp_data.content|markdown_to_html }}</div>
-                                        <div class="component-meta">
-                                            <div class="coherence-score {% if comp_data.coherence_score >= 0.8 %}coherence-high{% elif comp_data.coherence_score >= 0.6 %}coherence-medium{% else %}coherence-low{% endif %}">
-                                                <i class="bi bi-star-fill"></i>
-                                                {{ comp_data.coherence_score|floatformat:1 }}
-                                            </div>
-                                            <div>by {{ comp_data.generated_by|default:"Unknown" }}</div>
-                                        </div>
-                                    </div>
-                                {% endif %}
-                            {% endfor %}
-                        </div>
-                    </div>
-                    
-                    <!-- Educational Category -->
-                    <div class="component-category">
-                        <div class="category-header">
-                            <i class="bi bi-book"></i> Educational Content
-                        </div>                        <div class="category-components">
-                            {% for comp_type, comp_data in enhanced_components.items %}
-                                {% if comp_type in 'new_player_guide,rules_clarifications,format_analysis,historical_significance,design_philosophy' %}
-                                    <div class="component-item">
-                                        <div class="component-name">{{ comp_type|title|replace:"_ " }}</div>
-                                        <div class="component-content">{{ comp_data.content|markdown_to_html }}</div>
-                                        <div class="component-meta">
-                                            <div class="coherence-score {% if comp_data.coherence_score >= 0.8 %}coherence-high{% elif comp_data.coherence_score >= 0.6 %}coherence-medium{% else %}coherence-low{% endif %}">
-                                                <i class="bi bi-star-fill"></i>
-                                                {{ comp_data.coherence_score|floatformat:1 }}
-                                            </div>
-                                            <div>by {{ comp_data.generated_by|default:"Unknown" }}</div>
-                                        </div>
-                                    </div>
-                                {% endif %}
-                            {% endfor %}
-                        </div>
-                    </div>
-                    
-                    <!-- Thematic Category -->
-                    <div class="component-category">
-                        <div class="category-header">
-                            <i class="bi bi-palette"></i> Thematic & Creative
-                        </div>                        <div class="category-components">
-                            {% for comp_type, comp_data in enhanced_components.items %}
-                                {% if comp_type in 'thematic_analysis,art_flavor_analysis,lore_connections,creative_inspiration,community_perception' %}
-                                    <div class="component-item">
-                                        <div class="component-name">{{ comp_type|title|replace:"_ " }}</div>
-                                        <div class="component-content">{{ comp_data.content|markdown_to_html }}</div>
-                                        <div class="component-meta">
-                                            <div class="coherence-score {% if comp_data.coherence_score >= 0.8 %}coherence-high{% elif comp_data.coherence_score >= 0.6 %}coherence-medium{% else %}coherence-low{% endif %}">
-                                                <i class="bi bi-star-fill"></i>
-                                                {{ comp_data.coherence_score|floatformat:1 }}
-                                            </div>
-                                            <div>by {{ comp_data.generated_by|default:"Unknown" }}</div>
-                                        </div>
-                                    </div>
-                                {% endif %}
-                            {% endfor %}
-                        </div>
-                    </div>
-                </div>
-            {% else %}
+                </div>            {% else %}
                 <div class="text-center p-4">
                     <p class="text-muted">No component analysis available yet.</p>
+                    <p class="text-muted"><small>Components will appear here as they are generated by the analysis workers.</small></p>
                 </div>
             {% endif %}
         </div>

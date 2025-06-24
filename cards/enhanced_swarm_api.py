@@ -60,10 +60,11 @@ def register_worker(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 def get_work(request):
-    """Get work assignments for a worker - SIMPLIFIED VERSION"""
+    """Get prioritized work assignments for a worker using priority cache for instant response"""
     try:
         data = json.loads(request.body)
         worker_id = data.get('worker_id')
+        max_tasks = data.get('max_tasks', 1)
         
         if not worker_id:
             return JsonResponse({'error': 'worker_id required'}, status=400)
@@ -72,22 +73,22 @@ def get_work(request):
             return JsonResponse({'error': 'Enhanced SwarmManager not available'}, status=500)
         
         if logger:
-            logger.info(f"🔍 Work request from {worker_id}")
+            logger.info(f"🔍 Priority work request from {worker_id}, max_tasks: {max_tasks}")
         
-        # Use the simplified get_work method
-        tasks = enhanced_swarm.get_work(worker_id)
+        # Use enhanced swarm manager's get_priority_work_batch method which uses priority cache
+        tasks = enhanced_swarm.get_priority_work_batch(worker_id, max_tasks)
         
         # Convert ObjectId fields to strings for JSON serialization
         json_tasks = json.loads(json.dumps(tasks, cls=MongoJSONEncoder))
         
         if logger:
-            logger.info(f"✅ API returning {len(json_tasks)} task(s) to {worker_id}")
+            logger.info(f"✅ Enhanced API returning {len(json_tasks)} priority tasks to {worker_id}")
         
         return JsonResponse({'tasks': json_tasks})
         
     except Exception as e:
         if logger:
-            logger.error(f"❌ Get work failed for {worker_id}: {str(e)}")
+            logger.error(f"❌ Enhanced get work failed for {worker_id}: {str(e)}")
         return JsonResponse({'error': str(e)}, status=500)
 
 @csrf_exempt
