@@ -586,16 +586,16 @@ class EnhancedSwarmManager:
             
         except Exception as e:
             enhanced_swarm_logger.error(f"Failed to get swarm status: {str(e)}")
-            return {
-                'error': str(e),
+            return {                'error': str(e),
                 'workers': {'total': 0, 'active': 0, 'offline': 0},
                 'tasks': {'pending': 0, 'completed': 0},
                 'cards': {'total': 0, 'analyzed': 0, 'completion_rate': '0%'}
             }
+
     def get_work(self, worker_id: str) -> List[Dict[str, Any]]:
-        """SIMPLIFIED: Get work assignments - one card with ALL 20 components per worker"""
+        """RANDOM SELECTION: Get a random unanalyzed card with ALL 20 components"""
         try:
-            enhanced_swarm_logger.info(f"🔄 Getting work for worker {worker_id}")
+            enhanced_swarm_logger.info(f"🔄 Getting random work for worker {worker_id}")
             
             # Update worker heartbeat
             self.workers.update_one(
@@ -610,45 +610,31 @@ class EnhancedSwarmManager:
                 self.BALANCED_COMPONENTS
             )
             
-            enhanced_swarm_logger.info(f"📋 Using all {len(all_components)} components: {all_components}")
+            # Find a RANDOM card that needs analysis using MongoDB $sample
+            pipeline = [
+                {
+                    '$match': {
+                        '$or': [
+                            {'analysis.component_count': {'$exists': False}},  # No analysis
+                            {'analysis.component_count': {'$lt': 20}},  # Incomplete analysis
+                            {'analysis.fully_analyzed': {'$ne': True}}  # Not marked complete
+                        ]
+                    }
+                },
+                {'$sample': {'size': 1}}  # RANDOM SELECTION!
+            ]
             
-            # Find cards NOT already assigned to workers and needing analysis
-            assigned_card_ids = set()
+            random_cards = list(self.cards.aggregate(pipeline))
             
-            # Get cards currently assigned to any worker
-            active_assignments = list(self.tasks.find({
-                'status': {'$in': ['assigned', 'in_progress']},
-                'created_at': {'$gte': datetime.now(timezone.utc) - timedelta(hours=1)}
-            }))
-            
-            for assignment in active_assignments:
-                assigned_card_ids.add(assignment.get('card_uuid', ''))
-                assigned_card_ids.add(assignment.get('card_id', ''))
-            
-            enhanced_swarm_logger.info(f"🚫 Skipping {len(assigned_card_ids)} cards already assigned to workers")
-            
-            # Find unassigned cards needing work, prioritized by EDHREC rank
-            query = {
-                'edhrecRank': {'$exists': True, '$lt': 50000},  # Has EDHREC rank < 50k
-                'uuid': {'$nin': list(assigned_card_ids)},  # Not currently assigned
-                '$or': [
-                    {'analysis.component_count': {'$exists': False}},  # No analysis
-                    {'analysis.component_count': {'$lt': 20}},  # Incomplete analysis
-                    {'analysis.fully_analyzed': {'$ne': True}}  # Not marked complete
-                ]
-            }
-            
-            cards_needing_work = list(self.cards.find(query).sort('edhrecRank', 1).limit(1))
-            
-            if not cards_needing_work:
-                enhanced_swarm_logger.info("✅ No unassigned work found - all top cards assigned or complete")
+            if not random_cards:
+                enhanced_swarm_logger.info("✅ No cards need analysis - all work complete!")
                 return []
             
-            card = cards_needing_work[0]
+            card = random_cards[0]
             card_name = card.get('name', 'Unknown')
             card_uuid = card.get('uuid', str(card['_id']))
             
-            enhanced_swarm_logger.info(f"🎯 Assigning {card_name} (EDHREC #{card.get('edhrecRank', 'Unknown')}) to worker {worker_id}")
+            enhanced_swarm_logger.info(f"� RANDOM: Assigning {card_name} to worker {worker_id}")
             
             # Create ONE task with ALL 20 components
             task_id = str(uuid.uuid4())
@@ -671,15 +657,14 @@ class EnhancedSwarmManager:
                     'edhrecRank': card.get('edhrecRank')
                 }
             }
-            
-            # Store the assignment
+              # Store the assignment
             self.tasks.insert_one(task)
             
-            enhanced_swarm_logger.info(f"✅ Assigned {card_name} with {len(all_components)} components to {worker_id}")
+            enhanced_swarm_logger.info(f"✅ RANDOM assignment: {card_name} with {len(all_components)} components to {worker_id}")
             return [task]
             
         except Exception as e:
-            enhanced_swarm_logger.error(f"❌ Get work failed for worker {worker_id}: {str(e)}")
+            enhanced_swarm_logger.error(f"❌ Random work assignment failed for worker {worker_id}: {str(e)}")
             import traceback
             enhanced_swarm_logger.error(f"Traceback: {traceback.format_exc()}")
             return []
