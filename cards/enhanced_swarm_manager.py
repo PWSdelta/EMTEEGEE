@@ -706,8 +706,7 @@ class EnhancedSwarmManager:
                     card = self.cards.find_one({'_id': ObjectId(task['card_id'])})
                 except:
                     pass
-            
-            # Method 5: Last resort - find by name
+              # Method 5: Last resort - find by name
             if not card and 'card_name' in task:
                 card = self.cards.find_one({'name': task['card_name']})
             
@@ -716,13 +715,24 @@ class EnhancedSwarmManager:
                 return False
             
             enhanced_swarm_logger.info(f"✅ Found card {card.get('name')} for result submission")
-              # Update card with new analysis
+            
+            # Update card with new analysis
             analysis_update = {}
             component_count = 0
             
-            if 'results' in results and isinstance(results['results'], dict):
-                for component_type, content in results['results'].items():
-                    if content and content != 'placeholder':  # Skip placeholder content
+            # Handle different result formats that workers might send
+            results_data = None
+            if isinstance(results, dict):
+                if 'results' in results and isinstance(results['results'], dict):
+                    # Format: {'results': {'component1': 'content1', ...}}
+                    results_data = results['results']
+                else:
+                    # Format: {'component1': 'content1', 'component2': 'content2', ...}
+                    results_data = results
+            
+            if results_data:
+                for component_type, content in results_data.items():
+                    if content and content != 'placeholder' and isinstance(content, str) and len(content.strip()) > 0:
                         analysis_update[f'analysis.components.{component_type}'] = {
                             'content': content,
                             'generated_at': datetime.now(timezone.utc),
@@ -747,23 +757,24 @@ class EnhancedSwarmManager:
                 card_update['$set']['analysis.fully_analyzed'] = True
                 card_update['$set']['analysis.analysis_completed_at'] = datetime.now(timezone.utc)
                 enhanced_swarm_logger.info(f"🎉 Card {card.get('name')} is now FULLY ANALYZED with {total_components_after} components!")
-            
+              # Update card with analysis if we have valid content
             if analysis_update:
                 self.cards.update_one({'_id': card['_id']}, card_update)
                 enhanced_swarm_logger.info(f"📊 Updated {card.get('name')} with {component_count} new components (total: {total_components_after})")
             else:
                 enhanced_swarm_logger.warning(f"⚠️ No valid analysis content received for {card.get('name')}")
             
-            # Mark task as completed
-            self.tasks.update_one(
-                {'task_id': task_id},
-                {
-                    '$set': {
-                        'status': 'completed',
-                        'completed_at': datetime.now(timezone.utc)
-                    }
+            # Mark task as completed and store the results
+            task_update = {
+                '$set': {
+                    'status': 'completed',
+                    'completed_at': datetime.now(timezone.utc),
+                    'results': results,  # Store the actual results submitted
+                    'processed_components': component_count
                 }
-            )
+            }
+            
+            self.tasks.update_one({'task_id': task_id}, task_update)
             
             # Update worker stats
             self.workers.update_one(
