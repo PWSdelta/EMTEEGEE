@@ -14,16 +14,17 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+import os
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.static import serve
 
 urlpatterns = [
     path('abyss/', admin.site.urls),    path('', include('cards.urls_working')),  # Using working version temporarily while debugging
-    # path('', include('cards.urls')),  # Main cards.urls has circular importhas import issues    path('api/swarm/', include('cards.api_urls')),  # Original Swarm API - v1.0
     path('api/enhanced_swarm/', include('cards.enhanced_api_urls')),  # Enhanced Swarm API - v2.0
-    # path('api/simple_swarm/', include('cards.simple_api_urls')),  # SIMPLE Swarm API - DISABLED (needs MongoDB)
+    path('sitemap.xml', serve, {'path': 'sitemap.xml', 'document_root': os.path.join(settings.BASE_DIR, 'static')}),
 ]
 
 # Serve static files during development
