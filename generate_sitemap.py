@@ -75,16 +75,17 @@ def generate_sitemap():
                 'manaCost': 1
             }
         ).skip(skip).limit(batch_size))
-        
+
         for card in card_batch:
             try:
                 card_name = card.get('name', '').strip()
-                if not card_name:
+                card_uuid = card.get('uuid', '').strip()
+                
+                if not card_name or not card_uuid:
                     continue
                 
-                # Create URL-safe name (same logic as your card detail view)
-                url_name = card_name.lower().replace(' ', '-').replace("'", '').replace(',', '').replace(':', '').replace('/', '-')
-                card_url = urljoin(BASE_URL, f'cards/{url_name}/')
+                # Use UUID directly for URL
+                card_url = urljoin(BASE_URL, f'card/{card_uuid}/')
                 
                 # Create URL element
                 url_elem = ET.SubElement(urlset, 'url')
@@ -114,11 +115,21 @@ def generate_sitemap():
                 ET.SubElement(url_elem, 'changefreq').text = changefreq
                 ET.SubElement(url_elem, 'priority').text = priority
                 
-                # Add image information if available
-                image_elem = ET.SubElement(url_elem, 'image:image')
-                ET.SubElement(image_elem, 'image:loc').text = f"https://cards.scryfall.io/normal/front/{card.get('uuid', '')[:1]}/{card.get('uuid', '')[:2]}/{card.get('uuid', '')}.jpg"
-                ET.SubElement(image_elem, 'image:title').text = card_name
-                ET.SubElement(image_elem, 'image:caption').text = f"MTG Card: {card_name}"
+                # # Add image information if available
+                # image_elem = ET.SubElement(url_elem, 'image:image')
+                
+                # # Use the actual imageUris.normal from the card data
+                # image_uris = card.get('imageUris', {})
+                # normal_image_url = image_uris.get('normal')
+                
+                # if normal_image_url:
+                #     ET.SubElement(image_elem, 'image:loc').text = normal_image_url
+                # else:
+                #     # Fallback to constructed URL if imageUris.normal doesn't exist
+                #     ET.SubElement(image_elem, 'image:loc').text = f"https://cards.scryfall.io/normal/front/{card_uuid[:1]}/{card_uuid[:2]}/{card_uuid}.jpg"
+                
+                # ET.SubElement(image_elem, 'image:title').text = card_name
+                # ET.SubElement(image_elem, 'image:caption').text = f"MTG Card: {card_name}"
                 
                 processed += 1
                 
