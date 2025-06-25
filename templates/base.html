@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta name="google-adsense-account" content="ca-pub-8738029041920664">
-    
+
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-C31PLCKZSC"></script>
     <script>
@@ -19,7 +19,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="-1">
     <meta name="cache-bust" content="20250622-231500">
-    <title>{% block title %}EMTEEGEE - MTG Card Analysis{% endblock %}</title>
+    <title>{% block title %}MTGAbyss - MTG Card Analysis{% endblock %}</title>
     
     <!-- Favicon -->
     {% load static %}
@@ -43,7 +43,7 @@
         <div class="container">
             <a class="navbar-brand" href="{% url 'cards:home' %}">
                 <i class="bi bi-gem"></i>
-                <strong>EMTEEGEE</strong>
+                <strong>MTG Abyss</strong>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                     aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -51,11 +51,11 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
+                    <!-- <li class="nav-item">
                         <a class="nav-link" href="{% url 'cards:enhanced_search' %}">
                             <i class="bi bi-search-heart"></i> Search
                         </a>
-                    </li>
+                    </li> -->
                     <!-- The Abyss is a placeholder for the main card browsing page.
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'cards:the_abyss' %}">
@@ -71,18 +71,18 @@
                          
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'cards:art_gallery' %}">
-                            <i class="bi bi-palette"></i> Card Art
+                            <i class="bi bi-palette"></i> Art Gallery
                         </a>
                     </li>
                 </ul>
                 <!-- Quick Search form -->
-                <form class="d-flex me-3" method="get" action="{% url 'cards:the_abyss' %}">
+                <!-- <form class="d-flex me-3" method="get" action="{% url 'cards:the_abyss' %}">
                     <input class="form-control me-2" type="search" name="q" placeholder="Search cards..."
                            value="{{ request.GET.q }}" style="width: 200px;">
                     <button class="btn btn-outline-light" type="submit">
                         <i class="bi bi-search"></i>
                     </button>
-                </form>
+                </form> -->
                 
                 <!-- User authentication features not yet implemented
                 <ul class="navbar-nav">
@@ -137,8 +137,8 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-6">
-                    <h5>EMTEEGEE</h5>
-                    <p>AI-powered Magic: The Gathering card analysis and deck building platform.</p>
+                    <h5>MTGAbyss</h5>
+                    <p>AI-powered Magic: The Gathering card analysis platform.</p>
                 </div>
                 <div class="col-md-6">
                     <div class="row">

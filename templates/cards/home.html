@@ -260,7 +260,7 @@
 <!-- Hero Section with Live Statistics -->
 <div class="hero-section">
     <div class="container">
-        <h1 class="hero-title">EMTEEGEE</h1>
+        <h1 class="hero-title">MTGAbyss</h1>
         <p class="hero-subtitle">AI-Powered Magic: The Gathering Card Analysis</p>
           {% if statistics %}        <div class="stats-grid">
             <div class="stat-card">
@@ -271,13 +271,13 @@
                 <div class="stat-number">{{ statistics.fully_analyzed }}</div>
                 <div class="stat-label">Fully Analyzed</div>
             </div>
-            <div class="stat-card">
+            <!-- <div class="stat-card">
                 <div class="stat-number">{{ statistics.in_process|default:"0" }}</div>
                 <div class="stat-label">In Process</div>
             </div>            <div class="stat-card highlight">
                 <div class="stat-number">{{ statistics.analyzed_today|default:"0" }}</div>
                 <div class="stat-label">Analyzed Today</div>
-            </div>
+            </div> -->
         </div>
         {% endif %}
     </div>
@@ -317,18 +317,19 @@
             {% endfor %}        </div>
         
         <!-- View More Section -->
-        <div class="view-more-section">
+        <!-- <div class="view-more-section">
             <h3>Discover More Cards</h3>
             <p>Explore our vast collection of Magic cards with advanced search and filtering</p>
             <a href="{% url 'cards:the_abyss' %}" class="view-more-btn">
                 <i class="bi bi-compass"></i> Explore The Abyss
             </a>
-        </div>
+        </div> -->
     {% else %}
         <div class="no-cards-message">
             <h3>No fully analyzed cards yet</h3>
             <p>Cards are being analyzed continuously. Check back soon!</p>
-        </div>    {% endif %}
+        </div>    
+    {% endif %}
 </div>
 
 <script>
